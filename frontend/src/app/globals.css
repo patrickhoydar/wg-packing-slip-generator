@@ -24,3 +24,98 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom styles for drag and drop */
+.drop-zone {
+  transition: all 0.2s ease;
+}
+
+.drop-zone:hover {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* Print Styles */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  /* Hide sidebar in print */
+  .page-wrapper > *:first-child {
+    display: none !important;
+  }
+  
+  /* Show only preview content */
+  .page-wrapper {
+    display: block !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+  
+  .page-wrapper > *:last-child {
+    flex: none !important;
+    width: 100% !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure preview panel takes full width with no extra spacing */
+  .preview-panel {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    flex: none !important;
+  }
+  
+  /* Remove all container padding and centering */
+  .preview-panel > div {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .preview-panel > div > div {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Keep the exact same styling for packing slip */
+  .packing-slip-container {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Match the UI padding exactly */
+  .packing-slip-content {
+    padding: 2rem !important;
+  }
+  
+  @page {
+    margin: 0;
+    size: letter;
+  }
+}
