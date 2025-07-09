@@ -1,15 +1,13 @@
-import { useState } from 'react';
-
 interface SidebarProps {
   children: React.ReactNode;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-export default function Sidebar({ children }: SidebarProps) {
-  const [activeTab, setActiveTab] = useState('elements');
-
+export default function Sidebar({ children, activeTab = 'elements', onTabChange }: SidebarProps) {
   const tabs = [
     { id: 'elements', label: 'Elements', icon: '🧩' },
-    { id: 'data', label: 'Data', icon: '📊' },
+    { id: 'customers', label: 'Customers', icon: '👥' },
     { id: 'settings', label: 'Settings', icon: '⚙️' }
   ];
 
@@ -23,7 +21,7 @@ export default function Sidebar({ children }: SidebarProps) {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => onTabChange?.(tab.id)}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
