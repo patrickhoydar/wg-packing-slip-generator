@@ -90,3 +90,6 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+*.env.development
+*.env.production
+*.env.staging
