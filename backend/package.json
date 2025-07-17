@@ -25,6 +25,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@tailwindcss/typography": "^0.5.16",
     "@types/multer": "^2.0.0",
+    "csv-parse": "^6.1.0",
     "csv-parser": "^3.2.0",
     "jszip": "^3.10.1",
     "multer": "^2.0.1",

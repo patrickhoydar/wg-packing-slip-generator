@@ -5,6 +5,8 @@ export interface ParsedCustomerData {
     columns: string[];
     customerCode: string;
     uploadedAt: Date;
+    fileType?: string;
+    [key: string]: any;
   };
 }
 
@@ -21,19 +23,48 @@ export interface CustomerKit {
   customerCode: string;
   recipient: {
     name: string;
+    company?: string;
     email: string;
     address: {
       street: string;
+      street2?: string;
       city: string;
       state: string;
       zipCode: string;
       country?: string;
     };
   };
+  sender?: {
+    company: string;
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+  };
+  billing?: {
+    company: string;
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+  };
+  shipping?: {
+    service: string;
+    weight?: number;
+    packageCount?: number;
+    isResidential: boolean;
+    account?: string;
+  };
   items: CustomerKitItem[];
   metadata: {
     originalRowIndex: number;
     customFields: Record<string, any>;
+    orderReference?: string;
+    sequenceNumber?: string;
     shippingMethod?: string;
     specialInstructions?: string[];
   };
@@ -45,7 +76,7 @@ export interface CustomerKitItem {
   name: string;
   description: string;
   quantity: number;
-  category: 'seed-guide' | 'collateral' | 'other';
+  category: 'posters-eng' | 'posters-spa' | 'inserts' | 'guides-eng' | 'guides-spa' | 'envelopes' | 'cards' | 'seed-guide' | 'collateral' | 'other';
   customProperties?: Record<string, any>;
 }
 

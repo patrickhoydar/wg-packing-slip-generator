@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
+import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
 import * as JSZip from 'jszip';
@@ -10,6 +11,7 @@ export class CustomersService implements OnModuleInit {
   constructor(
     private readonly strategyFactory: CustomerStrategyFactory,
     private readonly hhGlobalStrategy: HHGlobalStrategy,
+    private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
     private readonly pdfService: PdfService,
     private readonly fileBasedPdfService: FileBasedPdfService
   ) {}
@@ -17,6 +19,7 @@ export class CustomersService implements OnModuleInit {
   onModuleInit() {
     // Register all available strategies
     this.strategyFactory.registerStrategy('HH_GLOBAL', this.hhGlobalStrategy);
+    this.strategyFactory.registerStrategy('GEORGIA_BAPTIST', this.georgiaBaptistStrategy);
   }
 
   async getAvailableStrategies() {
@@ -117,11 +120,12 @@ export class CustomersService implements OnModuleInit {
         shippingDate: new Date().toISOString().split('T')[0],
         status: 'processing',
         customer: {
-          id: kit.recipient.email,
+          id: kit.recipient.email || kit.id,
           name: kit.recipient.name,
+          company: kit.recipient.company,
           email: kit.recipient.email,
           phone: '',
-          billingAddress: kit.recipient.address,
+          billingAddress: kit.billing?.address || kit.recipient.address,
           shippingAddress: kit.recipient.address
         },
         items: kit.items.map((item, index) => ({

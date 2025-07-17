@@ -4,6 +4,7 @@ import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
+import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
 import { PdfMergerService } from '../pdf/pdf-merger.service';
@@ -35,6 +36,7 @@ import { ConcurrencyService } from '../common/services/concurrency.service';
     CustomersService,
     CustomerStrategyFactory,
     HHGlobalStrategy,
+    GeorgiaBaptistStrategy,
     PdfService,
     FileBasedPdfService,
     PdfMergerService,

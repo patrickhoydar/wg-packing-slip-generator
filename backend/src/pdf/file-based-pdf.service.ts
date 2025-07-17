@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -34,8 +39,8 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
         '--disable-renderer-backgrounding',
         '--disable-backgrounding-occluded-windows',
         '--disable-ipc-flooding-protection',
-        '--memory-pressure-off'
-      ]
+        '--memory-pressure-off',
+      ],
     });
 
     // Pre-compile templates and cache styles
@@ -104,14 +109,14 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
         </body>
       </html>
     `;
-    
+
     this.logger.log('Templates precompiled and cached');
   }
 
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
     const sessionId = `${customerCode}-${Date.now()}`;
     const tempDir = path.join(os.tmpdir(), 'wg-packing-slips', sessionId);
-    
+
     try {
       // Create temp directory
       await fs.promises.mkdir(tempDir, { recursive: true });
@@ -120,9 +125,9 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
       // Generate PDFs concurrently with limiter
       const browser = await this.browserPromise;
       const limiter = this.concurrencyService.createLimiter(5);
-      
-      const promises = kits.map((kit, index) => 
-        limiter.add(() => this.generateSinglePDF(browser, kit, tempDir, index))
+
+      const promises = kits.map((kit, index) =>
+        limiter.add(() => this.generateSinglePDF(browser, kit, tempDir, index)),
       );
 
       const pdfFiles = await Promise.all(promises);
@@ -148,10 +153,10 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
     browser: puppeteer.Browser,
     kit: any,
     tempDir: string,
-    index: number
+    index: number,
   ): Promise<string> {
     const page = await browser.newPage();
-    
+
     try {
       // Set viewport
       await page.setViewport({
@@ -162,10 +167,10 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
 
       // Generate HTML content
       const html = this.generatePackingSlipHtml(kit);
-      
+
       await page.setContent(html, {
         waitUntil: 'networkidle0',
-        timeout: 30000
+        timeout: 30000,
       });
 
       // Generate PDF
@@ -175,10 +180,10 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
           top: '0',
           right: '0',
           bottom: '0',
-          left: '0'
+          left: '0',
         },
         printBackground: true,
-        preferCSSPageSize: true
+        preferCSSPageSize: true,
       });
 
       // Save to temp file
@@ -203,7 +208,7 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
       const pdfBytes = await fs.promises.readFile(filePath);
       const pdf = await PDFDocument.load(pdfBytes);
       const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-      pages.forEach(page => mergedPdf.addPage(page));
+      pages.forEach((page) => mergedPdf.addPage(page));
     }
 
     const mergedPdfBytes = await mergedPdf.save();
@@ -220,7 +225,7 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       });
     };
 
@@ -239,7 +244,7 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
       <div class="mb-6">
         <div class="flex items-center justify-between mb-4">
           <div class="text-left">
-            <p class="text-sm text-gray-700">Job No: 205544 - HH Global</p>
+            <p class="text-sm text-gray-700">Job No: 205174: Georgia Baptist Mission Board - Mission Georgia Items & Distribution- 2025</p>
           </div>
         </div>
       </div>
@@ -249,6 +254,7 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
         <div>
           <h3 class="text-md font-bold text-black mb-3">Ship To:</h3>
           <div class="text-sm text-gray-800">
+            c<p class="font-medium">${kit.recipient.company}</p>
             <p class="font-medium">${kit.recipient.name}</p>
             <p>${kit.recipient.address.street}</p>
             <p>${kit.recipient.address.city}, ${kit.recipient.address.state} ${kit.recipient.address.zipCode}</p>
@@ -271,12 +277,16 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
               </tr>
             </thead>
             <tbody>
-              ${kit.items.map((item, index) => `
+              ${kit.items
+                .map(
+                  (item, index) => `
                 <tr class="${index % 2 === 1 ? 'bg-gray-50' : ''}">
                   <td class="border border-black px-4 py-2 text-sm text-black">${item.description}</td>
                   <td class="border border-black px-4 py-2 text-center text-sm text-black font-medium">${item.quantity}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </tbody>
           </table>
         </div>
@@ -287,19 +297,19 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
         </div>
       </div>
 
-      ${kit.metadata.specialInstructions ? `
-        <div class="mb-6 p-4 bg-gray-50 border border-gray-300">
-          <h4 class="text-sm font-medium text-gray-800 mb-2">Special Instructions:</h4>
-          <p class="text-sm text-gray-700">${kit.metadata.specialInstructions.join('<br>')}</p>
-        </div>
-      ` : ''}
+      ${
+        kit.metadata.specialInstructions
+          ? `
+
+      `
+          : ''
+      }
 
       <!-- Footer -->
       <div class="mt-8 pt-6 border-t border-gray-400">
         <div class="flex justify-between items-center text-sm text-gray-600">
           <div>
             <p>Generated on: ${formatDate(new Date().toISOString())}</p>
-            <p>Kit ID: ${kit.id}</p>
           </div>
           <div class="text-right">
             <p>Please verify all items before shipping</p>
