@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
+import { InquireEdStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
 import * as JSZip from 'jszip';
@@ -12,6 +13,7 @@ export class CustomersService implements OnModuleInit {
     private readonly strategyFactory: CustomerStrategyFactory,
     private readonly hhGlobalStrategy: HHGlobalStrategy,
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
+    private readonly inquireEdStrategy: InquireEdStrategy,
     private readonly pdfService: PdfService,
     private readonly fileBasedPdfService: FileBasedPdfService
   ) {}
@@ -20,6 +22,7 @@ export class CustomersService implements OnModuleInit {
     // Register all available strategies
     this.strategyFactory.registerStrategy('HH_GLOBAL', this.hhGlobalStrategy);
     this.strategyFactory.registerStrategy('GEORGIA_BAPTIST', this.georgiaBaptistStrategy);
+    this.strategyFactory.registerStrategy('INQUIRE_ED', this.inquireEdStrategy);
   }
 
   async getAvailableStrategies() {

@@ -254,7 +254,7 @@ export class FileBasedPdfService implements OnModuleInit, OnModuleDestroy {
         <div>
           <h3 class="text-md font-bold text-black mb-3">Ship To:</h3>
           <div class="text-sm text-gray-800">
-            c<p class="font-medium">${kit.recipient.company}</p>
+            <p class="font-medium">${kit.recipient.company}</p>
             <p class="font-medium">${kit.recipient.name}</p>
             <p>${kit.recipient.address.street}</p>
             <p>${kit.recipient.address.city}, ${kit.recipient.address.state} ${kit.recipient.address.zipCode}</p>

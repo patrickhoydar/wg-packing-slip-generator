@@ -24,7 +24,8 @@ export interface CustomerKit {
   recipient: {
     name: string;
     company?: string;
-    email: string;
+    email?: string;
+    phone?: string;
     address: {
       street: string;
       street2?: string;
@@ -76,7 +77,7 @@ export interface CustomerKitItem {
   name: string;
   description: string;
   quantity: number;
-  category: 'posters-eng' | 'posters-spa' | 'inserts' | 'guides-eng' | 'guides-spa' | 'envelopes' | 'cards' | 'seed-guide' | 'collateral' | 'other';
+  category: any;
   customProperties?: Record<string, any>;
 }
 
@@ -94,7 +95,7 @@ export interface CustomerBranding {
 export interface ICustomerStrategy {
   customerCode: string;
   displayName: string;
-  
+
   parseFile(fileBuffer: Buffer, filename: string): Promise<ParsedCustomerData>;
   validateData(data: ParsedCustomerData): Promise<ValidationResult>;
   generateKits(data: ParsedCustomerData): Promise<CustomerKit[]>;
@@ -110,7 +111,10 @@ export interface ICustomerStrategy {
     requiredColumns: string[];
     sampleData?: any;
   };
-  processFile(fileBuffer: Buffer, filename: string): Promise<{
+  processFile(
+    fileBuffer: Buffer,
+    filename: string,
+  ): Promise<{
     kits: CustomerKit[];
     validation: ValidationResult;
     metadata: any;

@@ -1,0 +1,177 @@
+﻿District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-NAVIG-SP-0100,IND-IJ-PM-MYTEAM-EN-0200,IND-IJ-PM-MYTEAM-SP-0200,IND-IJ-PM-PASTF-EN-0300,IND-IJ-PM-PASTF-SP-0300,IND-IJ-PM-FAMLF-EN-0400,IND-IJ-PM-FAMLF-SP-0400,IND-IJ-PM-LOCAT-EN-0500,IND-IJ-PM-LOCAT-SP-0500,IND-IJ-PM-CIVIC-EN-0600,IND-IJ-PM-CIVIC-SP-0600,IND-IJ-PM-NEEDS-EN-0700,IND-IJ-PM-NEEDS-SP-0700,IND-IJ-PM-LAND-EN-0800,IND-IJ-PM-LAND-SP-0800,IND-IJ-PM-INNOV-EN-0900,IND-IJ-PM-INNOV-SP-0900,IND-IJ-PM-GLOBAL-EN-1000,IND-IJ-PM-GLOBAL-SP-1000,IND-IJ-PM-MIGRA-EN-1100,IND-IJ-PM-MIGRA-SP-1100,IND-IJ-PM-CIVRT-EN-1200,IND-IJ-PM-CIVRT-SP-1200,IND-IJ-PM-NATRES-EN-1300,IND-IJ-PM-NATRES-SP-1300,IND-IJ-PM-OURST-EN-1400,IND-IJ-PM-OURST-SP-1400,IND-IJ-PM-ECON-EN-1500,IND-IJ-PM-ECON-SP-1500,IND-IJ-PM-NATAM-EN-1600,IND-IJ-PM-NATAM-SP-1600,IND-IJ-PM-COLO-EN-1700,IND-IJ-PM-COLO-SP-1700,IND-IJ-PM-AMREV-EN-1800,IND-IJ-PM-AMREV-SP-1800,IND-IJ-PM-RIGHTS-EN-1900,IND-IJ-PM-RIGHTS-SP-1900,Fall 2025 Earliest Delivery Date,Appointment Required?
+"""Aspen Academy, CO""",No,Yes,Monday - Friday,8 am - 4 pm,"5859 S University Blvd
+Greenwood Village, CO 80121",Lauren Szczesny,lauren.szczesny@aspenacademy.org,,,38,"2, K",,"2, K",,"2, K",,"2, 1",,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 2",,"2, 3",,"2, 3",,"2, 3",,"2, 4",,"2, 4",,"2, 4",,"2, 5",,"2, 5",,"2, 5",,"2, 5",,,
+"""San Manuel Band of Mission Indians, CA""",Yes,Yes,M-F,4-Sep,"26569 Community Center Dr.
+Highland, CA 92346",Elizabeth Zamora,elizabeth.zamora@sanmanuel-nsn.gov,,,6,"1, K",,"1, K",,"1, K",,"1, 1",,"1, 1",,"1, 1",,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"""Yonkers Public Schools, NY: Yonkers Montessori Academy """,Yes,,M-F,,"160 Woodlawn Ave
+Yonkers, NY 10704",Sandra Martinez ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8540,Loading dock for this address is behind the building on Hyatt Avenue.,46,,,,,,,,,,,,,,,,,,,"5, 3",,"5, 3",,"4, 5",,"4, 5",,"5, 4",,"5, 3",,"4, 5",,"5, 4",,"5, 4",,"4, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: School 5""",No,,M-F,,"118 Lockwood Ave
+Yonkers, NY 10701",Idamaris Melendez ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8320,Call before delivery is made,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Cesar E. Chavez School""",Yes,,M-F,,"20 Cedar Pl
+Yonkers, NY 10705",Dr. Layton-Robinson ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8969,POWER JACK,33,,,,,,,,,,,,,,,,,,,"4, 3",,"4, 3",,"3, 5",,"3, 5",,"3, 4",,"4, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Ella Fitzgerald Academy""",No,,M-F,,"77 Park Hill Ave
+Yonkers, NY 10701",Alfreiny Stengel-Curbelo ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8420,Work out with the contact.,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: William Boyce Thompson School""",No,,M-F,,"1061 North Broadway
+Yonkers , NY 10701",Selena Torres ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8563,Look for door #1,24,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"2, 4",,"2, 3",,"3, 5",,"2, 4",,"2, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Patricia A Dichiaro School""",No,,M-F,,"373 Bronxville Rd
+Yonkers, NY 10708",Angela Mancini ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8565,,33,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"4, 4",,"3, 3",,"3, 5",,"4, 4",,"4, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Justice Sonia Sotomayor Community School""",Yes,,M-F,,"121 McLean Ave
+Yonkers, NY 10705",George Fareri ,SCOURTNEY@yonkerspublicschools.org,(914) 382-2427,Pallets must be brought to cafeteria,21,,,,,,,,,,,,,,,,,,,"2, 3","1, 3","2, 3","1, 3","1, 5",,"3, 5","1, 5","3, 4","1, 4",,,"3, 5","1, 5","3, 4","1, 4","1, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Las Hermanas Mirabel""",No,,M-F,,"195 McLean Ave
+Yonkers, NY 10705",Alexander Garita,SCOURTNEY@yonkerspublicschools.org,(914) 376-8335,We do not have a standard loading dock but delivery can be made through the staff parking lot through the double gym doors (flat area). Delivery is preferred when School is closed for children for Spring Recess April 3 to April 6; custodians will be in attendance.,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Rosemarie Ann Siragusa School""",No,,M-F,,"60 Crescent Pl
+Yonkers, NY 10704",John DeMeo,SCOURTNEY@yonkerspublicschools.org,(914) 376-8570,"NO LOADING DOCK 
+ UNLOAD ON VILLA AVENUE DRIVEWAY",30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Paideia School 15""",Yes,,M-F,,"175 Westchester Ave
+Yonkers, NY 10707",Christina Martin,SCOURTNEY@yonkerspublicschools.org,(914) 376-8645,Please have the driver go to the Loading Dock in the Staff Parking Lot on the Manhattan Avenue side of the school,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: School 16""",No,,M-F,,"759 North Broadway
+Yonkers, NY 10701",Ronald Bannister,SCOURTNEY@yonkerspublicschools.org,(914) 376-8340,Please go behind the main building inside the playground for delivery.,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: School 17""",No,,M-F,,"745 Midland Ave
+Yonkers, NY 10704",Jonathan Cartica,SCOURTNEY@yonkerspublicschools.org,(914) 319-5751,There are stairs so this job will require two people and a way to maneuver through the front stairs on Midland Avenue. Delivery people need to bring boxes inside the building,27,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"3, 4",,"2, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Eugenio Maria de Hostos """,Yes,,M-F,,"75 Morris St
+Yonkers, NY 10705",Kimberly O'Connell ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8430,Delivery entrance is off Riverdale Ave facing North behind the building,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: School 21""",No,,M-F,,"100 Lee Ave
+Yonkers, NY 10705",Karla Rivera ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8435,No loading dock. Please call before arriving to the front of the building.,20,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"2, 5",,"2, 5",,"2, 4",,"2, 3",,"2, 5",,"2, 4",,"2, 4",,"2, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: School 22""",Yes,,M-F,,"1408 Nepperhan Ave
+Yonkers, NY 10703","Frankie Reiss, ",SCOURTNEY@yonkerspublicschools.org,(914) 376-8440,Books should be delivered to door 3 on the Nepperhan Side,27,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"3, 4",,"2, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: School 23""",No,,M-F,,"56 Van Cortlandt Park Ave
+Yonkers, NY 10701",Michael Walpole ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8445,"Delivery should be made to the front of the building, Custodian will show where books should be transported to.",24,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"2, 4",,"2, 3",,"3, 5",,"2, 4",,"2, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Paideia School 24""",No,,M-F,9 - 2:15,"50 Colin St
+Yonkers, NY 10701",Minerva or Dottie,SCOURTNEY@yonkerspublicschools.org,(914) 376-8640,"Depending on the time of delivery, our office hours are from 8:00 am to 3:30 pm (best time to deliver is after 9:00 am) when school buses are gone and before 2:15 pm) If delivering late afternoon or evening hours, you would have to contact the night custodian directly.",24,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"2, 4",,"2, 3",,"3, 5",,"2, 4",,"2, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Casimir Pulaski School""",No,,M-F,,"150 Kings Cross 
+Yonkers, NY 10583",Mary Vezzuto,SCOURTNEY@yonkerspublicschools.org,(914) 376-8575,18 Wheel truck is not able to access parking lot to building,33,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"4, 4",,"3, 3",,"3, 5",,"4, 4",,"4, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Montessori School 27""",No,,M-F,,"132 Valentine Ln
+Yonkers,NY 10705",Peter Blasko 914/376-8455,SCOURTNEY@yonkerspublicschools.org,(914) 376-8455,"Entrance for drop off will be on the side of the buildng on Abeel Street, NOT the main entrance on Valentine Lane",30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Kahlil Gibran School""",No,,M-F,,"18 Rosedale Rd
+Yonkers,NY 10710",Jessenia Quirindongo ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8580,Delivery must come to the ramp on Rosedale Road,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: School 29""",No,,M-F,9:30-1:30,"47 Croydon Rd 
+Yonkers, NY 10710",Brenda Quirindongo ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8585,Delivery time only between 9:00am-1:30pm,40,,,,,,,,,,,,,,,,,,,"4, 3",,"4, 3",,"4, 5",,"4, 5",,"4, 4",,"4, 3",,"4, 5",,"4, 4",,"4, 4",,"4, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: School 30""",No,,M-F,8:45-?,"30 Nevada Pl 
+Yonkers, NY 10708",Marie York,SCOURTNEY@yonkerspublicschools.org,(914) 376-8590,"School buses depart by 8:45am, so delivery should be after that time.
+ Please call the main office to have the truck buzzed in through our front gate.",30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Montessori School 31""",No,,M-F,,"7 Ravenswood Rd
+Yonkers, NY 10710",Vanessa Valladares ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8623,,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Family School 32""",No,,M-F,,"1 Montclair Pl
+Yonkers, NY 10710",Diane Ferrara ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8595,"Please deliver to back of school building, call before arriving",24,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"3, 5",,"3, 5",,"2, 4",,"2, 3",,"3, 5",,"2, 4",,"2, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: MLK Jr. """,Yes,,M-F,,"135 Locust Hill Ave
+Yonkers, NY 10701",Antoinette Robinson ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8470,Please call before delivery,30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: Cross Hill Academy""",Yes,,M-F,8 am - 1 pm,"160 Bolmer Ave
+Yonkers, NY 10701","Ms. Medina, Tannia ",SCOURTNEY@yonkerspublicschools.org,(914) 376-8300,"Delivery instructions are for the delivery person go to the loading dock at the back of the school building.
+ Delivery hours are only from 8:00 a.m. to 1:00 p.m.",30,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 5",,"3, 5",,"3, 4",,"3, 3",,"3, 5",,"3, 4",,"3, 4",,"3, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Enrico Fermi School""",Yes,,M-F,,"27 Poplar St
+Yonkers, NY 10701",Mrs. Yessenia Pena Gutierrez ,SCOURTNEY@yonkerspublicschools.org,914-376-8460 ext. 4517,,27,,,,,,,,,,,,,,,,,,,"3, 3","1, 3","3, 3","1, 3","1, 5",,"3, 5","1, 5","4, 4","1, 4","1, 3",,"3, 5","1, 5","4, 4","1, 4","2, 4",,"3, 5",,8/15/2025,Yes
+"""Yonkers Public Schools, NY: PEARLS Hawthorne School""",No,,M-F,,"105 Avondale Rd
+Yonkers, NY 10710",Cynthia Tavarez ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8250,"No loading dock, but the truck should deliver to the side entrance on Culver street since it has the ramp and double doors for the pallets.",44,,,,,,,,,,,,,,,,,,,"4, 3",,"4, 3",,"5, 5",,"5, 5",,"4, 4",,"4, 3",,"5, 5",,"4, 4",,"4, 4",,"5, 5",,8/15/2025,No
+"""Yonkers Public Schools, NY: Robert C Dodson School""",Yes,,M-F,7:30 -2:30,"105 Avondale Rd
+Yonkers, NY 10710",Stefanie Villavicencio ,SCOURTNEY@yonkerspublicschools.org,(914) 376-8159,Please ensure that deliveries are made between 7:30 AM and 2:30 PM on weekdays,24,,,,,,,,,,,,,,,,,,,"3, 3","1, 3","3, 3","1, 3","1, 5",,"3, 5","1, 5","3, 4","1, 4","1, 3",,"3, 5","1, 5","3, 4","1, 4","1, 4",,"3, 5",,8/15/2025,No
+"""Rio School District, CA: District Office""",No,Yes,M-F,4-Aug,"1800 Solar Drive, 3rd floor
+Oxnard, CA 93030",Lucy Arceo,larceo@rioschools.org,,,16,"1, K",,"1, K",,"1, K",,"1, 1",,"1, 1",,"1, 1",,"1, 2",,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,,,,,,,"1, 5",,"1, 5",,"1, 5",,"1, 5",,,
+"""Rio School District, CA: Rio del Sol""",No,Yes,M-F,8-3:30,"3001 N. Ventura Road
+Oxnard, CA 93036",Maria Torres,mtorres@rioschools.org,,,48,"3, K",,"3, K",,"3, K",,"3, 1",,"3, 1",,"3, 1",,"3, 2",,"3, 2",,"3, 2",,"3, 3",,"3, 3",,"3, 3",,,,,,,,"3, 5",,"3, 5",,"3, 5",,"3, 5",,,
+"""Rio School District, CA: Rio Real""",No,Yes,M-F,9-3:30,"1140 Kenney Street
+Oxnard, CA 93036",Liz Lopez,ilopez@rioschools.org,,,16,,"3, K",,"3, K",,"3, K",,"4, 1",,"4, 1",,"4, 1",,"3, 2",,"3, 2",,"3, 2",,"4, 3",,"4, 3",,"4, 3",,,,,,,"4, 5",,"4, 5",,"4, 5",,"4, 5",,,
+"""Rio School District, CA: Rio Plaza""",No,Yes,M-F,8-3:30,"600 Simon Way
+Oxnard, CA 93036",Nora Alfaro,nalfaro@rioschools.org,,,12,,"4, K",,"4, K",,"4, K",,"3, 1",,"3, 1",,"3, 1",,"3, 2",,"3, 2",,"3, 2",,"3, 3",,"3, 3",,"3, 3",,,,,,,"3, 5",,"3, 5",,"3, 5",,"3, 5",,,
+"""Rio School District, CA: Rio Lindo""",No,Yes,M-F,8-3:30,"2131 Snow Avenue
+Oxnard, CA 93036",Julianna Alfaro,jalfaro@rioschools.org,,,54,"4, K",,"4, K",,"4, K",,"4, 1",,"4, 1",,"4, 1",,"3, 2",,"3, 2",,"3, 2",,"3, 3",,"3, 3",,"3, 3",,,,,,,,"3, 5",,"3, 5",,"3, 5",,"3, 5",,,
+"""Rio School District, CA: Rio del Norte""",No,Yes,M-F,9-3:30,"2500 Lobelia Avenue
+Oxnard, CA 93036",Elena Ramirez,eramirez@rioschools.org,,,67,"4, K",,"4, K",,"4, K",,"4, 1",,"4, 1",,"4, 1",,"5, 2",,"5, 2",,"5, 2",,"4, 3",,"4, 3",,"4, 3",,,,,,,,"4, 5",,"4, 5",,"4, 5",,"4, 5",,,
+"""Rio School District, CA: Rio del Mar""",No,Yes,M-F,9-3:30,"3150 Thames River Drive
+Oxnard, CA 93036",Betty Gonzalez,bgonzalez@rioschools.org,,,51,"4, K",,"4, K",,"4, K",,"3, 1",,"3, 1",,"3, 1",,"3, 2",,"3, 2",,"3, 2",,"3, 3",,"3, 3",,"3, 3",,,,,,,,"3, 5",,"3, 5",,"3, 5",,"3, 5",,,
+"""Rio School District, CA: Rio Rosales""",No,Yes,M-F,9-3:30,"1001 Kohala Street
+Oxnard, CA 93036",Rubi De La Virgen,rdelavirgen@rioschools.org,,,76,"6, K",,"6, K",,"6, K",,"5, 1",,"5, 1",,"5, 1",,"5, 2",,"5, 2",,"5, 2",,"4, 3",,"4, 3",,"4, 3",,,,,,,,"4, 5",,"4, 5",,"4, 5",,"4, 5",,,
+"""Coon Rapids-Bayard, MN""",No,Yes,M-F,3-Aug,"905 North Street
+Coon Rapids, IA 50058",Kelly Sigler,kelly.sigler@crbcrusaders.org,,,19,"1, K",,"1, K",,"1, K",,"1, 1",,"1, 1",,"1, 1",,"1, 2",,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,"1, 4",,"1, 4",,"1, 4",,"1, 5",,"1, 5",,"1, 5",,"1, 5",,,
+"""Elmhurst School District 205, IL""",Yes,Yes,"M-Th 9-3, F 9-12",see days,"355 W St Charles Rd
+Elmhurst, IL 60126",Nicholas Stoyas,dlynch@elmhurst205.org,,,156,"12, K",,"12, K",,,,"12, 1",,"12, 1",,,,,,"12, 2",,"12, 2",,"12, 3",,"12, 3",,"12, 3",,"12, 4",,"12, 4",,,,,,"12, 5",,"12, 5",,,,,
+"""Upshur County Schools, WV""",Yes,Yes,M-F,3-Jul,"167 Gawthrop Road
+Buckhannon, WV 26201",Tristen Gray,ttgray@k12.wv.us,,,204,"12, K",,"12, K",,"12, K",,"12, 1",,"12, 1",,"12, 1",,"12, 2",,"12, 2",,"12, 2",,"12, 3",,,,"12, 3",,"12, 4",,,,"12, 3",,"12, 3",,"12, 4",,"12, 4",,"12, 4",,,
+"""Jefferson County Public Schools, KY""",Yes,Yes,M-F,3-Sep,"3301 Stober Road, Louisville, KY 40213",Terese Dodge,terese.dodge@jefferson.kyschools.us,,,76,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"38, 5",,"38, 5",,,,,
+"""Southeast of Saline Unified School District 306, KS""",Yes,Yes,Monday-Friday,8 am - 4 pm,"5056 E. K-4 Highway
+Gypsum, KS 67448",Lori Esch,accounting@usd306.org,,,16,,,,,,,,,,,,,,,,,,,"3, 3",,"3, 3",,"3, 3",,"1, 4",,"1, 4",,"1, 4",,"1, 5",,"1, 5",,"1, 5",,"1, 5",,,
+"""Maywood School District 89, IL""",No,Yes,M-F,3-Sep,"1138 S 8th Ave
+Maywood, IL 60153",Brandy Bolden,brandy.bolden@maywood89.org,,,164,,,,,,,,,,,,,,,,,,,"15, 3",,"15, 3",,"15, 3",,"17, 4",,"17, 4",,"17, 4",,"17, 5",,"17, 5",,"17, 5",,"17, 5",,,
+"""Christian Heritage Academy, IL""",Yes,Yes,M-F,9-3:30,"315 Waukeage Road
+Northfield, IL 60093",Sheri Scalero,sscalero@christianheritage.org,,,38,"2, K",,"2, K",,"2, K",,"2, 1",,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 2",,"2, 3",,"2, 3",,"2, 3",,"2, 4",,"2, 4",,"2, 4",,"2, 5",,"2, 5",,"2, 5",,"2, 5",,,
+"""San Francisco Unified School District, CA: District Office""",No,No,M-F,2-Oct,"750 25th Avenue
+San Francisco, CA 94121",Maria Elena Romero,romerom@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""Batavia Public School District 101, IL""",Yes,Yes,M-TH,2-Aug,"804 Main St.
+Batavia, IL 60510",Lisa Leiferman,lisa.leiferman@bps101.net,,,16,,,,,,,"1, 1",,"1, 1",,"1, 1",,"1, 2",,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,"1, 4",,"1, 4",,"1, 4",,"1, 5",,"1, 5",,"1, 5",,"1, 5",,,
+"""West Aurora School District, IL""",No,Yes,M-F,4-Aug,"1877 W Downer Pl
+Aurora, IL 60506",Lindsay Hall,lindsay.hall@sd129.org,,,19,"1, K","1, K","1, K","1, K","1, K","1, K","1, 1","1, 1","1, 1","1, 1","1, 1","1, 1","1, 2","1, 2","1, 2","1, 2","1, 2","1, 2","1, 3","1, 3","1, 3","1, 3","1, 3","1, 3","1, 4","1, 4","1, 4","1, 4","1, 4","1, 4","1, 5","1, 5","1, 5","1, 5","1, 5","1, 5","1, 5","1, 5",,
+"""The New School, AR""",No,Yes,M-F,4-Aug,"2514 N. New School Place
+Fayetteville, AR 72703",Laura Apperson,laura.apperson@thenewschool.org,,,32,"2, K",,"2, K",,"2, K",,,,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 2",,"2, 3",,"2, 3",,"2, 3",,"2, 4",,"2, 4",,"2, 4",,"1, 5",,"1, 5",,"1, 5",,"1, 5",,,
+"""Prairie Seeds Academy, MN""",No,Yes,M-TH,2-Aug,"6200 W Broadway Ave N
+Brooklyn Park, MN 55428",Lindsey Mieras,lindsey.mieras@psak12.org,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 4",,"2, 5",,,,,,,,,
+"""Mission Grammar, MA""",No,Yes,"T, W, TH",2-Sep,"94 St. Alphonsus Street
+Boston, MA 02120",Caroline Jachym,Csliney@missiongrammar.org,,,18,"2, K",,"2, K",,"2, K",,"2, 1",,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 2",,,,,,,,,,,,,,,,,,,,,,,
+"""Betty Shabazz Academy, IL""",No,Yes,M-F,,"7823 S. Ellis Ave
+Chicago, IL 60619",Michelle Washington,mwashington@bsics.org,,,45,"3, K",,"3, K",,"3, K",,"2, 1",,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 2",,"2, 3",,"2, 3",,"2, 3",,"2, 4",,"2, 4",,"2, 4",,"3, 5",,"3, 5",,"3, 5",,"3, 5",,,
+"""San Francisco Unified School District, CA: Alamo Elementary""",No,No,M-F,2-Oct,"250 23rd Avenue
+San Francisco, 94121",Wang Han,hanw@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Argonne Elementary""",No,No,M-F,2-Oct,"680 18th Avenue
+San Francisco, 94121",Jennifer Schott,schottj@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Bessie Carmichael School""",No,No,M-F,2-Oct,"375 7th Street
+San Francisco, 94103",Jamie Santiago,santiagoj@sfusd.edu,,,6,,,,,,,"1, 2",,"1, 1",,"1, 1",,"1, 1",,"1, 2",,"1, 2",,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Bryant Elementary""",No,No,M-F,2-Oct,"2641 25th Street
+San Francisco, 94110",Alayne Coles,colesa@sfusd.edu,,,3,,,,,,,,,"1, 1",,"1, 1",,"1, 1",,,,,,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Chinese Immersion School at De Avila""",No,No,M-F,2-Oct,"1250 Waller Street
+San Francisco, 94117",Mia Yee,yeem@sfusd.edu,,,30,,,,,,,"3, 2",,"3, 1",,"3, 1",,"3, 1",,"3, 2",,"3, 2",,"2, 3",,"2, 3",,"2, 3",,,,,,,,"2, 5",,"2, 5",,"2, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Claire Lilienthal - Scott Campus""",No,No,M-F,2-Oct,"3630 Divisadero Street
+San Francisco, CA, 94123",Jasmine Kodelja,kodeljaj@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Flynn Elementary""",No,No,M-F,2-Oct,"3125 Cesar Chavez Street
+San Francisco, CA 94110",Tyler Woods,woodst@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Francis Scott Key""",No,No,M-F,2-Oct,"1530 43rd Avenue
+San Francisco, California 94122",Melissa Keadle,keadlem@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: George R. Moscone Elementary""",No,No,M-F,2-Oct,"2576 Harrison Street
+San Francisco, California 94110",Sarah Twiest,twiests@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Gordon J Lau Elementary""",No,No,M-F,2-Oct,"950 Clay Street
+San Francisco, California 94108",Nora Engel-Hall,engelhalln@sfusd.edu,,,9,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,"2, 5",,"2, 5",,"2, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Grattan Elementary""",No,No,M-F,2-Oct,"165 Grattan Street
+San Francisco, California 94117",Cate Walter,walterc@sfusd.edu,,,3,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Guadalupe Elementary""",No,No,M-F,2-Oct,"859 Prague Street
+San Francisco, California 94112",Kristy Feibus,feibusk@sfusd.edu,,,3,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Hillcrest Elementary""",No,No,M-F,2-Oct,"810 Silver Avenue
+San Francisco, California 94134",Patricia Theel,theelp@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Jose Ortega Elementary""",No,No,M-F,2-Oct,"400 Sargent Street
+San Francisco, California 94132",Paula Antram,antramp@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Junipero Serra Elementary""",No,No,M-F,2-Oct,"625 Holly Park Circle
+San Francisco, California 94110",Luis Novoa,novoal@sfusd.edu,,,6,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Lakeshore Alternative Elementary""",No,No,M-F,2-Oct,"220 Middlefield Drive
+San Francisco, California 94132",Carrie Goldberg,goldbergc@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Lawton Alternative K-8""",No,No,M-F,2-Oct,"1570 31st Avenue
+San Francisco, 94122",Rebecca Beltramo,beltramor@sfusd.edu,,,6,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Longfellow Elementary""",No,No,M-F,2-Oct,"755 Morse Street
+San Francisco, California 94112",Heidi Dobroff,dobroffh@sfusd.edu,,,3,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Monroe Elementary""",No,No,M-F,2-Oct,"260 Madrid Street
+San Francisco, California 94112",Telmo Vasquez,vasquezt@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: New Traditions Creative Arts""",No,No,M-F,2-Oct,"2049 Grove Street
+San Francisco, California 94117",Myra Quaddros,quadrosm@sfusd.edu,,,9,,,,,,,,,,,,,,,,,,,"2, 3",,"2, 3",,"2, 3",,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Paul Revere PK-8 School""",No,No,M-F,2-Oct,"555 Tompkins Avenue
+San Francisco, California 94110",Kelly Eastman,eastmank@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Peabody""",No,No,M-F,2-Oct,"251 6th Avenue
+San Francisco, California 94118",Mona Abdallah,abdallahm@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Rooftop School K-8 Mayeda Campus""",No,No,M-F,2-Oct,"500 Corbett Avenue
+San Francisco, California 94131",Starla Miller,millers2@sfusd.edu,,,6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"2, 5",,"2, 5",,"2, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Rosa Parks Elementary""",No,No,M-F,2-Oct,"1501 O'Farrell Street
+San Francisco, California 94115",Erin Inouye,inouye-hendrixe@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Sanchez Elementary""",No,No,M-F,2-Oct,"325 Sanchez Street
+San Francisco, California 94114",Marna Wolak,wolakm@sfusd.edu,,,6,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: SF Community School""",No,No,M-F,2-Oct,"125 Excelsior Avenue
+San Francisco, California 94112",Rebecca Weisz,weiszr@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Sheridan Elementary""",No,No,M-F,2-Oct,"431 Capitol Avenue
+San Francisco, California 94112",Karen Osher,osherk@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Sherman Elementary""",No,No,M-F,2-Oct,"1651 Union Street
+San Francisco, California 94123",Katherine Klein,kleink@sfusd.edu,,,21,,,,,,,"2, 2",,"2, 1",,"2, 1",,"2, 1",,"2, 2",,"2, 2",,"2, 3",,"2, 3",,"2, 3",,,,,,,,"1, 5",,"1, 5",,"1, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Starr King Elementary""",No,No,M-F,2-Oct,"1215 Carolina Street
+San Francisco, California 94107",Kara Whiston,whistonk@sfusd.edu,,,9,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,"2, 5",,"2, 5",,"2, 5",,,,8/4/2025,
+"""San Francisco Unified School District, CA: Sunset Elementary""",No,No,M-F,2-Oct,"1920 41st Avenue
+San Francisco, California 94116",Alison Finnegan Etcheverry,finnegana@sfusd.edu,,,3,,,,,,,,,"1, 1",,"1, 1",,"1, 1",,,,,,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Ulloa Elementary""",No,No,M-F,2-Oct,"2650 42nd Avenue
+San Francisco, California 94116",Jonathan Pong,pongj@sfusd.edu,,,9,,,,,,,"2, 2",,,,,,,,"2, 2",,"2, 2",,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Visitacion Valley Elementary""",No,No,M-F,2-Oct,"55 Schwerin Street
+San Francisco 94134",Anna Chan,chana5@sfusd.edu,,,3,,,,,,,,,,,,,,,,,,,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: West Portal Elementary""",No,No,M-F,2-Oct,"5 Lanox Way
+San Francisco, CA 94127",Shendi Xu,xus1@sfusd.edu,,,6,,,,,,,,,"2, 1",,"2, 1",,"2, 1",,,,,,,,,,,,,,,,,,,,,,,,,,8/4/2025,
+"""San Francisco Unified School District, CA: Yick Wo Alternative Elementary""",No,No,M-F,2-Oct,"2245 Jones Street
+San Francisco, CA 94133",Sandy Ma,mas@sfusd.edu,,,6,,,,,,,"1, 2",,,,,,,,"1, 2",,"1, 2",,"1, 3",,"1, 3",,"1, 3",,,,,,,,,,,,,,,,8/4/2025,
