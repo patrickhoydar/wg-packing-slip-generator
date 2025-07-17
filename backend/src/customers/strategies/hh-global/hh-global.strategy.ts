@@ -206,16 +206,17 @@ export class HHGlobalStrategy extends CustomerStrategy {
     const kitId = this.generateKitId(this.customerCode, rowIndex, timestamp);
     const items: CustomerKitItem[] = [];
 
-    // Add seed guides
+    // Add seed guides (columns A-H normal processing)
     SEED_GUIDE_COLUMNS.forEach((column, index) => {
       const quantity = this.parseNumber(row[column]);
       if (quantity > 0) {
         const stateName = this.extractStateName(column);
+        const sku = this.extractSKU(column);
         items.push({
           id: this.generateItemId(kitId, items.length),
-          sku: this.extractSKU(column),
+          sku: sku,
           name: `${stateName} Seed Guide`,
-          description: `Seed guide for ${stateName} region`,
+          description: `${stateName} ${sku}`,
           quantity,
           category: 'seed-guide',
           customProperties: {
@@ -226,7 +227,7 @@ export class HHGlobalStrategy extends CustomerStrategy {
       }
     });
 
-    // Add one pagers
+    // Add one pagers (columns V-AA special logic)
     ONE_PAGER_COLUMNS.forEach(({ name, qc }, index) => {
       const onePagerName = this.cleanString(row[name]);
       const qcNumber = this.cleanString(row[qc]);
@@ -234,10 +235,10 @@ export class HHGlobalStrategy extends CustomerStrategy {
       if (onePagerName) {
         items.push({
           id: this.generateItemId(kitId, items.length),
-          sku: qcNumber || `OP-${index + 1}`,
-          name: onePagerName,
-          description: `One pager collateral sheet`,
-          quantity: 1,
+          sku: '', // Remove SKU for one page documents
+          name: '', // Remove name for one page documents  
+          description: `${onePagerName} QC #${qcNumber}`,
+          quantity: 300, // Set quantity to 300 for all one page documents
           category: 'collateral',
           customProperties: {
             qcNumber,
@@ -254,13 +255,13 @@ export class HHGlobalStrategy extends CustomerStrategy {
       id: kitId,
       customerCode: this.customerCode,
       recipient: {
-        name: this.cleanString(row['Shipment too']) || 'Unknown Recipient',
-        email: this.cleanString(row['Recipient Email']) || '',
+        name: this.getColumnValue(row, 'Shipment too') || 'Unknown Recipient',
+        email: this.getColumnValue(row, 'Recipient Email') || '',
         address: {
-          street: this.cleanString(row['Address']),
-          city: this.cleanString(row['City']),
-          state: this.cleanString(row['State']),
-          zipCode: this.cleanString(row['Zip']),
+          street: this.getColumnValue(row, 'Address'),
+          city: this.getColumnValue(row, 'City'),
+          state: this.getColumnValue(row, 'State'),
+          zipCode: this.getColumnValue(row, 'Zip'),
           country: 'USA',
         },
       },
@@ -342,6 +343,26 @@ export class HHGlobalStrategy extends CustomerStrategy {
         estimatedCartons >= this.config.shippingRules.smallShipmentThreshold,
       instructions: kit.metadata.specialInstructions || [],
     };
+  }
+
+  private getColumnValue(row: any, columnName: string): string {
+    // Handle potential BOM characters and encoding issues
+    const cleanString = this.cleanString(row[columnName]);
+    if (cleanString) return cleanString;
+    
+    // Try to find the column by checking for variations
+    const keys = Object.keys(row);
+    const normalizedColumnName = columnName.toLowerCase().trim();
+    
+    for (const key of keys) {
+      const normalizedKey = key.toLowerCase().trim().replace(/\uFEFF/g, ''); // Remove BOM
+      if (normalizedKey === normalizedColumnName) {
+        return this.cleanString(row[key]);
+      }
+    }
+    
+    console.warn(`Column '${columnName}' not found in row. Available columns:`, keys);
+    return '';
   }
 
   getFileUploadInstructions() {

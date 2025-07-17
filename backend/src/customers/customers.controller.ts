@@ -88,10 +88,10 @@ export class CustomersController {
       
       const pdfBuffer = await this.customersService.generateBatchPDFs(customerCode, kits);
       
-      const filename = `${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.zip`;
+      const filename = `${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.pdf`;
       
       res.set({
-        'Content-Type': 'application/zip',
+        'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': pdfBuffer.length.toString(),
       });

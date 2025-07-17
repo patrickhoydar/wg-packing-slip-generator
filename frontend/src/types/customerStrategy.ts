@@ -5,7 +5,7 @@ export interface CustomerStrategy {
     acceptedFormats: string[];
     maxFileSize: number;
     requiredColumns: string[];
-    sampleData?: any;
+    sampleData?: Record<string, unknown>;
   };
 }
 
@@ -15,7 +15,7 @@ export interface UploadResult {
   data?: {
     kitsGenerated: number;
     validation: ValidationResult;
-    metadata: any;
+    metadata: Record<string, unknown>;
     kits: CustomerKit[];
   };
 }
@@ -45,7 +45,7 @@ export interface CustomerKit {
   items: CustomerKitItem[];
   metadata: {
     originalRowIndex: number;
-    customFields: Record<string, any>;
+    customFields: Record<string, unknown>;
     shippingMethod?: string;
     specialInstructions?: string[];
   };
@@ -58,5 +58,5 @@ export interface CustomerKitItem {
   description: string;
   quantity: number;
   category: 'seed-guide' | 'collateral' | 'other';
-  customProperties?: Record<string, any>;
+  customProperties?: Record<string, unknown>;
 }

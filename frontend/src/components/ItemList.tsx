@@ -15,35 +15,31 @@ export default function ItemList({ items, showPrices = false }: ItemListProps) {
 
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Items to Ship</h3>
+      <h3 className="text-md font-bold text-black mb-4">ORDER DETAILS</h3>
       
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
+        <table className="w-full border-collapse border border-black">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-900">SKU</th>
-              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-900">Item</th>
-              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-900">Description</th>
-              <th className="border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-900">Quantity</th>
+            <tr className="bg-gray-200">
+              <th className="border border-black px-4 py-2 text-left text-sm font-bold text-black">Description</th>
+              <th className="border border-black px-4 py-2 text-center text-sm font-bold text-black">Qty Ordered</th>
               {showPrices && (
                 <>
-                  <th className="border border-gray-300 px-4 py-2 text-right text-sm font-medium text-gray-900">Unit Price</th>
-                  <th className="border border-gray-300 px-4 py-2 text-right text-sm font-medium text-gray-900">Total</th>
+                  <th className="border border-black px-4 py-2 text-right text-sm font-bold text-black">Unit Price</th>
+                  <th className="border border-black px-4 py-2 text-right text-sm font-bold text-black">Total</th>
                 </>
               )}
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900 font-mono">{item.sku}</td>
-                <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900 font-medium">{item.name}</td>
-                <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">{item.description}</td>
-                <td className="border border-gray-300 px-4 py-2 text-center text-sm text-gray-900 font-medium">{item.quantity}</td>
+              <tr key={item.id} className="even:bg-gray-50">
+                <td className="border border-black px-4 py-2 text-sm text-black">{item.description}</td>
+                <td className="border border-black px-4 py-2 text-center text-sm text-black font-medium">{item.quantity}</td>
                 {showPrices && (
                   <>
-                    <td className="border border-gray-300 px-4 py-2 text-right text-sm text-gray-900">{formatPrice(item.unitPrice)}</td>
-                    <td className="border border-gray-300 px-4 py-2 text-right text-sm text-gray-900 font-medium">{formatPrice(item.totalPrice)}</td>
+                    <td className="border border-black px-4 py-2 text-right text-sm text-black">{formatPrice(item.unitPrice)}</td>
+                    <td className="border border-black px-4 py-2 text-right text-sm text-black font-medium">{formatPrice(item.totalPrice)}</td>
                   </>
                 )}
               </tr>
@@ -52,9 +48,9 @@ export default function ItemList({ items, showPrices = false }: ItemListProps) {
         </table>
       </div>
       
-      <div className="mt-4 text-sm text-gray-600">
-        <p>Total Items: {items.length}</p>
-        <p>Total Quantity: {items.reduce((sum, item) => sum + item.quantity, 0)}</p>
+      <div className="mt-4 text-sm text-gray-700">
+        <p><strong>Total Items:</strong> {items.length}</p>
+        <p><strong>Total Quantity:</strong> {items.reduce((sum, item) => sum + item.quantity, 0)}</p>
       </div>
     </div>
   );

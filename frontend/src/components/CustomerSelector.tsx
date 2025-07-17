@@ -123,20 +123,20 @@ export default function CustomerSelector({
             </li>
           </ul>
 
-          {selectedCustomer.instructions.sampleData?.specialNotes && (
+          {selectedCustomer.instructions.sampleData?.specialNotes && Array.isArray(selectedCustomer.instructions.sampleData.specialNotes) ? (
             <div className="mt-2 pt-2 border-t border-blue-200">
               <p className="text-xs font-medium text-blue-900 mb-1">
                 Special Notes:
               </p>
               <ul className="text-xs text-blue-700 space-y-1">
-                {selectedCustomer.instructions.sampleData.specialNotes.map(
-                  (note, index) => (
+                {(selectedCustomer.instructions.sampleData.specialNotes as string[]).map(
+                  (note: string, index: number) => (
                     <li key={index}>• {note}</li>
                   )
                 )}
               </ul>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>

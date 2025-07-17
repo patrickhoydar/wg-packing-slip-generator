@@ -31,6 +31,9 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
 
     setFile(selectedFile);
     setUploadResult(null);
+    
+    // Automatically process the file after selection
+    uploadFile(selectedFile);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -60,14 +63,15 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
     }
   };
 
-  const uploadFile = async () => {
-    if (!file || !customer) return;
+  const uploadFile = async (fileToUpload?: File) => {
+    const targetFile = fileToUpload || file;
+    if (!targetFile || !customer) return;
 
     setUploading(true);
     
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', targetFile);
 
       const response = await fetch(`http://localhost:3001/customers/${customer.customerCode}/upload`, {
         method: 'POST',
@@ -170,24 +174,19 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
               </div>
             </div>
             
-            <button
-              onClick={uploadFile}
-              disabled={uploading}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                uploading
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
+            <div className="flex items-center space-x-2">
               {uploading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Processing...</span>
+                <div className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
+                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  <span className="text-sm font-medium">Processing...</span>
                 </div>
               ) : (
-                'Process File'
+                <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                  <div className="w-4 h-4 text-green-600">✓</div>
+                  <span className="text-sm font-medium">Ready</span>
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
       )}

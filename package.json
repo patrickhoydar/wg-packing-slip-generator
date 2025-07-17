@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "Packing slip generator application for Wallace Graphics",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
@@ -38,5 +34,8 @@
     "typescript"
   ],
   "author": "Wallace Graphics",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "pdf-lib": "^1.17.1"
+  }
 }

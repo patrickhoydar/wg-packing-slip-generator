@@ -5,6 +5,9 @@ import { CustomersService } from './customers.service';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { PdfService } from '../pdf/pdf.service';
+import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
+import { PdfMergerService } from '../pdf/pdf-merger.service';
+import { ConcurrencyService } from '../common/services/concurrency.service';
 
 @Module({
   imports: [
@@ -32,7 +35,10 @@ import { PdfService } from '../pdf/pdf.service';
     CustomersService,
     CustomerStrategyFactory,
     HHGlobalStrategy,
-    PdfService
+    PdfService,
+    FileBasedPdfService,
+    PdfMergerService,
+    ConcurrencyService
   ],
   exports: [CustomersService, CustomerStrategyFactory]
 })
