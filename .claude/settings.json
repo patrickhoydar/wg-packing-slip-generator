@@ -1,7 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Write(*.ts)"
+      "Write(*.ts)",
+      "Write(*.md)",
+      "Write(*.html)",
+      "Write(*.css)",
+      "Write(*.js)",
+      "Write(*.json)",
+      "Write(*.yaml)",
+      "Write(*.yml)",
+      "Bash(npx create-next-app:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run build:*)",
+      "Bash(grep:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm test:*)",
+      "Bash(node:*)",
+      "Write(.claude/sessions/.current-session)"
     ],
     "deny": []
   }

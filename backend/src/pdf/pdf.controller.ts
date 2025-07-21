@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpStatus, Query } from '@nestjs/common';
 import { Response } from 'express';
 import { PdfService } from './pdf.service';
 
@@ -7,11 +7,21 @@ export class PdfController {
   constructor(private readonly pdfService: PdfService) {}
 
   @Post('generate-packing-slip')
-  async generatePackingSlip(@Body() packingSlipData: any, @Res() res: Response) {
+  async generatePackingSlip(
+    @Body() packingSlipData: any,
+    @Query('customerStrategy') customerStrategy: string = 'default',
+    @Res() res: Response,
+  ) {
     try {
-      const pdfBuffer = await this.pdfService.generatePackingSlipPdf(packingSlipData);
+      const pdfBuffer = await this.pdfService.generatePackingSlipPdf(
+        packingSlipData,
+        customerStrategy,
+      );
       
-      const filename = `packing-slip-${packingSlipData.order.orderNumber || 'document'}.pdf`;
+      // Include order type in filename if available
+      const orderType = packingSlipData.orderType || 'unknown';
+      const orderTypePrefix = orderType.toUpperCase();
+      const filename = `${orderTypePrefix}-packing-slip-${packingSlipData.order?.orderNumber || 'document'}.pdf`;
       
       res.set({
         'Content-Type': 'application/pdf',

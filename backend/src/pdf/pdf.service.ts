@@ -1,32 +1,117 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { Logger } from '@nestjs/common';
+import * as handlebars from 'handlebars';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { ConcurrencyService } from '../common/services/concurrency.service';
+import { PdfMergerService } from './pdf-merger.service';
+
+interface TemplateConfig {
+  templatePath: string;
+  stylesPath: string;
+}
+
+interface PdfRequest {
+  resolve: (value: Buffer) => void;
+  reject: (error: Error) => void;
+  data: any;
+  customerStrategy?: string;
+}
 
 @Injectable()
 export class PdfService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
-  private browser: puppeteer.Browser;
+  private browser: puppeteer.Browser | null = null;
   private browserInitialized = false;
   private initializationPromise: Promise<void>;
   private pagePool: puppeteer.Page[] = [];
   private readonly maxPoolSize = 3;
   private readonly maxConcurrency = 3;
   private currentConcurrency = 0;
-  private readonly pendingRequests: Array<{
-    resolve: (value: Buffer) => void;
-    reject: (error: Error) => void;
-    data: any;
-  }> = [];
-  private cachedBaseTemplate: string;
-  private cachedStyles: string;
+  private readonly pendingRequests: PdfRequest[] = [];
+
+  // Template caching
+  private readonly templateCache = new Map<string, handlebars.TemplateDelegate>();
+  private readonly stylesCache = new Map<string, string>();
+  private readonly templateConfigs = new Map<string, TemplateConfig>();
+
+  constructor(
+    private readonly concurrencyService: ConcurrencyService,
+    private readonly pdfMergerService: PdfMergerService,
+  ) {}
+
   async onModuleInit() {
     this.initializationPromise = this.initializeBrowser();
     await this.initializationPromise;
-    this.precompileTemplates();
+    this.setupTemplateConfigs();
+    this.registerHandlebarsHelpers();
+    await this.precompileTemplates();
   }
 
   async onModuleDestroy() {
+    this.logger.log('PdfService shutting down, cleaning up resources...');
     await this.cleanup();
+  }
+
+  private setupTemplateConfigs(): void {
+    const viewsDir = path.join(__dirname, '../../views');
+    
+    this.templateConfigs.set('default', {
+      templatePath: path.join(viewsDir, 'templates', 'default.hbs'),
+      stylesPath: path.join(viewsDir, 'styles', 'base.css'),
+    });
+
+    this.templateConfigs.set('georgia-baptist', {
+      templatePath: path.join(viewsDir, 'templates', 'georgia-baptist.hbs'),
+      stylesPath: path.join(viewsDir, 'styles', 'base.css'),
+    });
+
+    this.templateConfigs.set('inquire-ed', {
+      templatePath: path.join(viewsDir, 'templates', 'inquire-ed.hbs'),
+      stylesPath: path.join(viewsDir, 'styles', 'base.css'),
+    });
+  }
+
+  private async precompileTemplates(): Promise<void> {
+    this.logger.log('Pre-compiling templates...');
+
+    // Clear existing cache first (important for development hot reload)
+    this.templateCache.clear();
+    this.stylesCache.clear();
+
+    for (const [customerStrategy, config] of this.templateConfigs.entries()) {
+      try {
+        // Load and compile template
+        this.logger.log(`Loading template from: ${config.templatePath}`);
+        const templateContent = await fs.promises.readFile(config.templatePath, 'utf8');
+        const compiledTemplate = handlebars.compile(templateContent);
+        this.templateCache.set(customerStrategy, compiledTemplate);
+
+        // Load and cache styles
+        this.logger.log(`Loading styles from: ${config.stylesPath}`);
+        const stylesContent = await fs.promises.readFile(config.stylesPath, 'utf8');
+        this.stylesCache.set(customerStrategy, stylesContent);
+
+        this.logger.log(`Template cached for strategy: ${customerStrategy}`);
+      } catch (error) {
+        this.logger.error(`Failed to precompile template for ${customerStrategy}:`, error);
+        this.logger.error(`Template path: ${config.templatePath}`);
+        this.logger.error(`Styles path: ${config.stylesPath}`);
+      }
+    }
+
+    this.logger.log('Templates precompiled successfully');
+  }
+
+  private registerHandlebarsHelpers(): void {
+    // Register equality helper for conditional logic
+    handlebars.registerHelper('eq', function(a: any, b: any) {
+      return a === b;
+    });
+
+    this.logger.log('Handlebars helpers registered');
   }
 
   private async initializeBrowser(): Promise<void> {
@@ -64,97 +149,63 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   private async cleanup(): Promise<void> {
     if (this.browser) {
       try {
+        this.logger.log('Closing browser instance...');
+        // Close all pages first
+        const pages = await this.browser.pages();
+        for (const page of pages) {
+          try {
+            await page.close();
+          } catch (error) {
+            this.logger.warn('Error closing page:', error);
+          }
+        }
+        // Close browser
         await this.browser.close();
+        this.logger.log('Browser instance closed successfully');
       } catch (error) {
         this.logger.warn('Error closing browser:', error);
+        // Force kill if needed
+        try {
+          this.browser.process()?.kill('SIGKILL');
+        } catch (killError) {
+          this.logger.warn('Error force killing browser:', killError);
+        }
       }
       this.browserInitialized = false;
-      this.logger.log('Browser instance closed');
+      this.browser = null;
     }
+    
+    // Clear caches
+    this.pagePool = [];
+    this.templateCache.clear();
+    this.stylesCache.clear();
+    this.pendingRequests.length = 0;
+    this.currentConcurrency = 0;
+    
+    this.logger.log('All resources cleaned up');
   }
 
   private async recoverBrowser(): Promise<void> {
     this.logger.log('Attempting browser recovery...');
 
-    // Clear page pool
-    this.pagePool = [];
+    // Full cleanup first
+    await this.cleanup();
 
-    // Close existing browser if it exists
-    if (this.browser) {
-      try {
-        await this.browser.close();
-      } catch (error) {
-        this.logger.warn('Error closing browser during recovery:', error);
-      }
-    }
+    // Wait a moment for cleanup to complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Reinitialize browser
     await this.initializeBrowser();
     this.logger.log('Browser recovery completed');
   }
 
-  private precompileTemplates(): void {
-    this.cachedStyles = `
-      <style>
-        * {
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-        }
-        
-        body {
-          margin: 0;
-          padding: 0;
-          background: white;
-          color: black;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-        
-        .packing-slip-container {
-          max-width: none;
-          margin: 0;
-          padding: 0;
-          box-shadow: none;
-          background: white;
-          border-radius: 0;
-        }
-        
-        .packing-slip-content {
-          padding: 2rem;
-        }
-        
-        @page {
-          margin: 0;
-          size: letter;
-        }
-      </style>
-    `;
-
-    this.cachedBaseTemplate = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Packing Slip</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          ${this.cachedStyles}
-        </head>
-        <body>
-          <div class="packing-slip-container">
-            <div class="packing-slip-content">
-              {{CONTENT}}
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    this.logger.log('Templates precompiled successfully');
-  }
-
   private async getPage(): Promise<puppeteer.Page> {
     if (this.pagePool.length > 0) {
       return this.pagePool.pop()!;
+    }
+
+    if (!this.browser) {
+      throw new Error('Browser not initialized');
     }
 
     try {
@@ -171,6 +222,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         error,
       );
       await this.recoverBrowser();
+
+      if (!this.browser) {
+        throw new Error('Browser not initialized after recovery');
+      }
 
       const page = await this.browser.newPage();
       await page.setViewport({
@@ -204,15 +259,63 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async generatePackingSlipPdf(packingSlipData: any): Promise<Buffer> {
+  // Single PDF generation
+  async generatePackingSlipPdf(
+    packingSlipData: any,
+    customerStrategy: string = 'default',
+  ): Promise<Buffer> {
     if (!this.browserInitialized) {
       await this.initializationPromise;
     }
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.push({ resolve, reject, data: packingSlipData });
+      this.pendingRequests.push({
+        resolve,
+        reject,
+        data: packingSlipData,
+        customerStrategy,
+      });
       this.processQueue();
     });
+  }
+
+  // Batch PDF generation
+  async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
+    const sessionId = `${customerCode}-${Date.now()}`;
+    const tempDir = path.join(os.tmpdir(), 'wg-packing-slips', sessionId);
+
+    try {
+      // Create temp directory
+      await fs.promises.mkdir(tempDir, { recursive: true });
+      this.logger.log(`Created temp directory: ${tempDir}`);
+
+      // Determine customer strategy based on customer code
+      const customerStrategy = this.getCustomerStrategy(customerCode);
+
+      // Generate PDFs concurrently with limiter
+      const limiter = this.concurrencyService.createLimiter(5);
+
+      const promises = kits.map((kit, index) =>
+        limiter.add(() => this.generateSinglePdfFile(kit, tempDir, index, customerStrategy)),
+      );
+
+      const pdfFiles = await Promise.all(promises);
+      this.logger.log(`Generated ${pdfFiles.length} PDFs`);
+
+      // Merge PDFs using the dedicated merger service
+      const mergedPdfBuffer = await this.pdfMergerService.mergePdfs(pdfFiles);
+      this.logger.log('PDFs merged successfully');
+
+      return mergedPdfBuffer;
+    } finally {
+      // Cleanup temp directory
+      try {
+        await fs.promises.rm(tempDir, { recursive: true, force: true });
+        this.logger.log(`Cleaned up temp directory: ${tempDir}`);
+      } catch (error) {
+        this.logger.warn(`Failed to cleanup temp directory: ${error.message}`);
+      }
+    }
   }
 
   private async processQueue(): Promise<void> {
@@ -229,7 +332,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     this.currentConcurrency++;
 
     try {
-      const pdf = await this.generatePdfInternal(request.data);
+      const pdf = await this.generatePdfInternal(
+        request.data,
+        request.customerStrategy || 'default',
+      );
       request.resolve(pdf);
     } catch (error) {
       request.reject(error);
@@ -239,7 +345,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async generatePdfInternal(packingSlipData: any): Promise<Buffer> {
+  private async generatePdfInternal(
+    packingSlipData: any,
+    customerStrategy: string,
+  ): Promise<Buffer> {
     let page: puppeteer.Page;
 
     try {
@@ -250,7 +359,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      const html = this.generatePackingSlipHtml(packingSlipData);
+      const html = await this.generatePackingSlipHtml(
+        packingSlipData,
+        customerStrategy,
+      );
 
       await page.setContent(html, {
         waitUntil: 'networkidle0',
@@ -259,12 +371,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
       const pdf = await page.pdf({
         format: 'letter',
-        margin: {
-          top: '0',
-          right: '0',
-          bottom: '0',
-          left: '0',
-        },
+        margin: { top: '.5cm', right: '.5cm', bottom: '.5cm', left: '.5cm' },
         printBackground: true,
         preferCSSPageSize: true,
       });
@@ -289,12 +396,61 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private generatePackingSlipHtml(data: any): string {
-    const content = this.generatePackingSlipContent(data);
-    return this.cachedBaseTemplate.replace('{{CONTENT}}', content);
+  private async generateSinglePdfFile(
+    kit: any,
+    tempDir: string,
+    index: number,
+    customerStrategy: string,
+  ): Promise<string> {
+    try {
+      // Convert kit data to the expected format
+      const packingSlipData = this.convertKitToPackingSlipData(kit);
+
+      // Generate PDF using internal method
+      const pdfBuffer = await this.generatePdfInternal(packingSlipData, customerStrategy);
+
+      // Save to temp file with order type prefix
+      const orderType = kit.metadata?.customFields?.fileType || 'unknown';
+      const orderTypePrefix = orderType.toUpperCase();
+      const filename = `${String(index).padStart(3, '0')}-${orderTypePrefix}-${kit.id}.pdf`;
+      const filepath = path.join(tempDir, filename);
+      await fs.promises.writeFile(filepath, pdfBuffer);
+
+      return filepath;
+    } catch (error) {
+      this.logger.error(`Failed to generate PDF for kit ${kit.id}:`, error);
+      throw error;
+    }
   }
 
-  private generatePackingSlipContent(data: any): string {
+  private async generatePackingSlipHtml(
+    data: any,
+    customerStrategy: string,
+  ): Promise<string> {
+    const template = this.templateCache.get(customerStrategy);
+    const styles = this.stylesCache.get(customerStrategy);
+
+    if (!template) {
+      throw new Error(`Template not found for customer strategy: ${customerStrategy}`);
+    }
+
+    if (!styles) {
+      throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+    }
+
+    // Prepare template data
+    const templateData = this.prepareTemplateData(data);
+
+    // Compile template with styles
+    const html = template({
+      ...templateData,
+      styles,
+    });
+
+    return html;
+  }
+
+  private prepareTemplateData(data: any): any {
     const formatDate = (dateString: string) => {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -303,100 +459,87 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       });
     };
 
-    const getStatusColor = (status: string) => {
-      switch (status) {
-        case 'pending':
-          return 'bg-yellow-100 text-yellow-800';
-        case 'processing':
-          return 'bg-blue-100 text-blue-800';
-        case 'shipped':
-          return 'bg-green-100 text-green-800';
-        case 'delivered':
-          return 'bg-purple-100 text-purple-800';
-        default:
-          return 'bg-gray-100 text-gray-800';
-      }
+    // Calculate summary data
+    const totalItems = data.order?.items?.length || 0;
+    const totalQuantity = data.order?.items?.reduce(
+      (sum: number, item: any) => sum + item.quantity,
+      0,
+    ) || 0;
+
+    return {
+      // Ship to information
+      shipTo: {
+        name: data.order?.customer?.name || '',
+        company: data.order?.customer?.company || '',
+        address: {
+          street: data.order?.customer?.shippingAddress?.street || '',
+          city: data.order?.customer?.shippingAddress?.city || '',
+          state: data.order?.customer?.shippingAddress?.state || '',
+          zipCode: data.order?.customer?.shippingAddress?.zipCode || '',
+          country: data.order?.customer?.shippingAddress?.country || 'USA',
+        },
+        email: data.order?.customer?.email || '',
+      },
+
+      // Items
+      items: data.order?.items || [],
+
+      // Summary
+      summary: {
+        totalItems,
+        totalQuantity,
+      },
+
+      // Job info
+      jobInfo: {
+        jobNumber: data.jobNumber || '',
+      },
+
+      // Special instructions
+      specialInstructions: data.specialInstructions || '',
+
+      // Generated date
+      generatedDate: formatDate(data.generatedDate || new Date().toISOString()),
+
+      // Order type for conditional templates (InquireEd: 'pm' or 'te')
+      orderType: data.orderType || 'pm',
+    };
+  }
+
+  private getCustomerStrategy(customerCode: string): string {
+    // Map customer codes to template strategies
+    const customerStrategies: { [key: string]: string } = {
+      'GEORGIA_BAPTIST': 'georgia-baptist',
+      'INQUIRE_ED': 'inquire-ed',
+      'HH_GLOBAL': 'default',
+      'default': 'default',
     };
 
-    return `
-      <!-- Top shipping address line and PACKING LIST -->
-      <div class="mb-6">
-        <div class="flex items-end justify-between border-b border-black pb-2">
-          <div class="text-sm text-black">
-            2450 Meadowbrook Pkwy Duluth, GA 30096, Phone: 877-415-7323
-          </div>
-          <h1 class="text-3xl font-bold text-black">PACKING LIST</h1>
-        </div>
-      </div>
+    return customerStrategies[customerCode] || 'default';
+  }
 
-      <!-- Job Numbers -->
-      <div class="mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="text-left">
-            <p class="text-sm text-gray-700">Job No: 205544 - HH Global</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ship To Information -->
-      <div class="mb-8">
-        <div>
-          <h3 class="text-md font-bold text-black mb-3">Ship To:</h3>
-          <div class="text-sm text-gray-800">
-            <p class="font-medium">${data.order.customer.name}</p>
-            <p>${data.order.customer.shippingAddress.street}</p>
-            <p>${data.order.customer.shippingAddress.city}, ${data.order.customer.shippingAddress.state} ${data.order.customer.shippingAddress.zipCode}</p>
-            <p>${data.order.customer.shippingAddress.country}</p>
-            <p>${data.order.customer.email}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Order Details -->
-      <div class="mb-8">
-        <h3 class="text-md font-bold text-black mb-4">ORDER DETAILS</h3>
-        
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse border border-black">
-            <thead>
-              <tr class="bg-gray-200">
-                <th class="border border-black px-4 py-2 text-left text-sm font-bold text-black">Description</th>
-                <th class="border border-black px-4 py-2 text-center text-sm font-bold text-black">Qty Ordered</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.order.items
-                .map(
-                  (item, index) => `
-                <tr class="${index % 2 === 1 ? 'bg-gray-50' : ''}">
-                  <td class="border border-black px-4 py-2 text-sm text-black">${item.description}</td>
-                  <td class="border border-black px-4 py-2 text-center text-sm text-black font-medium">${item.quantity}</td>
-                </tr>
-              `,
-                )
-                .join('')}
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="mt-4 text-sm text-gray-700">
-          <p><strong>Total Items:</strong> ${data.order.items.length}</p>
-          <p><strong>Total Quantity:</strong> ${data.order.items.reduce((sum, item) => sum + item.quantity, 0)}</p>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="mt-8 pt-6 border-t border-gray-400">
-        <div class="flex justify-between items-center text-sm text-gray-600">
-          <div>
-            <p>Generated on: ${formatDate(data.generatedDate)}</p>
-            <p>Job Number: 205544 - HH Global</p>
-          </div>
-          <div class="text-right">
-            <p>Please verify all items before shipping</p>
-          </div>
-        </div>
-      </div>
-    `;
+  private convertKitToPackingSlipData(kit: any): any {
+    return {
+      order: {
+        customer: {
+          name: kit.recipient.name,
+          company: kit.recipient.company,
+          email: kit.recipient.email,
+          shippingAddress: {
+            street: kit.recipient.address.street,
+            city: kit.recipient.address.city,
+            state: kit.recipient.address.state,
+            zipCode: kit.recipient.address.zipCode,
+            country: kit.recipient.address.country || 'USA',
+          },
+        },
+        items: kit.items,
+      },
+      jobNumber: kit.jobNumber || '',
+      specialInstructions: kit.metadata?.specialInstructions || '',
+      generatedDate: new Date().toISOString(),
+      // Add order type for InquireEd conditional templates
+      orderType: kit.metadata?.customFields?.fileType || 'pm',
+    };
   }
 }

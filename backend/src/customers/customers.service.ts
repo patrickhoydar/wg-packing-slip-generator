@@ -4,7 +4,6 @@ import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquireEdStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
 import { PdfService } from '../pdf/pdf.service';
-import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
 import * as JSZip from 'jszip';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class CustomersService implements OnModuleInit {
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
     private readonly inquireEdStrategy: InquireEdStrategy,
     private readonly pdfService: PdfService,
-    private readonly fileBasedPdfService: FileBasedPdfService
   ) {}
 
   onModuleInit() {
@@ -50,10 +48,10 @@ export class CustomersService implements OnModuleInit {
   }
 
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
-    console.log(`Starting file-based batch PDF generation for ${kits.length} kits`);
+    console.log(`Starting batch PDF generation for ${kits.length} kits`);
     
-    // Use the new file-based PDF service for better performance
-    const mergedPdfBuffer = await this.fileBasedPdfService.generateBatchPDFs(customerCode, kits);
+    // Use the consolidated PDF service for batch generation
+    const mergedPdfBuffer = await this.pdfService.generateBatchPDFs(customerCode, kits);
     
     console.log(`Generated merged PDF with size: ${mergedPdfBuffer.length} bytes`);
     return mergedPdfBuffer;

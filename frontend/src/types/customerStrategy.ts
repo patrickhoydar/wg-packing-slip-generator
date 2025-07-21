@@ -25,14 +25,14 @@ export interface TemplateConfiguration {
   requiredFields: string[];
   optionalFields: string[];
   fieldMappings: Record<string, string>;
-  defaultValues: Record<string, any>;
+  defaultValues: Record<string, unknown>;
   customRules: CustomRule[];
 }
 
 export interface CustomRule {
   field: string;
-  condition: (value: any) => boolean;
-  action: (value: any) => any;
+  condition: (value: unknown) => boolean;
+  action: (value: unknown) => unknown;
   description: string;
 }
 

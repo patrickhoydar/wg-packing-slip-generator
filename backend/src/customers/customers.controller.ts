@@ -88,7 +88,11 @@ export class CustomersController {
       
       const pdfBuffer = await this.customersService.generateBatchPDFs(customerCode, kits);
       
-      const filename = `${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.pdf`;
+      // Determine order type from the first kit (all kits should be the same type)
+      const orderType = kits[0]?.metadata?.customFields?.fileType || 'unknown';
+      const orderTypePrefix = orderType.toUpperCase();
+      
+      const filename = `${orderTypePrefix}-${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.pdf`;
       
       res.set({
         'Content-Type': 'application/pdf',

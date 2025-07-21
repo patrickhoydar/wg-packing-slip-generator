@@ -8,10 +8,7 @@ import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-bap
 import { InquireEdStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
 import { InquireEdService } from './strategies/inquire-ed/inquire-ed.service';
 import { CsvParserService } from '../common/services/csv-parser.service';
-import { PdfService } from '../pdf/pdf.service';
-import { FileBasedPdfService } from '../pdf/file-based-pdf.service';
-import { PdfMergerService } from '../pdf/pdf-merger.service';
-import { ConcurrencyService } from '../common/services/concurrency.service';
+import { PdfModule } from '../pdf/pdf.module';
 
 @Module({
   imports: [
@@ -33,6 +30,7 @@ import { ConcurrencyService } from '../common/services/concurrency.service';
         }
       },
     }),
+    PdfModule,
   ],
   controllers: [CustomersController],
   providers: [
@@ -43,10 +41,6 @@ import { ConcurrencyService } from '../common/services/concurrency.service';
     InquireEdStrategy,
     InquireEdService,
     CsvParserService,
-    PdfService,
-    FileBasedPdfService,
-    PdfMergerService,
-    ConcurrencyService
   ],
   exports: [CustomersService, CustomerStrategyFactory]
 })

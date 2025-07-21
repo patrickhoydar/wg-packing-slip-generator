@@ -28,12 +28,20 @@ wg-packing-slip-generator/
 │   └── ...                 # NextJS configuration files
 ├── backend/                # NestJS backend application
 │   ├── src/                # Source code
+│   │   ├── customers/      # Customer management and strategies
+│   │   ├── pdf/            # PDF generation services
+│   │   ├── common/         # Shared utilities and services
+│   │   └── main.ts         # Application entry point
+│   ├── views/              # Handlebars templates and styles
+│   │   ├── templates/      # Customer-specific templates
+│   │   └── styles/         # CSS stylesheets
 │   ├── test/               # Test files
 │   ├── package.json        # Backend dependencies
 │   └── ...                 # NestJS configuration files
 ├── .gitignore              # Git ignore rules
 ├── package.json            # Root package.json with workspace config
 ├── CLAUDE.md               # This file - Claude Code guidance
+├── README.md               # Project documentation
 └── PRD.md                  # Product Requirements Document
 ```
 
@@ -82,6 +90,11 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 - The drag-and-drop interface should be intuitive for non-technical users
 - Data processing needs to handle various CSV formats and customer-specific data points
 - The system should be scalable to support multiple customers simultaneously
+- PDF generation should be performant for both single and batch operations
+- Customer strategies should be easily extensible for new requirements
+- Template system should support customer-specific branding and layouts
+- File processing should handle large uploads with proper validation
+- System should maintain backward compatibility during updates
 
 ## Development History
 
@@ -150,15 +163,178 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 
 **Session File:** `.claude/sessions/2025-07-08-1625-UI-implementation-with-dummy-data.md`
 
+### Session 3: Customer Management System (2025-07-17 12:45-14:30)
+**Status:** ✅ COMPLETED
+**Summary:** Implemented comprehensive customer management system with strategy pattern and CSV parsing capabilities.
+
+**Completed:**
+- Created customer strategy pattern for handling different customer requirements
+- Implemented CSV parsing service with validation and error handling
+- Added customer-specific data transformation strategies
+- Built file upload and validation endpoints
+- Created customer management controller and service
+- Implemented batch PDF generation with customer-specific templates
+
+**Key Features Implemented:**
+- Customer strategy factory pattern
+- CSV file upload and parsing
+- Data validation and transformation
+- Batch PDF generation pipeline
+- Customer-specific template customization
+- Error handling and logging
+
+**Customer Strategies Added:**
+- **HH Global Strategy** - Standard customer processing
+- **Georgia Baptist Strategy** - Mission board specific requirements
+- **InquireEd Strategy** - Educational customer needs
+
+**Technical Achievements:**
+- Strategy pattern implementation for scalable customer support
+- CSV parsing with validation and error reporting
+- Batch PDF generation with concurrency control
+- Customer-specific data transformation pipelines
+- File upload with security validation
+
+**Files Added:**
+- `backend/src/customers/` - Complete customer management module
+- `backend/src/common/services/` - Shared utilities (CSV parser, concurrency)
+- Customer strategy implementations for each supported customer
+- PDF merger service for batch operations
+
+**Dependencies Added:**
+- `csv-parser@^3.0.0` - CSV file parsing
+- `multer@^1.4.5` - File upload handling
+- `pdf-lib@^1.17.1` - PDF manipulation and merging
+
+**Session File:** `.claude/sessions/2025-07-17-1245-add-inquireEd-customer.md`
+
+### Session 4: PDF Config Refactor and Handlebars Templating (2025-07-18 16:00-17:30)
+**Status:** ✅ COMPLETED
+**Summary:** Refactored PDF generation system to use handlebars templates and eliminated code duplication through service consolidation.
+
+**Phase 1 - Handlebars Implementation:**
+- Analyzed existing wg-shipments-service handlebars architecture
+- Implemented template-based PDF generation system
+- Created customer-specific handlebars templates
+- Built template caching and pre-compilation system
+- Added dynamic template selection based on customer strategy
+
+**Phase 2 - DRY Consolidation:**
+- Identified and eliminated 90%+ duplicate code across PDF services
+- Consolidated 4 services into 2 focused services
+- Unified browser management and page pooling
+- Removed ~500 lines of duplicate code
+- Improved resource management and performance
+
+**Template System:**
+- **Handlebars Templates** - Dynamic content generation
+- **Customer Strategy Selection** - Automatic template selection
+- **Template Caching** - Pre-compilation for performance
+- **CSS Integration** - Styles embedded in templates
+- **Multi-customer Support** - Different templates per customer
+
+**Services Consolidated:**
+- **PdfService** - Single, comprehensive PDF generation service
+- **PdfMergerService** - Dedicated PDF merging utility
+- **Eliminated:** TemplatePdfService, FileBasedPdfService (redundant)
+
+**Templates Created:**
+- `backend/views/templates/default.hbs` - Standard customer template
+- `backend/views/templates/georgia-baptist.hbs` - Georgia Baptist specific
+- `backend/views/templates/inquire-ed.hbs` - InquireEd specific
+- `backend/views/styles/base.css` - Base CSS styles
+
+**Architecture Benefits:**
+- Single source of truth for PDF generation
+- Unified resource management and browser pooling
+- Template-based customization without code changes
+- Improved maintainability and testing
+- Better performance through shared resources
+
+**Dependencies Added:**
+- `handlebars@^4.7.8` - Template engine
+- `@types/handlebars@^4.1.0` - TypeScript support
+
+**Session File:** `.claude/sessions/2025-07-18-1600-pdf-config-refactor-and-handlebars-tempalting.md`
+
+## Current Architecture
+
+### Backend Architecture
+**Framework:** NestJS with TypeScript
+**PDF Generation:** Puppeteer + Handlebars templates
+**File Processing:** CSV parsing with validation
+**Customer Management:** Strategy pattern for multi-customer support
+
+### Key Services:
+- **PdfService** - Consolidated PDF generation (single + batch)
+- **PdfMergerService** - PDF merging utility
+- **CustomersService** - Customer management and file processing
+- **CustomerStrategyFactory** - Strategy pattern implementation
+- **CsvParserService** - CSV file parsing and validation
+- **ConcurrencyService** - Batch processing with limits
+
+### Template System:
+- **Handlebars Templates** - Dynamic content generation
+- **Customer Strategies** - Template selection based on customer
+- **Template Caching** - Pre-compilation for performance
+- **CSS Integration** - Embedded styles in templates
+
+### API Endpoints:
+- `POST /pdf/generate-packing-slip` - Single PDF generation
+- `POST /customers/upload` - File upload and processing
+- `GET /customers/strategies` - Available customer strategies
+- `POST /customers/generate-batch` - Batch PDF generation
+
 ## Next Steps
 
 1. ✅ ~~Initialize the project structure with the chosen tech stack~~ (COMPLETED)
 2. ✅ ~~Set up the development environment and tooling~~ (COMPLETED)
 3. ✅ ~~Implement the drag-and-drop interface components~~ (COMPLETED - Framework ready)
-4. ✅ ~~Build the template management system~~ (COMPLETED - UI and PDF generation)
-5. Implement drag-and-drop positioning logic and state management
-6. Set up PostgreSQL database connection
-7. Create API endpoints for template management and persistence
-8. Add customer-specific customization capabilities
-9. Implement CSV parsing functionality
-10. Add authentication and user management
+4. ✅ ~~Build the template management system~~ (COMPLETED - Handlebars templates)
+5. ✅ ~~Add customer-specific customization capabilities~~ (COMPLETED - Strategy pattern)
+6. ✅ ~~Implement CSV parsing functionality~~ (COMPLETED - Multi-format support)
+7. ✅ ~~Consolidate PDF generation services~~ (COMPLETED - DRY elimination)
+8. Implement drag-and-drop positioning logic and state management
+9. Set up PostgreSQL database connection
+10. Create API endpoints for template management and persistence
+11. Add authentication and user management
+12. Implement real-time template preview
+13. Add template editor functionality
+14. Create customer dashboard and analytics
+15. Add automated testing suite
+
+## Dependencies Overview
+
+### Backend Dependencies:
+- `@nestjs/core` - NestJS framework
+- `puppeteer` - PDF generation
+- `handlebars` - Template engine
+- `csv-parser` - CSV file processing
+- `multer` - File upload handling
+- `pdf-lib` - PDF manipulation
+- `jszip` - ZIP file creation
+
+### Frontend Dependencies:
+- `next` - React framework
+- `react` - UI library
+- `typescript` - Type safety
+- `tailwindcss` - Styling
+- `@dnd-kit/core` - Drag and drop
+
+## Testing
+
+To run tests:
+```bash
+npm run test           # Run all tests
+npm run test:backend   # Backend tests only
+npm run test:frontend  # Frontend tests only
+```
+
+## Deployment
+
+To build for production:
+```bash
+npm run build          # Build both apps
+npm run build:backend  # Backend only
+npm run build:frontend # Frontend only
+```

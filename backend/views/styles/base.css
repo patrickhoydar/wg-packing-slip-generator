@@ -1,0 +1,178 @@
+* {
+  -webkit-print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: white;
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.packing-slip-container {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  background: white;
+  border-radius: 0;
+}
+
+.packing-slip-content {
+  padding: 2rem;
+}
+
+@page {
+  margin: 0;
+  size: letter;
+}
+
+/* Header styles */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.header-border {
+  border-bottom: 1px solid black;
+  padding-bottom: 0.5rem;
+}
+
+.company-info {
+  font-size: 0.875rem;
+  color: black;
+}
+
+.packing-list-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: black;
+}
+
+/* Job info styles */
+.job-info {
+  margin-bottom: 1.5rem;
+}
+
+.job-number {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Ship to styles */
+.ship-to {
+  margin-bottom: 2rem;
+}
+
+.ship-to-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 0.75rem;
+}
+
+.ship-to-details {
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.ship-to-details p {
+  margin: 0.125rem 0;
+}
+
+.ship-to-details .company-name {
+  font-weight: 500;
+}
+
+/* Order details styles */
+.order-details {
+  margin-bottom: 2rem;
+}
+
+.order-details-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 1rem;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+
+.order-table th,
+.order-table td {
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.order-table th {
+  background-color: #f3f4f6;
+  font-weight: bold;
+  color: black;
+  text-align: left;
+}
+
+.order-table th.center,
+.order-table td.center {
+  text-align: center;
+}
+
+.order-table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.order-table tbody td {
+  color: black;
+}
+
+.order-table tbody td.qty {
+  font-weight: 500;
+}
+
+/* Order summary styles */
+.order-summary {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.order-summary p {
+  margin: 0.125rem 0;
+}
+
+/* Footer styles */
+.footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #9ca3af;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.footer-left p,
+.footer-right p {
+  margin: 0.125rem 0;
+}
+
+/* Print optimizations */
+@media print {
+  .packing-slip-container {
+    box-shadow: none;
+    border: none;
+  }
+  
+  .packing-slip-content {
+    padding: 1.5rem;
+  }
+}

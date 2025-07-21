@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packing Slip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>{{{styles}}}</style>
+</head>
+<body>
+  <div class="packing-slip-container">
+    <div class="packing-slip-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-border flex items-end justify-between">
+          <div class="company-info">
+            2450 Meadowbrook Pkwy Duluth, GA 30096, Phone: 877-415-7323
+          </div>
+          <h1 class="packing-list-title">PACKING LIST</h1>
+        </div>
+      </div>
+
+      <!-- Job Numbers -->
+      <div class="job-info">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-left">
+            <p class="job-number">Job No: 205174: Georgia Baptist Mission Board - Mission Georgia Items & Distribution- 2025</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ship To Information -->
+      <div class="ship-to">
+        <div>
+          <h3 class="ship-to-title">Ship To:</h3>
+          <div class="ship-to-details">
+            {{#if shipTo.company}}
+            <p class="company-name">{{shipTo.company}}</p>
+            {{/if}}
+            <p class="company-name">{{shipTo.name}}</p>
+            <p>{{shipTo.address.street}}</p>
+            <p>{{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zipCode}}</p>
+            <p>{{shipTo.address.country}}</p>
+            {{#if shipTo.email}}
+            <p>{{shipTo.email}}</p>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Details -->
+      <div class="order-details">
+        <h3 class="order-details-title">ORDER DETAILS</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="order-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="center">Qty Ordered</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each items}}
+              <tr class="{{#if @odd}}bg-gray-50{{/if}}">
+                <td>{{description}}</td>
+                <td class="center qty">{{quantity}}</td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="order-summary">
+          <p><strong>Total Items:</strong> {{summary.totalItems}}</p>
+          <p><strong>Total Quantity:</strong> {{summary.totalQuantity}}</p>
+        </div>
+      </div>
+
+      {{#if specialInstructions}}
+      <div class="special-instructions mb-6">
+        <h3 class="text-md font-bold text-black mb-3">Special Instructions:</h3>
+        <p class="text-sm text-gray-800">{{specialInstructions}}</p>
+      </div>
+      {{/if}}
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-content">
+          <div class="footer-left">
+            <p>Generated on: {{generatedDate}}</p>
+          </div>
+          <div class="footer-right">
+            <p>Please verify all items before shipping</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
