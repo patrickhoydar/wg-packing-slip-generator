@@ -19,6 +19,7 @@ export default function CustomerInformation({
             {customer.shippingAddress.zipCode}, {customer.shippingAddress.country}
           </p>
           <p>{customer.email}</p>
+          {customer.phone && <p>{customer.phone}</p>}
         </div>
       </div>
     </div>
