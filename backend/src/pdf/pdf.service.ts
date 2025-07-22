@@ -946,7 +946,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       default: 'default',
     };
 
-    return customerStrategies[customerCode] || 'default';
+    return customerStrategies[customerCode.toUpperCase()] || 'default';
   }
 
   private convertKitToPackingSlipData(kit: any): any {
