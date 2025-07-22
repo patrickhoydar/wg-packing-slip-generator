@@ -48,10 +48,20 @@ export interface Company {
   website: string;
 }
 
+export interface DeliveryInfo {
+  appointmentRequired: boolean;
+  receivingDays: string;
+  receivingHours: string;
+  earliestDeliveryDate: string;
+  deliveryNotes?: string;
+}
+
 export interface PackingSlip {
   id: string;
   order: Order;
   company: Company;
   generatedDate: string;
   notes?: string;
+  deliveryInfo?: DeliveryInfo;
+  shippingMethod?: string;
 }

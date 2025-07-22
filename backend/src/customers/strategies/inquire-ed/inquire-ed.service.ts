@@ -364,7 +364,7 @@ export class InquireEdService {
         category: 'Teacher Edition',
       },
       {
-        sku. 'IND-IJ-TE-NATRES-1300',
+        sku: 'IND-IJ-TE-NATRES-1300',
         description: 'Natural Resources of the US',
         category: 'Teacher Edition',
       },
@@ -391,7 +391,7 @@ export class InquireEdService {
       {
         sku: 'IND-IJ-TE-AMREV-1800',
         description: 'The American Revolution',
-        category: 'Teacher. Edition',
+        category: 'Teacher Edition',
       },
       {
         sku: 'IND-IJ-TE-RIGHTS-1900',

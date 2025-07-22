@@ -81,7 +81,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   }
 
   private setupTemplateConfigs(): void {
-    const viewsDir = path.join(__dirname, '../../views');
+    const viewsDir = path.join(__dirname, '..', 'views');
 
     this.templateConfigs.set('default', {
       templatePath: path.join(viewsDir, 'templates', 'default.hbs'),
@@ -551,16 +551,21 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     customerCode: string = 'default',
   ): Promise<string> {
     try {
-      // Map customer code to strategy (same logic as PDF generation)
       const customerStrategy = this.getCustomerStrategy(customerCode);
       
-      // Use the same HTML generation method as PDF creation
-      const html = await this.generatePackingSlipHtml(
+      // Generate the base HTML fragment
+      const htmlFragment = await this.generatePackingSlipHtml(
         packingSlipData,
         customerStrategy,
       );
+
+      // Get styles and prepend them for the preview
+      const styles = this.stylesCache.get(customerStrategy);
+      if (!styles) {
+        throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+      }
       
-      return html;
+      return `<style>${styles}</style>${htmlFragment}`;
     } catch (error) {
       this.logger.error('Error generating HTML preview:', error);
       throw error;
@@ -765,10 +770,17 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      const html = await this.generatePackingSlipHtml(
+      const htmlFragment = await this.generatePackingSlipHtml(
         packingSlipData,
         customerStrategy,
       );
+
+      const styles = this.stylesCache.get(customerStrategy);
+      if (!styles) {
+        throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+      }
+
+      const html = this.generatePdfHtml(htmlFragment, styles);
 
       await page.setContent(html, {
         waitUntil: 'networkidle0',
@@ -803,6 +815,24 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         await this.returnPage(page);
       }
     }
+  }
+
+  private generatePdfHtml(content: string, styles: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Packing Slip</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>${styles}</style>
+      </head>
+      <body>
+        ${content}
+      </body>
+      </html>
+    `;
   }
 
   private async generateSinglePdfFile(
@@ -840,7 +870,6 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     customerStrategy: string,
   ): Promise<string> {
     const template = this.templateCache.get(customerStrategy);
-    const styles = this.stylesCache.get(customerStrategy);
 
     if (!template) {
       throw new Error(
@@ -848,20 +877,11 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    if (!styles) {
-      throw new Error(
-        `Styles not found for customer strategy: ${customerStrategy}`,
-      );
-    }
-
     // Prepare template data
     const templateData = this.prepareTemplateData(data);
 
-    // Compile template with styles
-    const html = template({
-      ...templateData,
-      styles,
-    });
+    // Compile template
+    const html = template(templateData);
 
     return html;
   }
@@ -884,7 +904,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       ) || 0;
 
     // Debug logging
-    this.logger.debug(`[PDF-DEBUG] Processing PDF for company: "${data.order?.customer?.company}" with deliveryInfo:`, data.deliveryInfo);
+    this.logger.debug(
+      `[PDF-DEBUG] Processing PDF for company: "${data.order?.customer?.company}" with deliveryInfo:`,
+      data.deliveryInfo,
+    );
     this.logger.debug(
       'prepareTemplateData - shippingMethod:',
       data.shippingMethod,
@@ -944,7 +967,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       GEORGIA_BAPTIST: 'georgia-baptist',
       INQUIRE_ED: 'inquire-ed',
       HH_GLOBAL: 'default',
-      default: 'default',
+      DEFAULT: 'default',
     };
 
     return customerStrategies[customerCode.toUpperCase()] || 'default';

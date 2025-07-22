@@ -4,6 +4,12 @@ import {
   UploadResult,
   CustomerKit,
 } from "../types/customerStrategy"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, X } from "lucide-react"
 
 interface CustomerFileUploadProps {
   customer: CustomerStrategy
@@ -130,71 +136,62 @@ export default function CustomerFileUpload({
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-semibold text-foreground">
           Upload {customer.displayName} File
         </h3>
         {file && (
-          <button
-            onClick={resetUpload}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
+          <Button variant="ghost" size="sm" onClick={resetUpload}>
+            <X className="w-4 h-4 mr-2" />
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
-      {/* Job Number Input */}
-      <div>
-        <label
-          htmlFor="job-number"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Job Number (Optional)
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="job-number">Job Number (Optional)</Label>
+        <Input
           id="job-number"
           type="text"
           value={jobNumber}
           onChange={(e) => setJobNumber(e.target.value)}
           placeholder="Enter job number..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
       {!file ? (
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragOver
-              ? "border-blue-400 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400"
+        <Card
+          className={`border-2 border-dashed transition-colors cursor-pointer hover:border-primary/50 ${
+            dragOver ? "border-primary bg-primary/5" : ""
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
+          onClick={() => fileInputRef.current?.click()}
         >
-          <div className="space-y-4">
-            <div className="text-4xl text-gray-400">📁</div>
-            <div>
-              <p className="text-lg font-medium text-gray-700">
+          <CardContent className="p-8 text-center space-y-4">
+            <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+            <div className="space-y-2">
+              <p className="text-lg font-medium text-foreground">
                 Drop your file here or click to browse
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Supports:{" "}
-                {customer.instructions.acceptedFormats.join(", ").toUpperCase()}
-                (max{" "}
-                {Math.round(customer.instructions.maxFileSize / (1024 * 1024))}
-                MB)
+              <div className="flex flex-wrap gap-2 justify-center">
+                {customer.instructions.acceptedFormats.map((format) => (
+                  <Badge key={format} variant="secondary">
+                    {format.toUpperCase()}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Maximum file size: {Math.round(customer.instructions.maxFileSize / (1024 * 1024))}MB
               </p>
             </div>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <Button>
+              <Upload className="w-4 h-4 mr-2" />
               Choose File
-            </button>
-          </div>
+            </Button>
+          </CardContent>
 
           <input
             ref={fileInputRef}
@@ -205,91 +202,89 @@ export default function CustomerFileUpload({
             onChange={handleFileInputChange}
             className="hidden"
           />
-        </div>
+        </Card>
       ) : (
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="text-2xl">📄</div>
-              <div>
-                <p className="font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <FileText className="w-8 h-8 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-foreground break-words">{file.name}</p>
+                <p className="text-sm text-muted-foreground">
                   {(file.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
+                <div className="mt-2">
+                  {uploading ? (
+                    <Badge variant="secondary" className="gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </Badge>
+                  ) : (
+                    <Badge variant="default" className="gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Ready
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center space-x-2">
-              {uploading ? (
-                <div className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
-                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  <span className="text-sm font-medium">Processing...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg">
-                  <div className="w-4 h-4 text-green-600">✓</div>
-                  <span className="text-sm font-medium">Ready</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {uploadResult && (
-        <div
-          className={`p-4 rounded-lg border ${
-            uploadResult.success
-              ? "bg-green-50 border-green-200"
-              : "bg-red-50 border-red-200"
-          }`}
-        >
-          <div
-            className={`font-medium ${
-              uploadResult.success ? "text-green-800" : "text-red-800"
-            }`}
-          >
-            {uploadResult.success ? "✅ Success!" : "❌ Error"}
-          </div>
-          <p
-            className={`text-sm mt-1 ${
-              uploadResult.success ? "text-green-700" : "text-red-700"
-            }`}
-          >
-            {uploadResult.message}
-          </p>
-
-          {uploadResult.success && uploadResult.data && (
-            <div className="mt-3 text-sm text-green-700">
-              <p>• Generated {uploadResult.data.kitsGenerated} packing slips</p>
-              <p>
-                • Processed {uploadResult.data.validation.validRows} of{" "}
-                {uploadResult.data.validation.totalRows} rows
-              </p>
-
-              {uploadResult.data.validation.warnings.length > 0 && (
-                <div className="mt-2">
-                  <p className="font-medium">Warnings:</p>
-                  <ul className="list-disc list-inside">
-                    {uploadResult.data.validation.warnings.map(
-                      (warning, index) => (
-                        <li key={index}>{warning}</li>
-                      )
-                    )}
-                  </ul>
-                </div>
+        <Card className={uploadResult.success ? "border-green-200 bg-green-50/50" : "border-red-200 bg-red-50/50"}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              {uploadResult.success ? (
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-600" />
               )}
+              <span className={`font-medium ${
+                uploadResult.success ? "text-green-800" : "text-red-800"
+              }`}>
+                {uploadResult.success ? "Success!" : "Error"}
+              </span>
             </div>
-          )}
+            <p className={`text-sm ${
+              uploadResult.success ? "text-green-700" : "text-red-700"
+            }`}>
+              {uploadResult.message}
+            </p>
 
-          {!uploadResult.success && uploadResult.data?.validation && (
-            <div className="mt-3 text-sm text-red-700">
-              {uploadResult.data.validation.errors.map((error, index) => (
-                <p key={index}>• {error}</p>
-              ))}
-            </div>
-          )}
-        </div>
+            {uploadResult.success && uploadResult.data && (
+              <div className="mt-3 text-sm text-green-700 space-y-1">
+                <p>• Generated {uploadResult.data.kitsGenerated} packing slips</p>
+                <p>
+                  • Processed {uploadResult.data.validation.validRows} of{" "}
+                  {uploadResult.data.validation.totalRows} rows
+                </p>
+
+                {uploadResult.data.validation.warnings.length > 0 && (
+                  <div className="mt-2">
+                    <p className="font-medium">Warnings:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {uploadResult.data.validation.warnings.map(
+                        (warning, index) => (
+                          <li key={index}>{warning}</li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!uploadResult.success && uploadResult.data?.validation && (
+              <div className="mt-3 text-sm text-red-700 space-y-1">
+                {uploadResult.data.validation.errors.map((error, index) => (
+                  <p key={index}>• {error}</p>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   )

@@ -93,3 +93,4 @@ temp/
 *.env.development
 *.env.production
 *.env.staging
+.gemini-clipboard

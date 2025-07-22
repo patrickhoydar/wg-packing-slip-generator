@@ -1,20 +1,23 @@
+import { Type, Building, User, Table, BarChart3, Image, PenTool, Minus, LucideIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
+
 interface ElementItem {
   id: string;
   name: string;
-  icon: string;
+  icon: LucideIcon;
   description: string;
   category: string;
 }
 
 const elementItems: ElementItem[] = [
-  { id: 'text', name: 'Text', icon: '📝', description: 'Add text content', category: 'Content' },
-  { id: 'company-header', name: 'Company Header', icon: '🏢', description: 'Company information', category: 'Headers' },
-  { id: 'customer-info', name: 'Customer Info', icon: '👤', description: 'Customer details', category: 'Content' },
-  { id: 'item-table', name: 'Item Table', icon: '📋', description: 'Items list table', category: 'Tables' },
-  { id: 'order-summary', name: 'Order Summary', icon: '📊', description: 'Order totals', category: 'Content' },
-  { id: 'logo', name: 'Logo', icon: '🖼️', description: 'Company logo', category: 'Media' },
-  { id: 'signature', name: 'Signature', icon: '✍️', description: 'Signature field', category: 'Content' },
-  { id: 'divider', name: 'Divider', icon: '➖', description: 'Horizontal line', category: 'Layout' }
+  { id: 'text', name: 'Text', icon: Type, description: 'Add text content', category: 'Content' },
+  { id: 'company-header', name: 'Company Header', icon: Building, description: 'Company information', category: 'Headers' },
+  { id: 'customer-info', name: 'Customer Info', icon: User, description: 'Customer details', category: 'Content' },
+  { id: 'item-table', name: 'Item Table', icon: Table, description: 'Items list table', category: 'Tables' },
+  { id: 'order-summary', name: 'Order Summary', icon: BarChart3, description: 'Order totals', category: 'Content' },
+  { id: 'logo', name: 'Logo', icon: Image, description: 'Company logo', category: 'Media' },
+  { id: 'signature', name: 'Signature', icon: PenTool, description: 'Signature field', category: 'Content' },
+  { id: 'divider', name: 'Divider', icon: Minus, description: 'Horizontal line', category: 'Layout' }
 ];
 
 export default function ElementsPanel() {
@@ -25,33 +28,38 @@ export default function ElementsPanel() {
   };
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Elements</h3>
-        <p className="text-sm text-gray-600">Drag elements onto the canvas to build your packing slip</p>
+    <div>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-foreground mb-2">Elements</h2>
+        <p className="text-sm text-muted-foreground">Drag elements onto the canvas to build your packing slip</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {categories.map(category => (
           <div key={category}>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">{category}</h4>
-            <div className="grid grid-cols-1 gap-2">
-              {elementItems.filter(item => item.category === category).map(element => (
-                <div
-                  key={element.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, element)}
-                  className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-gray-300 cursor-move transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">{element.icon}</span>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{element.name}</div>
-                      <div className="text-xs text-gray-500">{element.description}</div>
+            <h3 className="text-sm font-medium text-foreground mb-3">{category}</h3>
+            <div className="space-y-2">
+              {elementItems.filter(item => item.category === category).map(element => {
+                const IconComponent = element.icon;
+                return (
+                  <Card
+                    key={element.id}
+                    className="p-3 cursor-move hover:bg-muted/50 hover:border-primary/20 transition-all duration-200"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, element)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-md bg-primary/10">
+                        <IconComponent className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-foreground">{element.name}</div>
+                        <div className="text-xs text-muted-foreground">{element.description}</div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         ))}

@@ -39,10 +39,10 @@ export default function PackingSlipLayout({
         <CustomerInformation customer={packingSlip.order.customer} />
 
         {/* Show delivery requirements for InquireEd orders */}
-        {(packingSlip as any).deliveryInfo && (
+        {packingSlip.deliveryInfo && (
           <DeliveryRequirements
-            deliveryInfo={(packingSlip as any).deliveryInfo}
-            shippingMethod={(packingSlip as any).shippingMethod || 'Standard Ground'}
+            deliveryInfo={packingSlip.deliveryInfo}
+            shippingMethod={packingSlip.shippingMethod || 'Standard Ground'}
           />
         )}
 
