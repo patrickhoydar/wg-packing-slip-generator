@@ -904,6 +904,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
           country: data.order?.customer?.shippingAddress?.country || 'US',
         },
         email: data.order?.customer?.email || '',
+        phone: data.order?.customer?.phone || '',
       },
 
       // Items
@@ -959,6 +960,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
           name: kit.recipient.name,
           company: kit.recipient.company,
           email: kit.recipient.email,
+          phone: kit.recipient.phone,
           shippingAddress: {
             street: kit.recipient.address.street,
             city: kit.recipient.address.city,
