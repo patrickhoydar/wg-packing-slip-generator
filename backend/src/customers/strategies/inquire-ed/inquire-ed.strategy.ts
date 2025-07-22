@@ -807,6 +807,7 @@ export class InquireEdStrategy extends CustomerStrategy {
         customProperties: {
           gradeLevel: product.gradeLevel,
           needsSticker: product.needsSticker,
+          productCategory: productInfo?.category,
         },
       };
 
@@ -827,9 +828,8 @@ export class InquireEdStrategy extends CustomerStrategy {
   ): string {
     let description = productInfo?.description || product.sku;
 
-    if (product.gradeLevel) {
-      description += ` (Grade ${product.gradeLevel})`;
-    }
+    // Remove the full language from the description, as it's now in the category
+    description = description.replace(/\s\(English\)/, '').replace(/\s\(Spanish\)/, '');
 
     if (product.needsSticker !== undefined) {
       description += product.needsSticker

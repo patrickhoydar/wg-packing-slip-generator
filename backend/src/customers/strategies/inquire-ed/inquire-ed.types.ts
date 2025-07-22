@@ -94,9 +94,9 @@ export interface InquireEdProductInfo {
   sku: string;
   description: string;
   category:
-    | 'Printed Materials (English)'
-    | 'Printed Materials (Spanish)'
-    | 'Printed Teacher Editions';
+    | 'Printed Materials (EN)'
+    | 'Printed Materials (SP)'
+    | 'Teacher Edition';
 }
 
 export interface InquireEdDeliveryInfo {

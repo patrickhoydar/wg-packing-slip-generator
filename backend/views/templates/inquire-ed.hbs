@@ -43,6 +43,9 @@
             {{#if shipTo.email}}
             <p>{{shipTo.email}}</p>
             {{/if}}
+            {{#if shipTo.phone}}
+            <p>Phone: {{shipTo.phone}}</p>
+            {{/if}}
           </div>
         </div>
       </div>
@@ -97,12 +100,16 @@
                 <!-- TE (Teacher Edition) columns -->
                 <th>SKU</th>
                 <th>Description</th>
+                <th>Product Category</th>
+                <th class="center">Grade</th>
                 <th class="center">Sticker</th>
                 <th class="center">QTY</th>
                 {{else}}
                 <!-- PM (Printed Materials) columns -->
                 <th>SKU</th>
                 <th>Description</th>
+                <th>Product Category</th>
+                <th class="center">Grade</th>
                 <th class="center">QTY</th>
                 {{/if}}
               </tr>
@@ -114,12 +121,16 @@
                 <!-- TE (Teacher Edition) row -->
                 <td>{{sku}}</td>
                 <td>{{description}}</td>
+                <td>{{customProperties.productCategory}}</td>
+                <td class="center">{{customProperties.gradeLevel}}</td>
                 <td class="center">{{#if customProperties.needsSticker}}Yes{{else}}No{{/if}}</td>
                 <td class="center qty">{{quantity}}</td>
                 {{else}}
                 <!-- PM (Printed Materials) row -->
                 <td>{{sku}}</td>
                 <td>{{description}}</td>
+                <td>{{customProperties.productCategory}}</td>
+                <td class="center">{{customProperties.gradeLevel}}</td>
                 <td class="center qty">{{quantity}}</td>
                 {{/if}}
               </tr>
@@ -129,7 +140,6 @@
         </div>
         
         <div class="order-summary">
-          <p><strong>Total Items:</strong> {{summary.totalItems}}</p>
           <p><strong>Total Quantity:</strong> {{summary.totalQuantity}}</p>
         </div>
       </div>
