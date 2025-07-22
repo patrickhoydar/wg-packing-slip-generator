@@ -57,19 +57,19 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Nee
       expect(result.metadata.fileType).toBe('te');
       expect(result.rawData[0].schoolDistrict).toBe('Test School, CO');
       expect(result.rawData[0].products).toHaveLength(3);
-      
+
       // First product: No sticker
       expect(result.rawData[0].products[0].sku).toBe('IND-IJ-TE-NAVIG-0100');
       expect(result.rawData[0].products[0].quantity).toBe(30);
       expect(result.rawData[0].products[0].needsSticker).toBe(false);
       expect(result.rawData[0].products[0].gradeLevel).toBeUndefined();
-      
+
       // Second product: Needs sticker for grade K
       expect(result.rawData[0].products[1].sku).toBe('IND-IJ-TE-MYTEAM-0200');
       expect(result.rawData[0].products[1].quantity).toBe(25);
       expect(result.rawData[0].products[1].needsSticker).toBe(true);
       expect(result.rawData[0].products[1].gradeLevel).toBe('K');
-      
+
       // Third product: Needs sticker for grade 4
       expect(result.rawData[0].products[2].sku).toBe('IND-IJ-TE-PASTF-0300');
       expect(result.rawData[0].products[2].quantity).toBe(26);
@@ -79,7 +79,9 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Nee
 
     it('should throw error for empty file', async () => {
       const buffer = Buffer.from('');
-      await expect(strategy.parseFile(buffer, 'empty.csv')).rejects.toThrow('Invalid CSV data: No rows found');
+      await expect(strategy.parseFile(buffer, 'empty.csv')).rejects.toThrow(
+        'Invalid CSV data: No rows found',
+      );
     });
 
     it('should throw error for unrecognized file format', async () => {
@@ -87,7 +89,9 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Nee
 value1,value2`;
 
       const buffer = Buffer.from(mockCsvData);
-      await expect(strategy.parseFile(buffer, 'invalid.csv')).rejects.toThrow('Unrecognized file format');
+      await expect(strategy.parseFile(buffer, 'invalid.csv')).rejects.toThrow(
+        'Unrecognized file format',
+      );
     });
 
     it('should handle file with custom SKU columns', async () => {
@@ -101,7 +105,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","3, 1","1
       expect(result.rawData).toHaveLength(1);
       expect(result.metadata.fileType).toBe('pm');
       expect(result.rawData[0].products).toHaveLength(3);
-      
+
       // Should extract products from any non-standard SKU columns
       expect(result.rawData[0].products[0].sku).toBe('CUSTOM-SKU-1');
       expect(result.rawData[0].products[1].sku).toBe('CUSTOM-SKU-2');
@@ -119,14 +123,16 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
       expect(result.rawData).toHaveLength(1);
       expect(result.metadata.fileType).toBe('pm');
       expect(result.rawData[0].products).toHaveLength(2);
-      
+
       // First product: Grade 1
       expect(result.rawData[0].products[0].sku).toBe('IND-IJ-PM-NAVIG-EN-0100');
       expect(result.rawData[0].products[0].quantity).toBe(3);
       expect(result.rawData[0].products[0].gradeLevel).toBe('1');
-      
+
       // Second product: Grade 5
-      expect(result.rawData[0].products[1].sku).toBe('IND-IJ-PM-MYTEAM-EN-0200');
+      expect(result.rawData[0].products[1].sku).toBe(
+        'IND-IJ-PM-MYTEAM-EN-0200',
+      );
       expect(result.rawData[0].products[1].quantity).toBe(4);
       expect(result.rawData[0].products[1].gradeLevel).toBe('5');
     });
@@ -218,7 +224,9 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
       expect(result.errors).toContain('Row 1: Missing District or School');
       expect(result.errors).toContain('Row 1: Missing Delivery Address');
       expect(result.errors).toContain('Row 1: Missing Shipping Contact Name');
-      expect(result.errors).toContain('Row 1: Invalid email format: invalid-email');
+      expect(result.errors).toContain(
+        'Row 1: Invalid email format: invalid-email',
+      );
       // Note: Earliest Delivery Date is optional, so this should not be in errors
       expect(result.errors).toContain('Row 1: No products found');
     });
@@ -347,7 +355,9 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
       expect(branding.companyName).toBe('InquireEd');
       expect(branding.shouldOverrideCompany).toBe(true);
       expect(branding.customStyling?.headerStyle).toBe('inquire-ed-header');
-      expect(branding.customStyling?.footerText).toBe('InquireEd Educational Materials');
+      expect(branding.customStyling?.footerText).toBe(
+        'InquireEd Educational Materials',
+      );
     });
   });
 
@@ -390,10 +400,16 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
 
       expect(rules.method).toBe('GROUND');
       expect(rules.specialHandling).toBe(true);
-      expect(rules.instructions).toContain('APPOINTMENT REQUIRED - Call before delivery');
-      expect(rules.instructions).toContain('NO LOADING DOCK - Manual unloading required');
+      expect(rules.instructions).toContain(
+        'APPOINTMENT REQUIRED - Call before delivery',
+      );
+      expect(rules.instructions).toContain(
+        'NO LOADING DOCK - Manual unloading required',
+      );
       expect(rules.instructions).toContain('Receiving Hours: 8-4');
-      expect(rules.instructions).toContain('Special Notes: Test delivery notes');
+      expect(rules.instructions).toContain(
+        'Special Notes: Test delivery notes',
+      );
       expect(rules.instructions).toContain('Earliest Delivery: 8/15/2025');
     });
   });
@@ -422,7 +438,7 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30","","invalid format",
 
       expect(result.rawData).toHaveLength(1);
       expect(result.metadata.fileType).toBe('te');
-      
+
       // Should only parse valid quantities
       expect(result.rawData[0].products).toHaveLength(1);
       expect(result.rawData[0].products[0].sku).toBe('IND-IJ-TE-NAVIG-0100');
@@ -440,7 +456,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, k","3, KG",8
 
       expect(result.rawData).toHaveLength(1);
       expect(result.rawData[0].products).toHaveLength(2);
-      
+
       // Both should normalize to 'K'
       expect(result.rawData[0].products[0].gradeLevel).toBe('K');
       expect(result.rawData[0].products[1].gradeLevel).toBe('K');

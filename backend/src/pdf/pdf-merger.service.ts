@@ -32,7 +32,10 @@ export class PdfMergerService {
 
         // Load the current PDF
         const pdfToMerge = await PDFDocument.load(fileData);
-        const pages = await mergedPdf.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
+        const pages = await mergedPdf.copyPages(
+          pdfToMerge,
+          pdfToMerge.getPageIndices(),
+        );
 
         // Add the pages to the merged document
         pages.forEach((page) => mergedPdf.addPage(page));
@@ -53,8 +56,8 @@ export class PdfMergerService {
     try {
       const files = await fs.readdir(directoryPath);
       const pdfFiles = files
-        .filter(file => file.endsWith('.pdf'))
-        .map(file => path.join(directoryPath, file));
+        .filter((file) => file.endsWith('.pdf'))
+        .map((file) => path.join(directoryPath, file));
 
       if (pdfFiles.length === 0) {
         throw new Error(`No PDF files found in directory: ${directoryPath}`);
@@ -62,7 +65,9 @@ export class PdfMergerService {
 
       return await this.mergePdfs(pdfFiles);
     } catch (error) {
-      this.logger.error(`Error processing directory ${directoryPath}: ${error.message}`);
+      this.logger.error(
+        `Error processing directory ${directoryPath}: ${error.message}`,
+      );
       throw error;
     }
   }

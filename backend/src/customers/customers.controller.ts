@@ -1,15 +1,15 @@
-import { 
-  Controller, 
-  Post, 
-  Param, 
-  UploadedFile, 
-  UseInterceptors, 
+import {
+  Controller,
+  Post,
+  Param,
+  UploadedFile,
+  UseInterceptors,
   Get,
   Options,
   BadRequestException,
   Res,
   HttpStatus,
-  Body
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -33,7 +33,7 @@ export class CustomersController {
   async testEndpoint(@Param('customerCode') customerCode: string) {
     return {
       message: `Backend is working for customer: ${customerCode}`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -47,7 +47,7 @@ export class CustomersController {
   async uploadFile(
     @Param('customerCode') customerCode: string,
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: { jobNumber?: string }
+    @Body() body: { jobNumber?: string },
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -57,7 +57,7 @@ export class CustomersController {
       customerCode,
       file.buffer,
       file.originalname,
-      body.jobNumber
+      body.jobNumber,
     );
 
     return {
@@ -67,8 +67,8 @@ export class CustomersController {
         kitsGenerated: result.kits.length,
         validation: result.validation,
         metadata: result.metadata,
-        kits: result.kits
-      }
+        kits: result.kits,
+      },
     };
   }
 
@@ -76,32 +76,35 @@ export class CustomersController {
   async generateBatchPDFs(
     @Param('customerCode') customerCode: string,
     @Body() body: { kits: any[] },
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     try {
       const kits = body.kits || [];
-      
+
       if (!kits || kits.length === 0) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           message: 'No kits provided for PDF generation',
-          error: 'kits array is empty or missing'
+          error: 'kits array is empty or missing',
         });
       }
-      
-      const pdfBuffer = await this.customersService.generateBatchPDFs(customerCode, kits);
-      
+
+      const pdfBuffer = await this.customersService.generateBatchPDFs(
+        customerCode,
+        kits,
+      );
+
       // Determine order type from the first kit (all kits should be the same type)
       const orderType = kits[0]?.metadata?.customFields?.fileType || 'unknown';
       const orderTypePrefix = orderType.toUpperCase();
-      
+
       const filename = `${orderTypePrefix}-${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.pdf`;
-      
+
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': pdfBuffer.length.toString(),
       });
-      
+
       res.status(HttpStatus.OK).send(pdfBuffer);
     } catch (error) {
       console.error('Error generating batch PDFs:', error);
@@ -116,7 +119,7 @@ export class CustomersController {
   @UseInterceptors(FileInterceptor('file'))
   async validateFile(
     @Param('customerCode') customerCode: string,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -125,29 +128,32 @@ export class CustomersController {
     const validation = await this.customersService.validateFile(
       customerCode,
       file.buffer,
-      file.originalname
+      file.originalname,
     );
 
     return {
       success: validation.isValid,
-      validation
+      validation,
     };
   }
 
   @Post(':customerCode/preview')
   async generatePreviewData(
     @Param('customerCode') customerCode: string,
-    @Body() body: { kit: any }
+    @Body() body: { kit: any },
   ) {
     if (!body.kit) {
       throw new BadRequestException('No kit data provided');
     }
 
-    const previewData = await this.customersService.generatePreviewData(customerCode, body.kit);
-    
+    const previewData = await this.customersService.generatePreviewData(
+      customerCode,
+      body.kit,
+    );
+
     return {
       success: true,
-      data: previewData
+      data: previewData,
     };
   }
 }

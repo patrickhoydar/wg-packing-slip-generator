@@ -20,13 +20,18 @@ import { PdfModule } from '../pdf/pdf.module';
         const allowedMimes = [
           'text/csv',
           'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
-        
+
         if (allowedMimes.includes(file.mimetype)) {
           cb(null, true);
         } else {
-          cb(new Error('Invalid file type. Only CSV and XLSX files are allowed.'), false);
+          cb(
+            new Error(
+              'Invalid file type. Only CSV and XLSX files are allowed.',
+            ),
+            false,
+          );
         }
       },
     }),
@@ -42,6 +47,6 @@ import { PdfModule } from '../pdf/pdf.module';
     InquireEdService,
     CsvParserService,
   ],
-  exports: [CustomersService, CustomerStrategyFactory]
+  exports: [CustomersService, CustomerStrategyFactory],
 })
 export class CustomersModule {}

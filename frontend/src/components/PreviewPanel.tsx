@@ -1,13 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PackingSlip } from '../types/packingSlip';
 import PackingSlipLayout from './PackingSlipLayout';
 
 interface PreviewPanelProps {
   packingSlip: PackingSlip;
+  customerCode?: string;
+  useServerRendering?: boolean;
 }
 
-export default function PreviewPanel({ packingSlip }: PreviewPanelProps) {
+export default function PreviewPanel({ 
+  packingSlip, 
+  customerCode = 'default',
+  useServerRendering = true 
+}: PreviewPanelProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState<string>('');
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  // Fetch HTML preview from backend when data changes
+  useEffect(() => {
+    if (useServerRendering && packingSlip) {
+      fetchHtmlPreview();
+    }
+  }, [packingSlip, customerCode, useServerRendering]);
+
+  const fetchHtmlPreview = async () => {
+    if (!useServerRendering) return;
+    
+    setIsLoadingPreview(true);
+    try {
+      const response = await fetch(`http://localhost:5001/pdf/preview-packing-slip?customerCode=${customerCode}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(packingSlip),
+      });
+
+      if (response.ok) {
+        const html = await response.text();
+        setHtmlPreview(html);
+      } else {
+        console.error('Failed to fetch HTML preview');
+        // Fallback to client-side rendering
+        setHtmlPreview('');
+      }
+    } catch (error) {
+      console.error('Error fetching HTML preview:', error);
+      // Fallback to client-side rendering
+      setHtmlPreview('');
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -26,7 +71,7 @@ export default function PreviewPanel({ packingSlip }: PreviewPanelProps) {
     setIsGeneratingPdf(true);
     
     try {
-      const response = await fetch('http://localhost:3001/pdf/generate-packing-slip', {
+      const response = await fetch('http://localhost:5001/pdf/generate-packing-slip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,13 +144,41 @@ export default function PreviewPanel({ packingSlip }: PreviewPanelProps) {
 
       <div className="flex-1 overflow-auto p-6 print:p-0">
         <div className="max-w-4xl mx-auto print:max-w-none print:mx-0">
-          <div 
-            className="bg-white shadow-lg rounded-lg overflow-hidden drop-zone print:shadow-none print:rounded-none"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <PackingSlipLayout packingSlip={packingSlip} />
-          </div>
+          {isLoadingPreview ? (
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden p-8 text-center">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading preview...</p>
+            </div>
+          ) : useServerRendering && htmlPreview ? (
+            <div 
+              className="shadow-lg rounded-lg overflow-hidden drop-zone print:shadow-none print:rounded-none"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              style={{
+                // Reset styles to let the server HTML take control
+                background: 'transparent',
+                padding: 0,
+                margin: 0
+              }}
+            >
+              <div 
+                dangerouslySetInnerHTML={{ __html: htmlPreview }}
+                style={{
+                  // Let the template control its own styling completely
+                  width: '100%',
+                  height: 'auto'
+                }}
+              />
+            </div>
+          ) : (
+            <div 
+              className="bg-white shadow-lg rounded-lg overflow-hidden drop-zone print:shadow-none print:rounded-none"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <PackingSlipLayout packingSlip={packingSlip} />
+            </div>
+          )}
         </div>
       </div>
     </div>

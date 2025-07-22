@@ -50,7 +50,6 @@
       <!-- Delivery Requirements -->
       {{#if deliveryInfo}}
       <div class="delivery-requirements">
-        <h3 class="delivery-requirements-title">Delivery Requirements:</h3>
         <div class="delivery-requirements-details">
           <div class="delivery-row">
             <div class="delivery-col">
@@ -70,13 +69,11 @@
               <p><strong>Receiving Hours:</strong> {{deliveryInfo.receivingHours}}</p>
             </div>
           </div>
-          {{#if deliveryInfo.earliestDeliveryDate}}
           <div class="delivery-row">
             <div class="delivery-col">
               <p><strong>Earliest Delivery Date:</strong> {{deliveryInfo.earliestDeliveryDate}}</p>
             </div>
           </div>
-          {{/if}}
           {{#if deliveryInfo.deliveryNotes}}
           <div class="delivery-row">
             <div class="delivery-col">

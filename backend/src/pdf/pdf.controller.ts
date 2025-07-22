@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpStatus, Query, Get } from '@nestjs/common';
 import { Response } from 'express';
 import { PdfService } from './pdf.service';
 
@@ -17,23 +17,52 @@ export class PdfController {
         packingSlipData,
         customerStrategy,
       );
-      
+
       // Include order type in filename if available
       const orderType = packingSlipData.orderType || 'unknown';
       const orderTypePrefix = orderType.toUpperCase();
       const filename = `${orderTypePrefix}-packing-slip-${packingSlipData.order?.orderNumber || 'document'}.pdf`;
-      
+
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': pdfBuffer.length.toString(),
       });
-      
+
       res.status(HttpStatus.OK).send(pdfBuffer);
     } catch (error) {
       console.error('Error generating PDF:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to generate PDF',
+        error: error.message,
+      });
+    }
+  }
+
+  @Post('preview-packing-slip')
+  async previewPackingSlip(
+    @Body() packingSlipData: any,
+    @Query('customerCode') customerCode: string = 'default',
+    @Res() res: Response,
+  ) {
+    try {
+      const html = await this.pdfService.generatePackingSlipHtmlPreview(
+        packingSlipData,
+        customerCode,
+      );
+
+      res.set({
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      });
+
+      res.status(HttpStatus.OK).send(html);
+    } catch (error) {
+      console.error('Error generating HTML preview:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to generate HTML preview',
         error: error.message,
       });
     }

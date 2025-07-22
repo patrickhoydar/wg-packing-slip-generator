@@ -24,8 +24,8 @@ This template provides a standardized approach for documenting and implementing 
 - **File Type**: [CSV/XLSX/etc.]
 - **Sample Structure**:
 ```
-Column A | Column B | Column C | ...
----------|----------|----------|----
+| Column A | Column B | Column C | ... |
+| -------- | -------- | -------- | --- |
 [Sample data structure]
 ```
 

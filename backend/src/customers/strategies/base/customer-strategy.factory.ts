@@ -11,21 +11,25 @@ export class CustomerStrategyFactory {
 
   getStrategy(customerCode: string): ICustomerStrategy {
     const strategy = this.strategies.get(customerCode.toUpperCase());
-    
+
     if (!strategy) {
       throw new BadRequestException(
-        `No strategy found for customer code: ${customerCode}. Available strategies: ${Array.from(this.strategies.keys()).join(', ')}`
+        `No strategy found for customer code: ${customerCode}. Available strategies: ${Array.from(this.strategies.keys()).join(', ')}`,
       );
     }
-    
+
     return strategy;
   }
 
-  getAllStrategies(): Array<{ customerCode: string; displayName: string; instructions: any }> {
-    return Array.from(this.strategies.values()).map(strategy => ({
+  getAllStrategies(): Array<{
+    customerCode: string;
+    displayName: string;
+    instructions: any;
+  }> {
+    return Array.from(this.strategies.values()).map((strategy) => ({
       customerCode: strategy.customerCode,
       displayName: strategy.displayName,
-      instructions: strategy.getFileUploadInstructions()
+      instructions: strategy.getFileUploadInstructions(),
     }));
   }
 

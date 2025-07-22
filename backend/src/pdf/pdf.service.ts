@@ -25,12 +25,21 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
   private browser: puppeteer.Browser | null = null;
   private browserInitialized = false;
-  private initializationPromise: Promise<void>;
+  private initializationPromise: Promise<void> | null = null;
   private pagePool: puppeteer.Page[] = [];
   private readonly maxPoolSize = 3;
   private readonly maxConcurrency = 3;
   private currentConcurrency = 0;
   private readonly pendingRequests: PdfRequest[] = [];
+  private cleanupTimeoutId: NodeJS.Timeout | null = null;
+  private readonly isDevelopment = process.env.NODE_ENV === 'development';
+  private isShuttingDown = false;
+  private browserPid: number | null = null;
+  private browserStartTime: number = 0;
+  private readonly browserMaxAge = this.isDevelopment
+    ? 5 * 60 * 1000
+    : 60 * 60 * 1000; // 5min dev, 1h prod
+  private healthCheckInterval: NodeJS.Timeout | null = null;
 
   // Template caching
   private readonly templateCache = new Map<
@@ -46,15 +55,28 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    this.initializationPromise = this.initializeBrowser();
-    await this.initializationPromise;
     this.setupTemplateConfigs();
     this.registerHandlebarsHelpers();
     await this.precompileTemplates();
+
+    // In production, initialize browser immediately for better performance
+    // In development, use lazy initialization to avoid hot reload conflicts
+    if (!this.isDevelopment) {
+      this.initializationPromise = this.initializeBrowser();
+      await this.initializationPromise;
+    }
   }
 
   async onModuleDestroy() {
     this.logger.log('PdfService shutting down, cleaning up resources...');
+    this.isShuttingDown = true;
+
+    // Clear any cleanup timeouts
+    if (this.cleanupTimeoutId) {
+      clearTimeout(this.cleanupTimeoutId);
+      this.cleanupTimeoutId = null;
+    }
+
     await this.cleanup();
   }
 
@@ -87,29 +109,19 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     for (const [customerStrategy, config] of this.templateConfigs.entries()) {
       try {
         // Load and compile template
-        this.logger.log(`Loading template from: ${config.templatePath}`);
         const templateContent = await fs.promises.readFile(
           config.templatePath,
           'utf8',
         );
-        this.logger.log(
-          `Template content length: ${templateContent.length} chars`,
-        );
-
-        // Log a snippet of template to verify it's loading correctly
-        const snippet = templateContent.substring(0, 200).replace(/\n/g, '\\n');
-        this.logger.log(`Template snippet: ${snippet}...`);
 
         const compiledTemplate = handlebars.compile(templateContent);
         this.templateCache.set(customerStrategy, compiledTemplate);
 
         // Load and cache styles
-        this.logger.log(`Loading styles from: ${config.stylesPath}`);
         const stylesContent = await fs.promises.readFile(
           config.stylesPath,
           'utf8',
         );
-        this.logger.log(`Styles content length: ${stylesContent.length} chars`);
         this.stylesCache.set(customerStrategy, stylesContent);
 
         this.logger.log(`Template cached for strategy: ${customerStrategy}`);
@@ -118,8 +130,6 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
           `Failed to precompile template for ${customerStrategy}:`,
           error,
         );
-        this.logger.error(`Template path: ${config.templatePath}`);
-        this.logger.error(`Styles path: ${config.stylesPath}`);
       }
     }
 
@@ -136,10 +146,18 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async initializeBrowser(): Promise<void> {
+    if (this.browserInitialized || this.isShuttingDown) {
+      return;
+    }
+
     try {
-      this.logger.log('Initializing persistent browser instance...');
-      this.browser = await puppeteer.launch({
+      this.logger.log(
+        `Initializing browser (${this.isDevelopment ? 'development' : 'production'} mode)...`,
+      );
+
+      const launchOptions: puppeteer.LaunchOptions = {
         headless: true,
+        timeout: this.isDevelopment ? 15000 : 30000, // Shorter timeout in dev
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -158,73 +176,395 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
           '--disable-ipc-flooding-protection',
           '--memory-pressure-off',
         ],
-      });
+      };
+
+      // Development-specific optimizations
+      if (this.isDevelopment) {
+        launchOptions.args?.push(
+          '--single-process', // Avoid subprocess issues in dev
+          '--no-zygote', // Simplify process management
+        );
+      }
+
+      this.browser = await puppeteer.launch(launchOptions);
+      this.browserPid = this.browser.process()?.pid || null;
       this.browserInitialized = true;
-      this.logger.log('Browser instance initialized successfully');
+
+      this.browserStartTime = Date.now();
+      this.logger.log(
+        `Browser initialized successfully (PID: ${this.browserPid})`,
+      );
+
+      // Set up process error handlers
+      if (this.browser.process()) {
+        this.browser.process()!.on('error', (error) => {
+          this.logger.error('Browser process error:', error);
+          this.handleBrowserError(error);
+        });
+
+        this.browser.process()!.on('exit', (code, signal) => {
+          this.logger.warn(
+            `Browser process exited with code ${code}, signal ${signal}`,
+          );
+          this.browserInitialized = false;
+          this.browser = null;
+          this.browserPid = null;
+          this.browserStartTime = 0;
+        });
+      }
+
+      // Start health check in development mode
+      if (this.isDevelopment) {
+        this.startHealthCheck();
+      }
     } catch (error) {
       this.logger.error('Failed to initialize browser:', error);
+      this.browserInitialized = false;
+      this.browser = null;
+      this.browserPid = null;
       throw error;
     }
   }
 
   private async cleanup(): Promise<void> {
+    const cleanupTimeout = this.isDevelopment ? 5000 : 10000;
+
+    return new Promise<void>((resolve) => {
+      // Set a timeout to ensure cleanup doesn't hang indefinitely
+      const timeoutId = setTimeout(() => {
+        this.logger.warn(
+          `Cleanup timeout after ${cleanupTimeout}ms, forcing cleanup...`,
+        );
+        this.forceCleanup();
+        resolve();
+      }, cleanupTimeout);
+
+      this.performCleanup()
+        .then(() => {
+          clearTimeout(timeoutId);
+          resolve();
+        })
+        .catch((error) => {
+          this.logger.error('Error during cleanup:', error);
+          clearTimeout(timeoutId);
+          this.forceCleanup();
+          resolve();
+        });
+    });
+  }
+
+  private async performCleanup(): Promise<void> {
+    this.logger.log('Starting graceful cleanup...');
+
+    // Clear pending requests first
+    this.pendingRequests.forEach((request) => {
+      request.reject(new Error('Service shutting down'));
+    });
+    this.pendingRequests.length = 0;
+
     if (this.browser) {
       try {
-        this.logger.log('Closing browser instance...');
-        // Close all pages first
+        this.logger.log(
+          `Closing browser instance (PID: ${this.browserPid})...`,
+        );
+
+        // Close all pages first with timeout
         const pages = await this.browser.pages();
-        for (const page of pages) {
+        const pageClosePromises = pages.map(async (page) => {
           try {
-            await page.close();
+            if (!page.isClosed()) {
+              await Promise.race([
+                page.close(),
+                new Promise((_, reject) =>
+                  setTimeout(
+                    () => reject(new Error('Page close timeout')),
+                    2000,
+                  ),
+                ),
+              ]);
+            }
           } catch (error) {
             this.logger.warn('Error closing page:', error);
           }
-        }
-        // Close browser
-        await this.browser.close();
+        });
+
+        await Promise.all(pageClosePromises);
+
+        // Close browser with timeout
+        await Promise.race([
+          this.browser.close(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Browser close timeout')), 3000),
+          ),
+        ]);
+
         this.logger.log('Browser instance closed successfully');
       } catch (error) {
-        this.logger.warn('Error closing browser:', error);
-        // Force kill if needed
-        try {
-          this.browser.process()?.kill('SIGKILL');
-        } catch (killError) {
-          this.logger.warn('Error force killing browser:', killError);
-        }
+        this.logger.warn('Error during graceful browser close:', error);
+        await this.forceBrowserKill();
       }
-      this.browserInitialized = false;
-      this.browser = null;
     }
 
-    // Clear caches
+    // Reset state
+    this.browserInitialized = false;
+    this.browser = null;
+    this.browserPid = null;
     this.pagePool = [];
-    this.templateCache.clear();
-    this.stylesCache.clear();
+    this.currentConcurrency = 0;
+    this.initializationPromise = null;
+    this.browserStartTime = 0;
+
+    // Stop health check
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+
+    // Clear template caches only in development for hot reload
+    if (this.isDevelopment) {
+      this.templateCache.clear();
+      this.stylesCache.clear();
+    }
+
+    this.logger.log('Graceful cleanup completed');
+  }
+
+  private async forceBrowserKill(): Promise<void> {
+    if (this.browser) {
+      try {
+        const process = this.browser.process();
+        if (process && !process.killed) {
+          this.logger.warn(
+            `Force killing browser process (PID: ${this.browserPid})...`,
+          );
+
+          // Try SIGTERM first
+          process.kill('SIGTERM');
+
+          // Wait a moment, then SIGKILL if needed
+          setTimeout(() => {
+            if (process && !process.killed) {
+              this.logger.warn('SIGTERM failed, using SIGKILL...');
+              process.kill('SIGKILL');
+            }
+          }, 1000);
+        }
+      } catch (killError) {
+        this.logger.warn('Error force killing browser:', killError);
+      }
+    }
+  }
+
+  private forceCleanup(): void {
+    this.logger.warn('Performing force cleanup...');
+
+    // Force kill browser if it exists
+    if (this.browserPid) {
+      try {
+        process.kill(this.browserPid, 'SIGKILL');
+        this.logger.warn(`Force killed browser process ${this.browserPid}`);
+      } catch (error) {
+        this.logger.warn(`Could not kill process ${this.browserPid}:`, error);
+      }
+    }
+
+    // Reset all state immediately
+    this.browserInitialized = false;
+    this.browser = null;
+    this.browserPid = null;
+    this.pagePool = [];
     this.pendingRequests.length = 0;
     this.currentConcurrency = 0;
+    this.initializationPromise = null;
 
-    this.logger.log('All resources cleaned up');
+    if (this.isDevelopment) {
+      this.templateCache.clear();
+      this.stylesCache.clear();
+    }
+
+    // Stop health check
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+
+    this.browserStartTime = 0;
+    this.logger.log('Force cleanup completed');
+  }
+
+  private startHealthCheck(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+
+    // Check browser health every 30 seconds in development
+    this.healthCheckInterval = setInterval(async () => {
+      if (!this.isShuttingDown) {
+        await this.checkBrowserHealth();
+      }
+    }, 30000);
+  }
+
+  private async checkBrowserHealth(): Promise<void> {
+    if (!this.browser || !this.browserInitialized) {
+      return;
+    }
+
+    try {
+      // Check if browser is still responsive
+      await Promise.race([
+        this.browser.version(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Health check timeout')), 5000),
+        ),
+      ]);
+
+      // Check browser age for recycling in development
+      const browserAge = Date.now() - this.browserStartTime;
+      if (this.isDevelopment && browserAge > this.browserMaxAge) {
+        this.logger.log(
+          `Browser recycling: age ${Math.round(browserAge / 1000)}s exceeds max ${Math.round(this.browserMaxAge / 1000)}s`,
+        );
+        await this.recycleBrowser();
+      }
+    } catch (error) {
+      this.logger.warn('Browser health check failed:', error);
+      await this.handleBrowserError(error);
+    }
+  }
+
+  private async recycleBrowser(): Promise<void> {
+    if (this.isShuttingDown || this.currentConcurrency > 0) {
+      return; // Don't recycle during active operations
+    }
+
+    this.logger.log('Recycling browser instance...');
+
+    try {
+      // Graceful shutdown of current browser
+      await this.performCleanup();
+
+      // Wait a moment for cleanup
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Initialize new browser
+      this.initializationPromise = this.initializeBrowser();
+      await this.initializationPromise;
+
+      this.logger.log('Browser recycled successfully');
+    } catch (error) {
+      this.logger.error('Error recycling browser:', error);
+    }
+  }
+
+  private async handleBrowserError(error: any): Promise<void> {
+    this.logger.error('Handling browser error:', error);
+
+    // Mark browser as unhealthy
+    this.browserInitialized = false;
+
+    // Attempt recovery
+    try {
+      await this.recoverBrowser();
+    } catch (recoveryError) {
+      this.logger.error('Browser recovery failed:', recoveryError);
+    }
   }
 
   private async recoverBrowser(): Promise<void> {
+    if (this.isShuttingDown) {
+      return;
+    }
+
     this.logger.log('Attempting browser recovery...');
 
-    // Full cleanup first
-    await this.cleanup();
+    try {
+      // Full cleanup first
+      await this.cleanup();
 
-    // Wait a moment for cleanup to complete
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Wait a moment for cleanup to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Reinitialize browser and templates
-    await this.initializeBrowser();
-    await this.precompileTemplates(); // Refresh templates during recovery
-    this.logger.log('Browser recovery completed');
+      // Reinitialize browser and templates
+      this.initializationPromise = this.initializeBrowser();
+      await this.initializationPromise;
+
+      // Refresh templates during recovery (especially important in development)
+      if (this.isDevelopment) {
+        await this.precompileTemplates();
+      }
+
+      this.logger.log('Browser recovery completed');
+    } catch (error) {
+      this.logger.error('Browser recovery failed:', error);
+      throw error;
+    }
   }
 
   // Method to force refresh templates during development
   async refreshTemplates(): Promise<void> {
     this.logger.log('Force refreshing templates...');
     await this.precompileTemplates();
+  }
+
+  // Development helper to invalidate specific templates
+  async invalidateTemplate(customerStrategy: string): Promise<void> {
+    if (!this.isDevelopment) {
+      return;
+    }
+
+    this.templateCache.delete(customerStrategy);
+    this.stylesCache.delete(customerStrategy);
+
+    // Recompile the specific template
+    const config = this.templateConfigs.get(customerStrategy);
+    if (config) {
+      try {
+        const templateContent = await fs.promises.readFile(
+          config.templatePath,
+          'utf8',
+        );
+        const compiledTemplate = handlebars.compile(templateContent);
+        this.templateCache.set(customerStrategy, compiledTemplate);
+
+        const stylesContent = await fs.promises.readFile(
+          config.stylesPath,
+          'utf8',
+        );
+        this.stylesCache.set(customerStrategy, stylesContent);
+
+        this.logger.log(
+          `Template invalidated and recompiled: ${customerStrategy}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to recompile template ${customerStrategy}:`,
+          error,
+        );
+      }
+    }
+  }
+
+  // Generate HTML preview using the same templates as PDF generation
+  async generatePackingSlipHtmlPreview(
+    packingSlipData: any,
+    customerCode: string = 'default',
+  ): Promise<string> {
+    try {
+      // Map customer code to strategy (same logic as PDF generation)
+      const customerStrategy = this.getCustomerStrategy(customerCode);
+      
+      // Use the same HTML generation method as PDF creation
+      const html = await this.generatePackingSlipHtml(
+        packingSlipData,
+        customerStrategy,
+      );
+      
+      return html;
+    } catch (error) {
+      this.logger.error('Error generating HTML preview:', error);
+      throw error;
+    }
   }
 
   private async getPage(): Promise<puppeteer.Page> {
@@ -292,9 +632,11 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     packingSlipData: any,
     customerStrategy: string = 'default',
   ): Promise<Buffer> {
-    if (!this.browserInitialized) {
-      await this.initializationPromise;
+    if (this.isShuttingDown) {
+      throw new Error('PDF service is shutting down');
     }
+
+    await this.ensureBrowserReady();
 
     return new Promise((resolve, reject) => {
       this.pendingRequests.push({
@@ -307,8 +649,42 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  private async ensureBrowserReady(): Promise<void> {
+    if (this.isShuttingDown) {
+      throw new Error('Service is shutting down');
+    }
+
+    // If browser is already ready, return immediately
+    if (this.browserInitialized && this.browser) {
+      return;
+    }
+
+    // If initialization is already in progress, wait for it
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+      if (this.browserInitialized && this.browser) {
+        return;
+      }
+    }
+
+    // Start initialization if not already started
+    this.initializationPromise = this.initializeBrowser();
+    await this.initializationPromise;
+
+    if (!this.browserInitialized || !this.browser) {
+      throw new Error('Failed to initialize browser');
+    }
+  }
+
   // Batch PDF generation
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
+    if (this.isShuttingDown) {
+      throw new Error('PDF service is shutting down');
+    }
+
+    // Ensure browser is ready before starting batch generation
+    await this.ensureBrowserReady();
+
     const sessionId = `${customerCode}-${Date.now()}`;
     const tempDir = path.join(os.tmpdir(), 'wg-packing-slips', sessionId);
 
@@ -508,7 +884,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       ) || 0;
 
     // Debug logging
-    this.logger.debug('prepareTemplateData - deliveryInfo:', data.deliveryInfo);
+    this.logger.debug(`[PDF-DEBUG] Processing PDF for company: "${data.order?.customer?.company}" with deliveryInfo:`, data.deliveryInfo);
     this.logger.debug(
       'prepareTemplateData - shippingMethod:',
       data.shippingMethod,

@@ -93,7 +93,10 @@ export interface ParsedQuantity {
 export interface InquireEdProductInfo {
   sku: string;
   description: string;
-  category: 'Printed Materials (English)' | 'Printed Materials (Spanish)' | 'Printed Teacher Editions';
+  category:
+    | 'Printed Materials (English)'
+    | 'Printed Materials (Spanish)'
+    | 'Printed Teacher Editions';
 }
 
 export interface InquireEdDeliveryInfo {
@@ -150,18 +153,20 @@ export const PM_PRODUCT_COLUMN_PATTERN = /^IND-IJ-PM-[A-Z]+-[A-Z]{2}-\d{4}$/;
 export const TE_PRODUCT_COLUMN_PATTERN = /^IND-IJ-TE-[A-Z]+-\d{4}$/;
 
 // Grade level pattern for PM products - handles formats like "2, K", "3, 1", "4, 5", etc.
-export const GRADE_LEVEL_PATTERN = /^(\d+),\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+)$/;
+export const GRADE_LEVEL_PATTERN =
+  /^(\d+),\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+)$/;
 
 // Sticker requirement pattern for TE products - handles formats like:
 // "26, No Sticker", "26, Needs Sticker: 4", "1, No Sticker", etc.
-export const STICKER_PATTERN = /^(\d+),\s*(No Sticker|Needs Sticker:\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+))$/;
+export const STICKER_PATTERN =
+  /^(\d+),\s*(No Sticker|Needs Sticker:\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+))$/;
 
 // Delivery date patterns (flexible to handle various formats)
 export const DELIVERY_DATE_PATTERNS = [
-  /^\d{1,2}\/\d{1,2}\/\d{4}$/,  // MM/DD/YYYY
-  /^\d{4}-\d{2}-\d{2}$/,        // YYYY-MM-DD
-  /^\d{1,2}-\d{1,2}-\d{4}$/,    // MM-DD-YYYY
-  /^\d{1,2}\/\d{1,2}\/\d{2}$/,  // MM/DD/YY
+  /^\d{1,2}\/\d{1,2}\/\d{4}$/, // MM/DD/YYYY
+  /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+  /^\d{1,2}-\d{1,2}-\d{4}$/, // MM-DD-YYYY
+  /^\d{1,2}\/\d{1,2}\/\d{2}$/, // MM/DD/YY
 ];
 
 export interface InquireEdConfig {

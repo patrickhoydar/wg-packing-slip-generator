@@ -87,9 +87,9 @@ export type GeorgiaBaptistFileType = 'ups' | 'pobox' | 'unknown';
 export interface GeorgiaBaptistProductCategories {
   'posters-eng': number;
   'posters-spa': number;
-  'inserts': number;
+  inserts: number;
   'guides-eng': number;
   'guides-spa': number;
-  'envelopes': number;
-  'cards': number;
+  envelopes: number;
+  cards: number;
 }

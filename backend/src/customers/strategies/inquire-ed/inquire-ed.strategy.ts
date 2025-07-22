@@ -159,6 +159,10 @@ export class InquireEdStrategy extends CustomerStrategy {
       }
     }
 
+    // Post-process kits to calculate earliest delivery dates for orders
+    console.log(`[EARLIEST-DELIVERY] InquireEd: Generated ${kits.length} kits, starting earliest delivery date calculation`);
+    this.calculateOrderEarliestDeliveryDates(kits);
+
     return kits;
   }
 
@@ -673,6 +677,72 @@ export class InquireEdStrategy extends CustomerStrategy {
     };
 
     return kit;
+  }
+
+  /**
+   * Calculate and set earliest delivery dates.
+   * Find the earliest date from all kits and apply it to kits missing delivery dates.
+   */
+  private calculateOrderEarliestDeliveryDates(kits: CustomerKit[]): void {
+    console.log(`[EARLIEST-DELIVERY] InquireEd: Processing ${kits.length} kits for earliest delivery date calculation`);
+    
+    // Find the earliest date from ALL kits that have dates
+    let earliestDate: string | null = null;
+    let kitsWithDates = 0;
+    let kitsWithoutDates = 0;
+    
+    for (const kit of kits) {
+      const deliveryInfo = kit.metadata.customFields.deliveryInfo;
+      if (deliveryInfo.earliestDeliveryDate && deliveryInfo.earliestDeliveryDate.trim() !== '') {
+        kitsWithDates++;
+        const currentDate = deliveryInfo.earliestDeliveryDate.trim();
+        if (!earliestDate || this.isDateEarlier(currentDate, earliestDate)) {
+          earliestDate = currentDate;
+        }
+      } else {
+        kitsWithoutDates++;
+      }
+    }
+    
+    console.log(`[EARLIEST-DELIVERY] Analysis: ${kitsWithDates} kits with dates, ${kitsWithoutDates} kits without dates`);
+    console.log(`[EARLIEST-DELIVERY] Earliest date found across all kits: "${earliestDate}"`);
+    
+    // Apply earliest date to any kits missing delivery dates
+    if (earliestDate && kitsWithoutDates > 0) {
+      let updatedCount = 0;
+      for (const kit of kits) {
+        const deliveryInfo = kit.metadata.customFields.deliveryInfo;
+        if (!deliveryInfo.earliestDeliveryDate || deliveryInfo.earliestDeliveryDate.trim() === '') {
+          console.log(`[EARLIEST-DELIVERY] UPDATING kit ${kit.id} (${kit.recipient.company}) from "" to "${earliestDate}"`);
+          deliveryInfo.earliestDeliveryDate = earliestDate;
+          updatedCount++;
+        }
+      }
+      console.log(`[EARLIEST-DELIVERY] Updated ${updatedCount} kits with earliest date: ${earliestDate}`);
+    }
+    
+    // Final verification
+    console.log(`[EARLIEST-DELIVERY] Final verification - all ${kits.length} kits after calculation:`);
+    for (const kit of kits) {
+      const deliveryInfo = kit.metadata.customFields.deliveryInfo;
+      console.log(`[EARLIEST-DELIVERY] Final: Kit ${kit.id} (${kit.recipient.company}) earliestDeliveryDate: "${deliveryInfo.earliestDeliveryDate}"`);
+    }
+  }
+
+
+  /**
+   * Compare two date strings to determine if first date is earlier than second
+   * Assumes dates are in MM/DD/YYYY format
+   */
+  private isDateEarlier(date1: string, date2: string): boolean {
+    try {
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+      return d1 < d2;
+    } catch (error) {
+      // If date parsing fails, fallback to string comparison
+      return date1 < date2;
+    }
   }
 
   private parseDeliveryAddress(address: string): {

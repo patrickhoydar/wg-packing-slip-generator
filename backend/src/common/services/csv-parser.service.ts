@@ -54,7 +54,7 @@ export class CsvParserService {
     options: CsvParseOptions = {},
   ): Promise<CsvParseResult<T>> {
     const startTime = Date.now();
-    
+
     // Default options (for reference, using inline options below)
     // const defaultOptions: CsvParseOptions = {
     //   columns: true,
@@ -93,24 +93,36 @@ export class CsvParserService {
         )
         .on('data', (data: T) => {
           // Capture column names from first record
-          if (results.length === 0 && typeof data === 'object' && data !== null) {
+          if (
+            results.length === 0 &&
+            typeof data === 'object' &&
+            data !== null
+          ) {
             columns = Object.keys(data);
-            console.log('CSV Parser: Captured columns from first data record:', columns);
+            console.log(
+              'CSV Parser: Captured columns from first data record:',
+              columns,
+            );
           }
           results.push(data);
         })
         .on('error', (error: any) => {
           console.error('CSV Parser: Error during parsing:', error);
-          errors.push({ 
-            row: error.record || 0, 
-            column: error.column || 0, 
-            message: error.message || 'Unknown parsing error' 
+          errors.push({
+            row: error.record || 0,
+            column: error.column || 0,
+            message: error.message || 'Unknown parsing error',
           });
         })
         .on('end', () => {
           const parseTime = Date.now() - startTime;
-          console.log('CSV Parser: Parsing completed, results:', results.length, 'columns:', columns);
-          
+          console.log(
+            'CSV Parser: Parsing completed, results:',
+            results.length,
+            'columns:',
+            columns,
+          );
+
           if (results.length === 0) {
             reject(new Error('Invalid CSV data: No rows found'));
             return;
@@ -142,13 +154,13 @@ export class CsvParserService {
     options: CsvParseOptions = {},
   ): Promise<T[]> {
     const result = await this.parseCSV<T>(fileBuffer, options);
-    
+
     if (result.errors.length > 0) {
       throw new Error(
-        `CSV parsing errors: ${result.errors.map(e => `Row ${e.row}: ${e.message}`).join(', ')}`,
+        `CSV parsing errors: ${result.errors.map((e) => `Row ${e.row}: ${e.message}`).join(', ')}`,
       );
     }
-    
+
     return result.data;
   }
 
@@ -173,7 +185,7 @@ export class CsvParserService {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!data || data.length === 0) {
       errors.push('No data found in CSV file');
       return {
@@ -188,21 +200,21 @@ export class CsvParserService {
 
     const availableColumns = Object.keys(data[0]);
     const allExpectedColumns = [...requiredColumns, ...optionalColumns];
-    
+
     // Check for missing required columns
     const missingColumns = requiredColumns.filter(
-      col => !availableColumns.includes(col),
+      (col) => !availableColumns.includes(col),
     );
-    
+
     if (missingColumns.length > 0) {
       errors.push(`Missing required columns: ${missingColumns.join(', ')}`);
     }
 
     // Check for extra columns (not necessarily an error, but worth noting)
     const extraColumns = availableColumns.filter(
-      col => !allExpectedColumns.includes(col),
+      (col) => !allExpectedColumns.includes(col),
     );
-    
+
     if (extraColumns.length > 0) {
       warnings.push(`Extra columns found: ${extraColumns.join(', ')}`);
     }
@@ -282,18 +294,18 @@ export class CsvParserService {
    * @returns Normalized column names
    */
   normalizeColumnNames(columns: string[]): string[] {
-    return columns.map(col => {
+    return columns.map((col) => {
       // Remove BOM characters
       let normalized = col.replace(/^\ufeff/, '').replace(/\uFEFF/g, '');
-      
+
       // Trim whitespace
       normalized = normalized.trim();
-      
+
       // Handle quoted column names
       if (normalized.startsWith('"') && normalized.endsWith('"')) {
         normalized = normalized.slice(1, -1);
       }
-      
+
       return normalized;
     });
   }
@@ -305,23 +317,29 @@ export class CsvParserService {
    * @returns Found column name or null
    */
   findColumn(availableColumns: string[], targetColumn: string): string | null {
-    const normalizedTarget = targetColumn.toLowerCase().trim().replace(/\s+/g, ' ');
-    
+    const normalizedTarget = targetColumn
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ');
+
     // Exact match first
     for (const col of availableColumns) {
       if (col.toLowerCase().trim().replace(/\s+/g, ' ') === normalizedTarget) {
         return col;
       }
     }
-    
+
     // Partial match
     for (const col of availableColumns) {
       const normalizedCol = col.toLowerCase().trim().replace(/\s+/g, ' ');
-      if (normalizedCol.includes(normalizedTarget) || normalizedTarget.includes(normalizedCol)) {
+      if (
+        normalizedCol.includes(normalizedTarget) ||
+        normalizedTarget.includes(normalizedCol)
+      ) {
         return col;
       }
     }
-    
+
     return null;
   }
 
@@ -334,17 +352,17 @@ export class CsvParserService {
     if (typeof value === 'number') {
       return value;
     }
-    
+
     if (!value || value === '') {
       return 0;
     }
-    
+
     // Handle string values
     const stringValue = String(value).trim();
-    
+
     // Remove common non-numeric characters
     const cleanValue = stringValue.replace(/[,$%]/g, '');
-    
+
     const num = parseFloat(cleanValue);
     return isNaN(num) ? 0 : num;
   }
@@ -358,14 +376,14 @@ export class CsvParserService {
     if (value === null || value === undefined) {
       return '';
     }
-    
+
     let cleanValue = String(value).trim();
-    
+
     // Remove surrounding quotes if present
     if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
       cleanValue = cleanValue.slice(1, -1);
     }
-    
+
     return cleanValue;
   }
 }

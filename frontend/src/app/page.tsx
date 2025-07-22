@@ -233,7 +233,11 @@ export default function Home() {
         {renderSidebarContent()}
       </Sidebar>
 
-      <PreviewPanel packingSlip={previewData} />
+      <PreviewPanel 
+        packingSlip={previewData} 
+        customerCode={selectedCustomer?.customerCode || 'default'}
+        useServerRendering={true}
+      />
     </div>
   )
 }
