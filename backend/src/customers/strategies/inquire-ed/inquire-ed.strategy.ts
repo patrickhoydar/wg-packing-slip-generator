@@ -595,9 +595,9 @@ export class InquireEdStrategy extends CustomerStrategy {
       errors.push(`${prefix} Missing Shipping Contact Name`);
     }
 
-    if (!row.shippingContact.email || row.shippingContact.email.trim() === '') {
-      errors.push(`${prefix} Missing Shipping Contact Email`);
-    }
+    // if (!row.shippingContact.email || row.shippingContact.email.trim() === '') {
+    //   errors.push(`${prefix} Missing Shipping Contact Email`);
+    // }
 
     // Note: Dock, Paved Path, Receiving Days, Receiving Hours are always present due to defaults
     // All other fields (Shipping Contact Phone, Delivery Notes, Earliest Delivery Date, Appointment Required) are OPTIONAL

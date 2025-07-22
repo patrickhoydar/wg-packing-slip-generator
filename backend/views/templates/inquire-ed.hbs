@@ -16,7 +16,7 @@
           <div class="company-info">
             2450 Meadowbrook Pkwy Duluth, GA 30096, Phone: 877-415-7323
           </div>
-          <h1 class="packing-list-title" style="color: red;">PACKING LIST</h1>
+          <h1 class="packing-list-title">PACKING LIST</h1>
         </div>
       </div>
 
@@ -39,14 +39,54 @@
             {{/if}}
             <p class="company-name">{{shipTo.name}}</p>
             <p>{{shipTo.address.street}}</p>
-            <p>{{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zipCode}}</p>
-            <p>{{shipTo.address.country}}</p>
+            <p>{{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zipCode}}, {{shipTo.address.country}}</p>
             {{#if shipTo.email}}
             <p>{{shipTo.email}}</p>
             {{/if}}
           </div>
         </div>
       </div>
+
+      <!-- Delivery Requirements -->
+      {{#if deliveryInfo}}
+      <div class="delivery-requirements">
+        <h3 class="delivery-requirements-title">Delivery Requirements:</h3>
+        <div class="delivery-requirements-details">
+          <div class="delivery-row">
+            <div class="delivery-col">
+              <p><strong>Shipping Method:</strong> {{shippingMethod}}</p>
+            </div>
+            <div class="delivery-col">
+              {{#if deliveryInfo.appointmentRequired}}
+              <p><strong>⚠️ APPOINTMENT REQUIRED</strong></p>
+              {{/if}}
+            </div>
+          </div>
+          <div class="delivery-row">
+            <div class="delivery-col">
+              <p><strong>Receiving Days:</strong> {{deliveryInfo.receivingDays}}</p>
+            </div>
+            <div class="delivery-col">
+              <p><strong>Receiving Hours:</strong> {{deliveryInfo.receivingHours}}</p>
+            </div>
+          </div>
+          {{#if deliveryInfo.earliestDeliveryDate}}
+          <div class="delivery-row">
+            <div class="delivery-col">
+              <p><strong>Earliest Delivery Date:</strong> {{deliveryInfo.earliestDeliveryDate}}</p>
+            </div>
+          </div>
+          {{/if}}
+          {{#if deliveryInfo.deliveryNotes}}
+          <div class="delivery-row">
+            <div class="delivery-col">
+              <p><strong>Special Notes:</strong> {{deliveryInfo.deliveryNotes}}</p>
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{/if}}
 
       <!-- Order Details -->
       <div class="order-details">

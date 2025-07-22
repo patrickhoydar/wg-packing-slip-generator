@@ -1,118 +1,140 @@
-import { useState, useRef } from 'react';
-import { CustomerStrategy, UploadResult, CustomerKit } from '../types/customerStrategy';
+import { useState, useRef } from "react"
+import {
+  CustomerStrategy,
+  UploadResult,
+  CustomerKit,
+} from "../types/customerStrategy"
 
 interface CustomerFileUploadProps {
-  customer: CustomerStrategy;
-  onUploadSuccess: (result: UploadResult) => void;
-  onKitsGenerated: (kits: CustomerKit[]) => void;
+  customer: CustomerStrategy
+  onUploadSuccess: (result: UploadResult) => void
+  onKitsGenerated: (kits: CustomerKit[]) => void
 }
 
-export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGenerated }: CustomerFileUploadProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export default function CustomerFileUpload({
+  customer,
+  onUploadSuccess,
+  onKitsGenerated,
+}: CustomerFileUploadProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
+  const [jobNumber, setJobNumber] = useState<string>("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (selectedFile: File) => {
     // Validate file type
-    const fileExtension = selectedFile.name.toLowerCase().split('.').pop();
-    if (!customer.instructions.acceptedFormats.includes(fileExtension || '')) {
-      alert(`Invalid file type. Please upload: ${customer.instructions.acceptedFormats.join(', ').toUpperCase()}`);
-      return;
+    const fileExtension = selectedFile.name.toLowerCase().split(".").pop()
+    if (!customer.instructions.acceptedFormats.includes(fileExtension || "")) {
+      alert(
+        `Invalid file type. Please upload: ${customer.instructions.acceptedFormats.join(", ").toUpperCase()}`
+      )
+      return
     }
 
     // Validate file size
     if (selectedFile.size > customer.instructions.maxFileSize) {
-      const maxSizeMB = Math.round(customer.instructions.maxFileSize / (1024 * 1024));
-      alert(`File too large. Maximum size: ${maxSizeMB}MB`);
-      return;
+      const maxSizeMB = Math.round(
+        customer.instructions.maxFileSize / (1024 * 1024)
+      )
+      alert(`File too large. Maximum size: ${maxSizeMB}MB`)
+      return
     }
 
-    setFile(selectedFile);
-    setUploadResult(null);
-    
+    setFile(selectedFile)
+    setUploadResult(null)
+
     // Automatically process the file after selection
-    uploadFile(selectedFile);
-  };
+    uploadFile(selectedFile)
+  }
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
+    e.preventDefault()
+    setDragOver(false)
+
+    const droppedFiles = Array.from(e.dataTransfer.files)
     if (droppedFiles.length > 0) {
-      handleFileSelect(droppedFiles[0]);
+      handleFileSelect(droppedFiles[0])
     }
-  };
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
+    e.preventDefault()
+    setDragOver(true)
+  }
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-  };
+    e.preventDefault()
+    setDragOver(false)
+  }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
+    const selectedFiles = e.target.files
     if (selectedFiles && selectedFiles.length > 0) {
-      handleFileSelect(selectedFiles[0]);
+      handleFileSelect(selectedFiles[0])
     }
-  };
+  }
 
   const uploadFile = async (fileToUpload?: File) => {
-    const targetFile = fileToUpload || file;
-    if (!targetFile || !customer) return;
+    const targetFile = fileToUpload || file
+    if (!targetFile || !customer) return
 
-    setUploading(true);
-    
+    setUploading(true)
+
     try {
-      const formData = new FormData();
-      formData.append('file', targetFile);
+      const formData = new FormData()
+      formData.append("file", targetFile)
+      if (jobNumber.trim()) {
+        formData.append("jobNumber", jobNumber.trim())
+      }
 
-      const response = await fetch(`http://localhost:3001/customers/${customer.customerCode}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:5001/customers/${customer.customerCode}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      )
 
-      const result: UploadResult = await response.json();
-      
+      const result: UploadResult = await response.json()
+
       if (response.ok && result.success) {
-        setUploadResult(result);
-        onUploadSuccess(result);
-        
+        setUploadResult(result)
+        onUploadSuccess(result)
+
         if (result.data?.kits) {
-          onKitsGenerated(result.data.kits);
+          onKitsGenerated(result.data.kits)
         }
       } else {
-        throw new Error(result.message || 'Upload failed');
+        throw new Error(result.message || "Upload failed")
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error)
       setUploadResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Upload failed'
-      });
+        message: error instanceof Error ? error.message : "Upload failed",
+      })
     } finally {
-      setUploading(false);
+      setUploading(false)
     }
-  };
+  }
 
   const resetUpload = () => {
-    setFile(null);
-    setUploadResult(null);
+    setFile(null)
+    setUploadResult(null)
+    setJobNumber("")
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = ""
     }
-  };
+  }
 
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">Upload {customer.displayName} File</h3>
+        <h3 className="text-lg font-medium text-gray-900">
+          Upload {customer.displayName} File
+        </h3>
         {file && (
           <button
             onClick={resetUpload}
@@ -123,12 +145,30 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
         )}
       </div>
 
+      {/* Job Number Input */}
+      <div>
+        <label
+          htmlFor="job-number"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Job Number (Optional)
+        </label>
+        <input
+          id="job-number"
+          type="text"
+          value={jobNumber}
+          onChange={(e) => setJobNumber(e.target.value)}
+          placeholder="Enter job number..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
       {!file ? (
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragOver 
-              ? 'border-blue-400 bg-blue-50' 
-              : 'border-gray-300 hover:border-gray-400'
+            dragOver
+              ? "border-blue-400 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400"
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -141,8 +181,11 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
                 Drop your file here or click to browse
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Supports: {customer.instructions.acceptedFormats.join(', ').toUpperCase()} 
-                (max {Math.round(customer.instructions.maxFileSize / (1024 * 1024))}MB)
+                Supports:{" "}
+                {customer.instructions.acceptedFormats.join(", ").toUpperCase()}
+                (max{" "}
+                {Math.round(customer.instructions.maxFileSize / (1024 * 1024))}
+                MB)
               </p>
             </div>
             <button
@@ -152,11 +195,13 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
               Choose File
             </button>
           </div>
-          
+
           <input
             ref={fileInputRef}
             type="file"
-            accept={customer.instructions.acceptedFormats.map(f => `.${f}`).join(',')}
+            accept={customer.instructions.acceptedFormats
+              .map((f) => `.${f}`)
+              .join(",")}
             onChange={handleFileInputChange}
             className="hidden"
           />
@@ -173,7 +218,7 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               {uploading ? (
                 <div className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
@@ -192,40 +237,51 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
       )}
 
       {uploadResult && (
-        <div className={`p-4 rounded-lg border ${
-          uploadResult.success 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <div className={`font-medium ${
-            uploadResult.success ? 'text-green-800' : 'text-red-800'
-          }`}>
-            {uploadResult.success ? '✅ Success!' : '❌ Error'}
+        <div
+          className={`p-4 rounded-lg border ${
+            uploadResult.success
+              ? "bg-green-50 border-green-200"
+              : "bg-red-50 border-red-200"
+          }`}
+        >
+          <div
+            className={`font-medium ${
+              uploadResult.success ? "text-green-800" : "text-red-800"
+            }`}
+          >
+            {uploadResult.success ? "✅ Success!" : "❌ Error"}
           </div>
-          <p className={`text-sm mt-1 ${
-            uploadResult.success ? 'text-green-700' : 'text-red-700'
-          }`}>
+          <p
+            className={`text-sm mt-1 ${
+              uploadResult.success ? "text-green-700" : "text-red-700"
+            }`}
+          >
             {uploadResult.message}
           </p>
-          
+
           {uploadResult.success && uploadResult.data && (
             <div className="mt-3 text-sm text-green-700">
               <p>• Generated {uploadResult.data.kitsGenerated} packing slips</p>
-              <p>• Processed {uploadResult.data.validation.validRows} of {uploadResult.data.validation.totalRows} rows</p>
-              
+              <p>
+                • Processed {uploadResult.data.validation.validRows} of{" "}
+                {uploadResult.data.validation.totalRows} rows
+              </p>
+
               {uploadResult.data.validation.warnings.length > 0 && (
                 <div className="mt-2">
                   <p className="font-medium">Warnings:</p>
                   <ul className="list-disc list-inside">
-                    {uploadResult.data.validation.warnings.map((warning, index) => (
-                      <li key={index}>{warning}</li>
-                    ))}
+                    {uploadResult.data.validation.warnings.map(
+                      (warning, index) => (
+                        <li key={index}>{warning}</li>
+                      )
+                    )}
                   </ul>
                 </div>
               )}
             </div>
           )}
-          
+
           {!uploadResult.success && uploadResult.data?.validation && (
             <div className="mt-3 text-sm text-red-700">
               {uploadResult.data.validation.errors.map((error, index) => (
@@ -236,5 +292,5 @@ export default function CustomerFileUpload({ customer, onUploadSuccess, onKitsGe
         </div>
       )}
     </div>
-  );
+  )
 }

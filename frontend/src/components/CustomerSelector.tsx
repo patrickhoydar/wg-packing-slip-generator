@@ -21,7 +21,7 @@ export default function CustomerSelector({
   const fetchAvailableStrategies = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost:3001/customers/strategies")
+      const response = await fetch("http://localhost:5001/customers/strategies")
 
       if (!response.ok) {
         throw new Error("Failed to fetch customer strategies")
@@ -79,7 +79,7 @@ export default function CustomerSelector({
     <div className="p-4 bg-gray-50 rounded-lg">
       <label
         htmlFor="customer-select"
-        className="block text-sm font-medium text-black-500 mb-2"
+        className="block text-sm font-medium text-gray-700 mb-2"
       >
         Select Customer
       </label>
@@ -88,11 +88,11 @@ export default function CustomerSelector({
         id="customer-select"
         value={selectedCustomer?.customerCode || ""}
         onChange={handleCustomerChange}
-        className="w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <option value="">Choose a customer...</option>
+        <option value="" className="text-gray-900">Choose a customer...</option>
         {strategies.map((strategy) => (
-          <option key={strategy.customerCode} value={strategy.customerCode}>
+          <option key={strategy.customerCode} value={strategy.customerCode} className="text-gray-900">
             {strategy.displayName}
           </option>
         ))}
@@ -123,17 +123,21 @@ export default function CustomerSelector({
             </li>
           </ul>
 
-          {selectedCustomer.instructions.sampleData?.specialNotes && Array.isArray(selectedCustomer.instructions.sampleData.specialNotes) ? (
+          {selectedCustomer.instructions.sampleData?.specialNotes &&
+          Array.isArray(
+            selectedCustomer.instructions.sampleData.specialNotes
+          ) ? (
             <div className="mt-2 pt-2 border-t border-blue-200">
               <p className="text-xs font-medium text-blue-900 mb-1">
                 Special Notes:
               </p>
               <ul className="text-xs text-blue-700 space-y-1">
-                {(selectedCustomer.instructions.sampleData.specialNotes as string[]).map(
-                  (note: string, index: number) => (
-                    <li key={index}>• {note}</li>
-                  )
-                )}
+                {(
+                  selectedCustomer.instructions.sampleData
+                    .specialNotes as string[]
+                ).map((note: string, index: number) => (
+                  <li key={index}>• {note}</li>
+                ))}
               </ul>
             </div>
           ) : null}

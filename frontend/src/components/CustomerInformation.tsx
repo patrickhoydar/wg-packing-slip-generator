@@ -16,9 +16,8 @@ export default function CustomerInformation({
           <p>{customer.shippingAddress.street}</p>
           <p>
             {customer.shippingAddress.city}, {customer.shippingAddress.state}{" "}
-            {customer.shippingAddress.zipCode}
+            {customer.shippingAddress.zipCode}, {customer.shippingAddress.country}
           </p>
-          <p>{customer.shippingAddress.country}</p>
           <p>{customer.email}</p>
         </div>
       </div>

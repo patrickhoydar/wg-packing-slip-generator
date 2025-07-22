@@ -33,7 +33,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   private readonly pendingRequests: PdfRequest[] = [];
 
   // Template caching
-  private readonly templateCache = new Map<string, handlebars.TemplateDelegate>();
+  private readonly templateCache = new Map<
+    string,
+    handlebars.TemplateDelegate
+  >();
   private readonly stylesCache = new Map<string, string>();
   private readonly templateConfigs = new Map<string, TemplateConfig>();
 
@@ -57,7 +60,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   private setupTemplateConfigs(): void {
     const viewsDir = path.join(__dirname, '../../views');
-    
+
     this.templateConfigs.set('default', {
       templatePath: path.join(viewsDir, 'templates', 'default.hbs'),
       stylesPath: path.join(viewsDir, 'styles', 'base.css'),
@@ -85,18 +88,36 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       try {
         // Load and compile template
         this.logger.log(`Loading template from: ${config.templatePath}`);
-        const templateContent = await fs.promises.readFile(config.templatePath, 'utf8');
+        const templateContent = await fs.promises.readFile(
+          config.templatePath,
+          'utf8',
+        );
+        this.logger.log(
+          `Template content length: ${templateContent.length} chars`,
+        );
+
+        // Log a snippet of template to verify it's loading correctly
+        const snippet = templateContent.substring(0, 200).replace(/\n/g, '\\n');
+        this.logger.log(`Template snippet: ${snippet}...`);
+
         const compiledTemplate = handlebars.compile(templateContent);
         this.templateCache.set(customerStrategy, compiledTemplate);
 
         // Load and cache styles
         this.logger.log(`Loading styles from: ${config.stylesPath}`);
-        const stylesContent = await fs.promises.readFile(config.stylesPath, 'utf8');
+        const stylesContent = await fs.promises.readFile(
+          config.stylesPath,
+          'utf8',
+        );
+        this.logger.log(`Styles content length: ${stylesContent.length} chars`);
         this.stylesCache.set(customerStrategy, stylesContent);
 
         this.logger.log(`Template cached for strategy: ${customerStrategy}`);
       } catch (error) {
-        this.logger.error(`Failed to precompile template for ${customerStrategy}:`, error);
+        this.logger.error(
+          `Failed to precompile template for ${customerStrategy}:`,
+          error,
+        );
         this.logger.error(`Template path: ${config.templatePath}`);
         this.logger.error(`Styles path: ${config.stylesPath}`);
       }
@@ -107,7 +128,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   private registerHandlebarsHelpers(): void {
     // Register equality helper for conditional logic
-    handlebars.registerHelper('eq', function(a: any, b: any) {
+    handlebars.registerHelper('eq', function (a: any, b: any) {
       return a === b;
     });
 
@@ -174,14 +195,14 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       this.browserInitialized = false;
       this.browser = null;
     }
-    
+
     // Clear caches
     this.pagePool = [];
     this.templateCache.clear();
     this.stylesCache.clear();
     this.pendingRequests.length = 0;
     this.currentConcurrency = 0;
-    
+
     this.logger.log('All resources cleaned up');
   }
 
@@ -192,11 +213,18 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     await this.cleanup();
 
     // Wait a moment for cleanup to complete
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Reinitialize browser
+    // Reinitialize browser and templates
     await this.initializeBrowser();
+    await this.precompileTemplates(); // Refresh templates during recovery
     this.logger.log('Browser recovery completed');
+  }
+
+  // Method to force refresh templates during development
+  async refreshTemplates(): Promise<void> {
+    this.logger.log('Force refreshing templates...');
+    await this.precompileTemplates();
   }
 
   private async getPage(): Promise<puppeteer.Page> {
@@ -296,7 +324,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       const limiter = this.concurrencyService.createLimiter(5);
 
       const promises = kits.map((kit, index) =>
-        limiter.add(() => this.generateSinglePdfFile(kit, tempDir, index, customerStrategy)),
+        limiter.add(() =>
+          this.generateSinglePdfFile(kit, tempDir, index, customerStrategy),
+        ),
       );
 
       const pdfFiles = await Promise.all(promises);
@@ -374,6 +404,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         margin: { top: '.5cm', right: '.5cm', bottom: '.5cm', left: '.5cm' },
         printBackground: true,
         preferCSSPageSize: true,
+        displayHeaderFooter: true,
+        headerTemplate: '<div></div>', // Empty header to just create space
+        footerTemplate: '<div></div>', // Empty footer to just create space
       });
 
       return Buffer.from(pdf);
@@ -407,7 +440,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       const packingSlipData = this.convertKitToPackingSlipData(kit);
 
       // Generate PDF using internal method
-      const pdfBuffer = await this.generatePdfInternal(packingSlipData, customerStrategy);
+      const pdfBuffer = await this.generatePdfInternal(
+        packingSlipData,
+        customerStrategy,
+      );
 
       // Save to temp file with order type prefix
       const orderType = kit.metadata?.customFields?.fileType || 'unknown';
@@ -431,11 +467,15 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     const styles = this.stylesCache.get(customerStrategy);
 
     if (!template) {
-      throw new Error(`Template not found for customer strategy: ${customerStrategy}`);
+      throw new Error(
+        `Template not found for customer strategy: ${customerStrategy}`,
+      );
     }
 
     if (!styles) {
-      throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+      throw new Error(
+        `Styles not found for customer strategy: ${customerStrategy}`,
+      );
     }
 
     // Prepare template data
@@ -461,12 +501,21 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
     // Calculate summary data
     const totalItems = data.order?.items?.length || 0;
-    const totalQuantity = data.order?.items?.reduce(
-      (sum: number, item: any) => sum + item.quantity,
-      0,
-    ) || 0;
+    const totalQuantity =
+      data.order?.items?.reduce(
+        (sum: number, item: any) => sum + item.quantity,
+        0,
+      ) || 0;
 
-    return {
+    // Debug logging
+    this.logger.debug('prepareTemplateData - deliveryInfo:', data.deliveryInfo);
+    this.logger.debug(
+      'prepareTemplateData - shippingMethod:',
+      data.shippingMethod,
+    );
+    this.logger.debug('prepareTemplateData - orderType:', data.orderType);
+
+    const templateData = {
       // Ship to information
       shipTo: {
         name: data.order?.customer?.name || '',
@@ -476,7 +525,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
           city: data.order?.customer?.shippingAddress?.city || '',
           state: data.order?.customer?.shippingAddress?.state || '',
           zipCode: data.order?.customer?.shippingAddress?.zipCode || '',
-          country: data.order?.customer?.shippingAddress?.country || 'USA',
+          country: data.order?.customer?.shippingAddress?.country || 'US',
         },
         email: data.order?.customer?.email || '',
       },
@@ -503,22 +552,31 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
       // Order type for conditional templates (InquireEd: 'pm' or 'te')
       orderType: data.orderType || 'pm',
+
+      // Delivery information for InquireEd templates
+      deliveryInfo: data.deliveryInfo || null,
+      shippingMethod: data.shippingMethod || 'Standard Ground',
     };
+
+    return templateData;
   }
 
   private getCustomerStrategy(customerCode: string): string {
     // Map customer codes to template strategies
     const customerStrategies: { [key: string]: string } = {
-      'GEORGIA_BAPTIST': 'georgia-baptist',
-      'INQUIRE_ED': 'inquire-ed',
-      'HH_GLOBAL': 'default',
-      'default': 'default',
+      GEORGIA_BAPTIST: 'georgia-baptist',
+      INQUIRE_ED: 'inquire-ed',
+      HH_GLOBAL: 'default',
+      default: 'default',
     };
 
     return customerStrategies[customerCode] || 'default';
   }
 
   private convertKitToPackingSlipData(kit: any): any {
+    const deliveryInfo = kit.metadata?.customFields?.deliveryInfo;
+    const shippingMethod = this.calculateShippingMethod(deliveryInfo);
+
     return {
       order: {
         customer: {
@@ -540,6 +598,24 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       generatedDate: new Date().toISOString(),
       // Add order type for InquireEd conditional templates
       orderType: kit.metadata?.customFields?.fileType || 'pm',
+      // Add delivery information for InquireEd templates
+      deliveryInfo: deliveryInfo || {},
+      shippingMethod: shippingMethod,
     };
+  }
+
+  private calculateShippingMethod(deliveryInfo: any): string {
+    if (!deliveryInfo) {
+      return 'Standard Ground';
+    }
+
+    // InquireEd shipping logic based on Dock and Paved Path columns
+    if (deliveryInfo.hasDock) {
+      return 'Standard LTL Shipment';
+    } else if (deliveryInfo.hasPavedPath) {
+      return 'LTL Shipment with lift gate & inside delivery';
+    } else {
+      return 'LTL Shipment with white glove service';
+    }
   }
 }

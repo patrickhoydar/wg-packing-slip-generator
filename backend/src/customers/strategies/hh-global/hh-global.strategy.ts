@@ -236,7 +236,7 @@ export class HHGlobalStrategy extends CustomerStrategy {
         items.push({
           id: this.generateItemId(kitId, items.length),
           sku: '', // Remove SKU for one page documents
-          name: '', // Remove name for one page documents  
+          name: '', // Remove name for one page documents
           description: `${onePagerName} QC #${qcNumber}`,
           quantity: 300, // Set quantity to 300 for all one page documents
           category: 'collateral',
@@ -262,7 +262,7 @@ export class HHGlobalStrategy extends CustomerStrategy {
           city: this.getColumnValue(row, 'City'),
           state: this.getColumnValue(row, 'State'),
           zipCode: this.getColumnValue(row, 'Zip'),
-          country: 'USA',
+          country: 'US',
         },
       },
       items,
@@ -349,19 +349,25 @@ export class HHGlobalStrategy extends CustomerStrategy {
     // Handle potential BOM characters and encoding issues
     const cleanString = this.cleanString(row[columnName]);
     if (cleanString) return cleanString;
-    
+
     // Try to find the column by checking for variations
     const keys = Object.keys(row);
     const normalizedColumnName = columnName.toLowerCase().trim();
-    
+
     for (const key of keys) {
-      const normalizedKey = key.toLowerCase().trim().replace(/\uFEFF/g, ''); // Remove BOM
+      const normalizedKey = key
+        .toLowerCase()
+        .trim()
+        .replace(/\uFEFF/g, ''); // Remove BOM
       if (normalizedKey === normalizedColumnName) {
         return this.cleanString(row[key]);
       }
     }
-    
-    console.warn(`Column '${columnName}' not found in row. Available columns:`, keys);
+
+    console.warn(
+      `Column '${columnName}' not found in row. Available columns:`,
+      keys,
+    );
     return '';
   }
 

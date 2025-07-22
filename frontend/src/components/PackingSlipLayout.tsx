@@ -2,6 +2,7 @@ import { PackingSlip } from "../types/packingSlip"
 import OrderHeader from "./OrderHeader"
 import CustomerInformation from "./CustomerInformation"
 import ItemList from "./ItemList"
+import DeliveryRequirements from "./DeliveryRequirements"
 
 interface PackingSlipLayoutProps {
   packingSlip: PackingSlip
@@ -36,6 +37,14 @@ export default function PackingSlipLayout({
         <OrderHeader order={packingSlip.order} />
 
         <CustomerInformation customer={packingSlip.order.customer} />
+
+        {/* Show delivery requirements for InquireEd orders */}
+        {(packingSlip as any).deliveryInfo && (
+          <DeliveryRequirements
+            deliveryInfo={(packingSlip as any).deliveryInfo}
+            shippingMethod={(packingSlip as any).shippingMethod || 'Standard Ground'}
+          />
+        )}
 
         <ItemList items={packingSlip.order.items} showPrices={showPrices} />
 

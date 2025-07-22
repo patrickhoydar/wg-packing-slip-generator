@@ -21,6 +21,7 @@ export interface ValidationResult {
 export interface CustomerKit {
   id: string;
   customerCode: string;
+  jobNumber?: string;
   recipient: {
     name: string;
     company?: string;
@@ -114,6 +115,7 @@ export interface ICustomerStrategy {
   processFile(
     fileBuffer: Buffer,
     filename: string,
+    jobNumber?: string,
   ): Promise<{
     kits: CustomerKit[];
     validation: ValidationResult;

@@ -78,7 +78,7 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
   }
 
   // Template method for the complete processing pipeline
-  async processFile(fileBuffer: Buffer, filename: string): Promise<{
+  async processFile(fileBuffer: Buffer, filename: string, jobNumber?: string): Promise<{
     kits: CustomerKit[];
     validation: ValidationResult;
     metadata: any;
@@ -95,6 +95,13 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
 
     // Step 3: Generate kits
     const kits = await this.generateKits(parsedData);
+
+    // Step 4: Add job number to kits if provided
+    if (jobNumber) {
+      kits.forEach(kit => {
+        kit.jobNumber = jobNumber;
+      });
+    }
 
     return {
       kits,

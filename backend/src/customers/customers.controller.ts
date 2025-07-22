@@ -46,7 +46,8 @@ export class CustomersController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Param('customerCode') customerCode: string,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { jobNumber?: string }
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -55,7 +56,8 @@ export class CustomersController {
     const result = await this.customersService.processFile(
       customerCode,
       file.buffer,
-      file.originalname
+      file.originalname,
+      body.jobNumber
     );
 
     return {
@@ -129,6 +131,23 @@ export class CustomersController {
     return {
       success: validation.isValid,
       validation
+    };
+  }
+
+  @Post(':customerCode/preview')
+  async generatePreviewData(
+    @Param('customerCode') customerCode: string,
+    @Body() body: { kit: any }
+  ) {
+    if (!body.kit) {
+      throw new BadRequestException('No kit data provided');
+    }
+
+    const previewData = await this.customersService.generatePreviewData(customerCode, body.kit);
+    
+    return {
+      success: true,
+      data: previewData
     };
   }
 }

@@ -4,11 +4,11 @@ import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   // Increase request body size limit
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
-  
+
   // Enable CORS for frontend communication
   app.enableCors({
     origin: 'http://localhost:3000',
@@ -16,7 +16,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
   });
-  
-  await app.listen(process.env.PORT ?? 3001);
+
+  await app.listen(process.env.PORT ?? 5001);
 }
 bootstrap();

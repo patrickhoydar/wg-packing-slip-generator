@@ -21,12 +21,12 @@ export default function ItemList({ items, showPrices = false }: ItemListProps) {
         <table className="w-full border-collapse border border-black">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-black px-4 py-2 text-left text-sm font-bold text-black">Description</th>
-              <th className="border border-black px-4 py-2 text-center text-sm font-bold text-black">Qty Ordered</th>
+              <th className="border border-black px-2 py-1 text-left text-sm font-bold text-black">Description</th>
+              <th className="border border-black px-2 py-1 text-center text-sm font-bold text-black">Qty Ordered</th>
               {showPrices && (
                 <>
-                  <th className="border border-black px-4 py-2 text-right text-sm font-bold text-black">Unit Price</th>
-                  <th className="border border-black px-4 py-2 text-right text-sm font-bold text-black">Total</th>
+                  <th className="border border-black px-2 py-1 text-right text-sm font-bold text-black">Unit Price</th>
+                  <th className="border border-black px-2 py-1 text-right text-sm font-bold text-black">Total</th>
                 </>
               )}
             </tr>
@@ -34,12 +34,12 @@ export default function ItemList({ items, showPrices = false }: ItemListProps) {
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="even:bg-gray-50">
-                <td className="border border-black px-4 py-2 text-sm text-black">{item.description}</td>
-                <td className="border border-black px-4 py-2 text-center text-sm text-black font-medium">{item.quantity}</td>
+                <td className="border border-black px-2 py-1 text-sm text-black">{item.description}</td>
+                <td className="border border-black px-2 py-1 text-center text-sm text-black font-medium">{item.quantity}</td>
                 {showPrices && (
                   <>
-                    <td className="border border-black px-4 py-2 text-right text-sm text-black">{formatPrice(item.unitPrice)}</td>
-                    <td className="border border-black px-4 py-2 text-right text-sm text-black font-medium">{formatPrice(item.totalPrice)}</td>
+                    <td className="border border-black px-2 py-1 text-right text-sm text-black">{formatPrice(item.unitPrice)}</td>
+                    <td className="border border-black px-2 py-1 text-right text-sm text-black font-medium">{formatPrice(item.totalPrice)}</td>
                   </>
                 )}
               </tr>
