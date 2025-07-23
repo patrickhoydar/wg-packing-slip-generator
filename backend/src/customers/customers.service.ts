@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
-import { InquireEdStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
+import { InquirEDStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import * as JSZip from 'jszip';
 
@@ -12,7 +12,7 @@ export class CustomersService implements OnModuleInit {
     private readonly strategyFactory: CustomerStrategyFactory,
     private readonly hhGlobalStrategy: HHGlobalStrategy,
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
-    private readonly inquireEdStrategy: InquireEdStrategy,
+    private readonly inquirEDStrategy: InquirEDStrategy,
     private readonly pdfService: PdfService,
   ) {}
 
@@ -23,7 +23,7 @@ export class CustomersService implements OnModuleInit {
       'GEORGIA_BAPTIST',
       this.georgiaBaptistStrategy,
     );
-    this.strategyFactory.registerStrategy('INQUIRE_ED', this.inquireEdStrategy);
+    this.strategyFactory.registerStrategy('INQUIRE_ED', this.inquirEDStrategy);
   }
 
   async getAvailableStrategies() {
@@ -172,7 +172,7 @@ export class CustomersService implements OnModuleInit {
       return 'Standard Ground';
     }
 
-    // InquireEd shipping logic based on Dock and Paved Path columns
+    // InquirED shipping logic based on Dock and Paved Path columns
     if (deliveryInfo.hasDock) {
       return 'Standard LTL Shipment';
     } else if (deliveryInfo.hasPavedPath) {

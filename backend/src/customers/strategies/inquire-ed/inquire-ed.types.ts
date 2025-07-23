@@ -1,4 +1,4 @@
-export interface InquireEdBaseRow {
+export interface InquirEDBaseRow {
   'District or School': string;
   'Dock?': string;
   'Paved Path?': string;
@@ -9,11 +9,11 @@ export interface InquireEdBaseRow {
   'Shipping Contact Email': string;
   'Shipping Contact Phone': string;
   'Delivery Notes'?: string;
-  'Fall 2025 shipDate': string;
+  'Fall 2025 Earliest Delivery Date': string;
   'Appointment Required?': string;
 }
 
-export interface InquireEdPMRow extends InquireEdBaseRow {
+export interface InquirEDPMRow extends InquirEDBaseRow {
   'Total Number of Boxes Ordered': string;
   // PM product columns with format "qty, grade" (e.g., "2, K")
   'IND-IJ-PM-NAVIG-EN-0100': string;
@@ -56,7 +56,7 @@ export interface InquireEdPMRow extends InquireEdBaseRow {
   'IND-IJ-PM-RIGHTS-SP-1900': string;
 }
 
-export interface InquireEdTERow extends InquireEdBaseRow {
+export interface InquirEDTERow extends InquirEDBaseRow {
   'Total Number of TEs Ordered': string;
   // TE product columns with format "qty, No Sticker" or "qty, Needs Sticker: K"
   'IND-IJ-TE-NAVIG-0100': string;
@@ -80,9 +80,9 @@ export interface InquireEdTERow extends InquireEdBaseRow {
   'IND-IJ-TE-RIGHTS-1900': string;
 }
 
-export type InquireEdRow = InquireEdPMRow | InquireEdTERow;
+export type InquirEDRow = InquirEDPMRow | InquirEDTERow;
 
-export type InquireEdFileType = 'pm' | 'te';
+export type InquirEDFileType = 'pm' | 'te';
 
 export interface ParsedQuantity {
   quantity: number;
@@ -90,7 +90,7 @@ export interface ParsedQuantity {
   needsSticker?: boolean;
 }
 
-export interface InquireEdProductInfo {
+export interface InquirEDProductInfo {
   sku: string;
   description: string;
   category:
@@ -99,7 +99,7 @@ export interface InquireEdProductInfo {
     | 'Teacher Edition';
 }
 
-export interface InquireEdDeliveryInfo {
+export interface InquirEDDeliveryInfo {
   hasDock: boolean;
   hasPavedPath: boolean;
   receivingDays: string;
@@ -109,24 +109,24 @@ export interface InquireEdDeliveryInfo {
   appointmentRequired: boolean;
 }
 
-export interface InquireEdShippingContact {
+export interface InquirEDShippingContact {
   name: string;
   email: string;
   phone: string;
 }
 
-export interface InquireEdProcessedRow {
+export interface InquirEDProcessedRow {
   schoolDistrict: string;
   deliveryAddress: string;
-  shippingContact: InquireEdShippingContact;
-  deliveryInfo: InquireEdDeliveryInfo;
+  shippingContact: InquirEDShippingContact;
+  deliveryInfo: InquirEDDeliveryInfo;
   products: Array<{
     sku: string;
     quantity: number;
     gradeLevel?: string;
     needsSticker?: boolean;
   }>;
-  fileType: InquireEdFileType;
+  fileType: InquirEDFileType;
   totalBoxes?: number;
   totalTEs?: number;
 }
@@ -137,7 +137,7 @@ export const PM_REQUIRED_COLUMNS = [
   'Delivery Address',
   'Shipping Contact Name',
   'Shipping Contact Email',
-  'Fall 2025 shipDate',
+  'Fall 2025 Earliest Delivery Date',
 ] as const;
 
 export const TE_REQUIRED_COLUMNS = [
@@ -145,7 +145,7 @@ export const TE_REQUIRED_COLUMNS = [
   'Delivery Address',
   'Shipping Contact Name',
   'Shipping Contact Email',
-  'Fall 2025 shipDate',
+  'Fall 2025 Earliest Delivery Date',
 ] as const;
 
 // Product column patterns
@@ -169,7 +169,7 @@ export const DELIVERY_DATE_PATTERNS = [
   /^\d{1,2}\/\d{1,2}\/\d{2}$/, // MM/DD/YY
 ];
 
-export interface InquireEdConfig {
+export interface InquirEDConfig {
   skuLookupFile: string;
   maxFileSize: number;
   supportedFormats: string[];

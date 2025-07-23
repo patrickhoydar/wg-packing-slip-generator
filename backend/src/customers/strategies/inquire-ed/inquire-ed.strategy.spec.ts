@@ -1,21 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InquireEdStrategy } from './inquire-ed.strategy';
-import { InquireEdService } from './inquire-ed.service';
+import { InquirEDStrategy } from './inquire-ed.strategy';
+import { InquirEDService } from './inquire-ed.service';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
 
-describe('InquireEdStrategy', () => {
-  let strategy: InquireEdStrategy;
+describe('InquirEDStrategy', () => {
+  let strategy: InquirEDStrategy;
   let csvParserService: CsvParserService;
-  let inquireEdService: InquireEdService;
+  let inquirEDService: InquirEDService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [InquireEdStrategy, InquireEdService, CsvParserService],
+      providers: [InquirEDStrategy, InquirEDService, CsvParserService],
     }).compile();
 
-    strategy = module.get<InquireEdStrategy>(InquireEdStrategy);
+    strategy = module.get<InquirEDStrategy>(InquirEDStrategy);
     csvParserService = module.get<CsvParserService>(CsvParserService);
-    inquireEdService = module.get<InquireEdService>(InquireEdService);
+    inquirEDService = module.get<InquirEDService>(InquirEDService);
   });
 
   it('should be defined', () => {
@@ -24,12 +24,12 @@ describe('InquireEdStrategy', () => {
 
   it('should have correct customer code and display name', () => {
     expect(strategy.customerCode).toBe('INQUIRE_ED');
-    expect(strategy.displayName).toBe('InquireEd');
+    expect(strategy.displayName).toBe('InquirED');
   });
 
   describe('parseFile', () => {
     it('should parse PM Orders CSV file', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-NAVIG-SP-0100,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-NAVIG-SP-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","1, 1",8/15/2025,No`;
 
@@ -46,7 +46,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","1, 1",8/
     });
 
     it('should parse TE Orders CSV file with complex sticker formats', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",Yes,Yes,M-F,6:30-4,"123 Main St
 Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Needs Sticker: K","26, Needs Sticker: 4",8/15/2025,Yes`;
 
@@ -95,7 +95,7 @@ value1,value2`;
     });
 
     it('should handle file with custom SKU columns', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,CUSTOM-SKU-1,CUSTOM-SKU-2,ANOTHER-PRODUCT-SKU,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,CUSTOM-SKU-1,CUSTOM-SKU-2,ANOTHER-PRODUCT-SKU,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","3, 1","1, 2",8/15/2025,No`;
 
@@ -113,7 +113,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","3, 1","1
     });
 
     it('should handle PM Orders with numeric grades', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/15/2025,No`;
 
@@ -135,6 +135,57 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
       );
       expect(result.rawData[0].products[1].quantity).toBe(4);
       expect(result.rawData[0].products[1].gradeLevel).toBe('5');
+    });
+
+    it('should set default shipDate to 8/7/2025 when Fall 2025 Earliest Delivery Date is empty', async () => {
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
+"Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
+Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",,No`;
+
+      const buffer = Buffer.from(mockCsvData);
+      const result = await strategy.parseFile(buffer, 'test-pm.csv');
+
+      expect(result.rawData).toHaveLength(1);
+      expect(result.rawData[0].deliveryInfo.shipDate).toBe('8/7/2025');
+    });
+
+    it('should back-date shipDate by 2 days when Fall 2025 Earliest Delivery Date has value', async () => {
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
+"Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
+Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",8/15/2025,No`;
+
+      const buffer = Buffer.from(mockCsvData);
+      const result = await strategy.parseFile(buffer, 'test-pm.csv');
+
+      expect(result.rawData).toHaveLength(1);
+      // 8/15/2025 - 2 days = 8/13/2025
+      expect(result.rawData[0].deliveryInfo.shipDate).toBe('8/13/2025');
+    });
+
+    it('should handle various date formats when back-dating', async () => {
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
+"Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
+Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",09/15/2025,No`;
+
+      const buffer = Buffer.from(mockCsvData);
+      const result = await strategy.parseFile(buffer, 'test-pm.csv');
+
+      expect(result.rawData).toHaveLength(1);
+      // 9/15/2025 - 2 days = 9/13/2025
+      expect(result.rawData[0].deliveryInfo.shipDate).toBe('9/13/2025');
+    });
+
+    it('should handle month boundary when back-dating (e.g., 9/1/2025 -> 8/30/2025)', async () => {
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
+"Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
+Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,No`;
+
+      const buffer = Buffer.from(mockCsvData);
+      const result = await strategy.parseFile(buffer, 'test-pm.csv');
+
+      expect(result.rawData).toHaveLength(1);
+      // 9/1/2025 - 2 days = 8/30/2025
+      expect(result.rawData[0].deliveryInfo.shipDate).toBe('8/30/2025');
     });
   });
 
@@ -326,7 +377,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
   });
 
   describe('customizeTemplate', () => {
-    it('should return InquireEd branding', () => {
+    it('should return InquirED branding', () => {
       const mockKit = {
         id: 'test-kit',
         customerCode: 'INQUIRE_ED',
@@ -352,11 +403,11 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
 
       const branding = strategy.customizeTemplate(mockKit);
 
-      expect(branding.companyName).toBe('InquireEd');
+      expect(branding.companyName).toBe('InquirED');
       expect(branding.shouldOverrideCompany).toBe(true);
       expect(branding.customStyling?.headerStyle).toBe('inquire-ed-header');
       expect(branding.customStyling?.footerText).toBe(
-        'InquireEd Educational Materials',
+        'InquirED Educational Materials',
       );
     });
   });
@@ -429,7 +480,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
 
   describe('quantity parsing edge cases', () => {
     it('should handle malformed quantity strings gracefully', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",Yes,Yes,M-F,6:30-4,"123 Main St
 Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30","","invalid format",8/15/2025,Yes`;
 
@@ -447,7 +498,7 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30","","invalid format",
     });
 
     it('should normalize grade levels correctly', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 shipDate,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 Earliest Delivery Date,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, k","3, KG",8/15/2025,No`;
 

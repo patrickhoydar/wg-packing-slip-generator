@@ -124,7 +124,7 @@ wg-packing-slip-generator/
 ### Supported Customers
 1. **Default Strategy** - Standard packing slip format
 2. **Georgia Baptist** - Mission board specific requirements
-3. **InquireEd** - Educational customer needs
+3. **InquirED** - Educational customer needs
 4. **HH Global** - Global shipping requirements
 
 ### Adding New Customers
@@ -140,7 +140,7 @@ wg-packing-slip-generator/
 Templates are located in `backend/views/templates/`:
 - `default.hbs` - Standard customer template
 - `georgia-baptist.hbs` - Georgia Baptist specific
-- `inquire-ed.hbs` - InquireEd specific
+- `inquire-ed.hbs` - InquirED specific
 
 ### Template Features
 - **Dynamic Content** - Customer-specific data binding

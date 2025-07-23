@@ -950,10 +950,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Generated date
       generatedDate: formatDate(data.generatedDate || new Date().toISOString()),
 
-      // Order type for conditional templates (InquireEd: 'pm' or 'te')
+      // Order type for conditional templates (InquirED: 'pm' or 'te')
       orderType: data.orderType || 'pm',
 
-      // Delivery information for InquireEd templates
+      // Delivery information for InquirED templates
       deliveryInfo: data.deliveryInfo || null,
       shippingMethod: data.shippingMethod || 'Standard Ground',
     };
@@ -997,9 +997,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       jobNumber: kit.jobNumber || '',
       specialInstructions: kit.metadata?.specialInstructions || '',
       generatedDate: new Date().toISOString(),
-      // Add order type for InquireEd conditional templates
+      // Add order type for InquirED conditional templates
       orderType: kit.metadata?.customFields?.fileType || 'pm',
-      // Add delivery information for InquireEd templates
+      // Add delivery information for InquirED templates
       deliveryInfo: deliveryInfo || {},
       shippingMethod: shippingMethod,
     };
@@ -1010,7 +1010,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       return 'Standard Ground';
     }
 
-    // InquireEd shipping logic based on Dock and Paved Path columns
+    // InquirED shipping logic based on Dock and Paved Path columns
     if (deliveryInfo.hasDock) {
       return 'Standard LTL Shipment';
     } else if (deliveryInfo.hasPavedPath) {

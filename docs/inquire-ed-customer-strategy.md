@@ -1,11 +1,11 @@
-# InquireEd Customer Strategy Implementation
+# InquirED Customer Strategy Implementation
 
 ## 1. Customer Overview
 
 ### Customer Information
-- **Customer Name**: InquireEd
+- **Customer Name**: InquirED
 - **Customer Code**: INQUIRE_ED
-- **Display Name**: InquireEd
+- **Display Name**: InquirED
 - **Contact Information**: Educational materials publisher
 - **Implementation Priority**: High
 
@@ -120,14 +120,14 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
 ## 6. Template Customization
 
 ### Branding Requirements
-- **Company Name**: InquireEd (override default)
-- **Logo Requirements**: Standard InquireEd branding
+- **Company Name**: InquirED (override default)
+- **Logo Requirements**: Standard InquirED branding
 - **Color Scheme**: Educational theme colors
 - **Custom Styling**: Clean, professional educational layout
 
 ### Packing Slip Layout
 - **Header Information**: 
-  - InquireEd company name
+  - InquirED company name
   - Shipped from Wallace Graphics address
   - Earliest delivery date
 - **Shipping Information**: 
@@ -177,7 +177,7 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
 - [ ] Implement `parseFile()` method - Handle PM and TE CSV formats
 - [ ] Implement `validateData()` method - Validate required fields and formats
 - [ ] Implement `generateKits()` method - Create kits with proper product parsing
-- [ ] Implement `customizeTemplate()` method - InquireEd branding and layout
+- [ ] Implement `customizeTemplate()` method - InquirED branding and layout
 - [ ] Implement `getShippingRules()` method - Handle delivery requirements
 - [ ] Implement `getFileUploadInstructions()` method - Guide for file uploads
 
@@ -280,4 +280,4 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
 6. **Grade Level Tracking**: Maintain grade level information throughout processing
 7. **Sticker Requirements**: Special handling for teacher edition sticker requirements
 
-This implementation will provide comprehensive support for InquireEd's educational material distribution requirements while maintaining the flexibility to handle their unique data formats and business rules.
+This implementation will provide comprehensive support for InquirED's educational material distribution requirements while maintaining the flexibility to handle their unique data formats and business rules.

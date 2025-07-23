@@ -5,8 +5,8 @@ import { CustomersService } from './customers.service';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
-import { InquireEdStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
-import { InquireEdService } from './strategies/inquire-ed/inquire-ed.service';
+import { InquirEDStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
+import { InquirEDService } from './strategies/inquire-ed/inquire-ed.service';
 import { CsvParserService } from '../common/services/csv-parser.service';
 import { PdfModule } from '../pdf/pdf.module';
 
@@ -43,8 +43,8 @@ import { PdfModule } from '../pdf/pdf.module';
     CustomerStrategyFactory,
     HHGlobalStrategy,
     GeorgiaBaptistStrategy,
-    InquireEdStrategy,
-    InquireEdService,
+    InquirEDStrategy,
+    InquirEDService,
     CsvParserService,
   ],
   exports: [CustomersService, CustomerStrategyFactory],

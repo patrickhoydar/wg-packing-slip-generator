@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-// Simple test script to validate InquireEd strategy with actual sample data
-async function testInquireEdStrategy() {
-  console.log('Testing InquireEd Strategy with actual sample data...\n');
+// Simple test script to validate InquirED strategy with actual sample data
+async function testInquirEDStrategy() {
+  console.log('Testing InquirED Strategy with actual sample data...\n');
   
   // Test PM Orders file
-  const pmFilePath = path.join(__dirname, 'docs/sample-data/Customers/InquireED/PM Orders_ Ready for Wallace (3).csv');
-  const teFilePath = path.join(__dirname, 'docs/sample-data/Customers/InquireED/TE Orders_ Ready for Wallace (4).csv');
+  const pmFilePath = path.join(__dirname, 'docs/sample-data/Customers/InquirED/PM Orders_ Ready for Wallace (3).csv');
+  const teFilePath = path.join(__dirname, 'docs/sample-data/Customers/InquirED/TE Orders_ Ready for Wallace (4).csv');
   
   try {
     // Read the PM file
@@ -92,4 +92,4 @@ async function testInquireEdStrategy() {
   }
 }
 
-testInquireEdStrategy();
+testInquirEDStrategy();

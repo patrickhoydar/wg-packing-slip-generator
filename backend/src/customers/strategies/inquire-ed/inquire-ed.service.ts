@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
-import { InquireEdProductInfo } from './inquire-ed.types';
+import { InquirEDProductInfo } from './inquire-ed.types';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -11,8 +11,8 @@ interface SkuLookupRow {
 }
 
 @Injectable()
-export class InquireEdService {
-  private skuLookupTable: Map<string, InquireEdProductInfo> = new Map();
+export class InquirEDService {
+  private skuLookupTable: Map<string, InquirEDProductInfo> = new Map();
   private isLoaded = false;
 
   constructor(private csvParser: CsvParserService) {}
@@ -25,7 +25,7 @@ export class InquireEdService {
     try {
       const lookupFilePath = path.join(
         __dirname,
-        '../../../../docs/sample-data/Customers/InquireED/Packing Slip Look Up Table.csv',
+        '../../../../docs/sample-data/Customers/InquirED/Packing Slip Look Up Table.csv',
       );
 
       // Check if file exists
@@ -72,7 +72,7 @@ export class InquireEdService {
     }
   }
 
-  getSkuInfo(sku: string): InquireEdProductInfo | undefined {
+  getSkuInfo(sku: string): InquirEDProductInfo | undefined {
     return this.skuLookupTable.get(sku);
   }
 
@@ -81,8 +81,8 @@ export class InquireEdService {
   }
 
   getSkusByCategory(
-    category: InquireEdProductInfo['category'],
-  ): InquireEdProductInfo[] {
+    category: InquirEDProductInfo['category'],
+  ): InquirEDProductInfo[] {
     return Array.from(this.skuLookupTable.values()).filter(
       (info) => info.category === category,
     );
@@ -90,7 +90,7 @@ export class InquireEdService {
 
   private mapCategoryToType(
     category: string,
-  ): InquireEdProductInfo['category'] {
+  ): InquirEDProductInfo['category'] {
     const normalizedCategory = category.toLowerCase().trim();
 
     if (normalizedCategory.includes('english')) {
@@ -107,7 +107,7 @@ export class InquireEdService {
 
   private loadDefaultSkuData(): void {
     // Fallback data based on the sample CSV provided
-    const defaultSkuData: InquireEdProductInfo[] = [
+    const defaultSkuData: InquirEDProductInfo[] = [
       // Printed Materials (EN)
       {
         sku: 'IND-IJ-PM-NAVIG-EN-0100',

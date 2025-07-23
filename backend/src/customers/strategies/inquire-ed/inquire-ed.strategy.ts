@@ -8,16 +8,16 @@ import {
   CustomerKitItem,
 } from '../base/customer-strategy.interface';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
-import { InquireEdService } from './inquire-ed.service';
+import { InquirEDService } from './inquire-ed.service';
 import {
-  InquireEdRow,
-  InquireEdPMRow,
-  InquireEdTERow,
-  InquireEdFileType,
-  InquireEdProcessedRow,
-  InquireEdProductInfo,
-  InquireEdDeliveryInfo,
-  InquireEdShippingContact,
+  InquirEDRow,
+  InquirEDPMRow,
+  InquirEDTERow,
+  InquirEDFileType,
+  InquirEDProcessedRow,
+  InquirEDProductInfo,
+  InquirEDDeliveryInfo,
+  InquirEDShippingContact,
   ParsedQuantity,
   PM_REQUIRED_COLUMNS,
   TE_REQUIRED_COLUMNS,
@@ -29,23 +29,23 @@ import {
 } from './inquire-ed.types';
 
 @Injectable()
-export class InquireEdStrategy extends CustomerStrategy {
+export class InquirEDStrategy extends CustomerStrategy {
   customerCode = 'INQUIRE_ED';
-  displayName = 'InquireEd';
+  displayName = 'InquirED';
 
   constructor(
     private csvParser: CsvParserService,
-    private inquireEdService: InquireEdService,
+    private inquirEDService: InquirEDService,
   ) {
     super();
-    this.inquireEdService.loadSkuLookupTable();
+    this.inquirEDService.loadSkuLookupTable();
   }
 
   async parseFile(
     fileBuffer: Buffer,
     filename: string,
   ): Promise<ParsedCustomerData> {
-    const parseResult = await this.csvParser.parseCSV<InquireEdRow>(fileBuffer);
+    const parseResult = await this.csvParser.parseCSV<InquirEDRow>(fileBuffer);
 
     if (parseResult.errors.length > 0) {
       throw new Error(
@@ -102,12 +102,12 @@ export class InquireEdStrategy extends CustomerStrategy {
       return result;
     }
 
-    const fileType = data.metadata.fileType as InquireEdFileType;
+    const fileType = data.metadata.fileType as InquirEDFileType;
     const requiredColumns = this.getRequiredColumnsForFileType(fileType);
 
     // Validate each row
     for (let i = 0; i < data.rawData.length; i++) {
-      const row = data.rawData[i] as InquireEdProcessedRow;
+      const row = data.rawData[i] as InquirEDProcessedRow;
       const rowErrors = this.validateRow(row, requiredColumns, i + 1);
 
       if (rowErrors.length > 0) {
@@ -125,7 +125,7 @@ export class InquireEdStrategy extends CustomerStrategy {
 
     // Warnings for common issues
     const rowsWithoutProducts = data.rawData.filter(
-      (row: InquireEdProcessedRow) => row.products.length === 0,
+      (row: InquirEDProcessedRow) => row.products.length === 0,
     );
 
     if (rowsWithoutProducts.length > 0) {
@@ -143,7 +143,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     const timestamp = new Date();
 
     for (let i = 0; i < data.rawData.length; i++) {
-      const row = data.rawData[i] as InquireEdProcessedRow;
+      const row = data.rawData[i] as InquirEDProcessedRow;
 
       // Skip rows with no products
       if (row.products.length === 0) {
@@ -161,7 +161,7 @@ export class InquireEdStrategy extends CustomerStrategy {
 
     // Post-process kits to calculate shipDates for orders
     console.log(
-      `[EARLIEST-DELIVERY] InquireEd: Generated ${kits.length} kits, starting shipDate calculation`,
+      `[EARLIEST-DELIVERY] InquirED: Generated ${kits.length} kits, starting shipDate calculation`,
     );
     this.calculateOrdershipDates(kits);
 
@@ -170,7 +170,7 @@ export class InquireEdStrategy extends CustomerStrategy {
 
   customizeTemplate(kit: CustomerKit): CustomerBranding {
     return {
-      companyName: 'InquireEd',
+      companyName: 'InquirED',
       shouldOverrideCompany: true,
       colors: {
         primary: '#2563eb', // Blue
@@ -178,7 +178,7 @@ export class InquireEdStrategy extends CustomerStrategy {
       },
       customStyling: {
         headerStyle: 'inquire-ed-header',
-        footerText: 'InquireEd Educational Materials',
+        footerText: 'InquirED Educational Materials',
         logoUrl: '/assets/logos/inquire-ed.png',
       },
     };
@@ -190,7 +190,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     instructions: string[];
   } {
     const deliveryInfo = kit.metadata.customFields
-      .deliveryInfo as InquireEdDeliveryInfo;
+      .deliveryInfo as InquirEDDeliveryInfo;
     const instructions: string[] = [];
 
     // Add delivery-specific instructions
@@ -240,7 +240,7 @@ export class InquireEdStrategy extends CustomerStrategy {
         'Delivery Address',
         'Shipping Contact Name',
         'Shipping Contact Email',
-        'Fall 2025 shipDate',
+        'Fall 2025 Earliest Delivery Date',
       ],
       sampleData: {
         pmOrders: {
@@ -280,7 +280,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     };
   }
 
-  private detectFileType(columns: string[]): InquireEdFileType | 'unknown' {
+  private detectFileType(columns: string[]): InquirEDFileType | 'unknown' {
     // Required base columns that should be present in both file types
     const requiredBaseColumns = [
       'District or School',
@@ -296,7 +296,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     ];
 
     // Check if we have the required base structure
-    console.log('InquireEd File Type Detection:');
+    console.log('InquirED File Type Detection:');
     console.log('Available columns:', columns);
 
     // Clean column headers to handle BOM and other issues
@@ -391,39 +391,42 @@ export class InquireEdStrategy extends CustomerStrategy {
   }
 
   private processRow(
-    row: InquireEdRow,
-    fileType: InquireEdFileType,
+    row: InquirEDRow,
+    fileType: InquirEDFileType,
     _index: number,
-  ): InquireEdProcessedRow {
+  ): InquirEDProcessedRow {
     const schoolDistrict = this.csvParser.cleanString(
       row['District or School'],
     );
     const deliveryAddress = this.csvParser.cleanString(row['Delivery Address']);
 
-    const shippingContact: InquireEdShippingContact = {
+    const shippingContact: InquirEDShippingContact = {
       name: this.csvParser.cleanString(row['Shipping Contact Name']),
       email: this.csvParser.cleanString(row['Shipping Contact Email']),
       phone: this.csvParser.cleanString(row['Shipping Contact Phone']),
     };
 
-    const deliveryInfo: InquireEdDeliveryInfo = {
+    const receivingHours = this.csvParser.cleanString(row['Receiving Hours']);
+    const appointmentRequiredFromCSV =
+      this.csvParser.cleanString(row['Appointment Required?']).toLowerCase() ===
+      'yes';
+
+    const deliveryInfo: InquirEDDeliveryInfo = {
       hasDock: this.csvParser.cleanString(row['Dock?']).toLowerCase() === 'yes',
       hasPavedPath:
         this.csvParser.cleanString(row['Paved Path?']).toLowerCase() === 'yes',
       receivingDays: this.csvParser.cleanString(row['Receiving Days']) || 'M-F',
-      receivingHours:
-        this.csvParser.cleanString(row['Receiving Hours']) || '8 AM - 4 PM',
+      receivingHours: receivingHours || 'N/A',
       deliveryNotes: this.csvParser.cleanString(row['Delivery Notes']),
-      shipDate: this.csvParser.cleanString(row['Fall 2025 shipDate']),
-      appointmentRequired:
-        this.csvParser
-          .cleanString(row['Appointment Required?'])
-          .toLowerCase() === 'yes',
+      shipDate: this.calculateShipDate(
+        this.csvParser.cleanString(row['Fall 2025 Earliest Delivery Date']),
+      ),
+      appointmentRequired: !receivingHours ? true : appointmentRequiredFromCSV,
     };
 
     const products = this.extractProducts(row, fileType);
 
-    const result: InquireEdProcessedRow = {
+    const result: InquirEDProcessedRow = {
       schoolDistrict,
       deliveryAddress,
       shippingContact,
@@ -434,11 +437,11 @@ export class InquireEdStrategy extends CustomerStrategy {
 
     if (fileType === 'pm') {
       result.totalBoxes = this.parseNumber(
-        (row as InquireEdPMRow)['Total Number of Boxes Ordered'],
+        (row as InquirEDPMRow)['Total Number of Boxes Ordered'],
       );
     } else {
       result.totalTEs = this.parseNumber(
-        (row as InquireEdTERow)['Total Number of TEs Ordered'],
+        (row as InquirEDTERow)['Total Number of TEs Ordered'],
       );
     }
 
@@ -446,8 +449,8 @@ export class InquireEdStrategy extends CustomerStrategy {
   }
 
   private extractProducts(
-    row: InquireEdRow,
-    fileType: InquireEdFileType,
+    row: InquirEDRow,
+    fileType: InquirEDFileType,
   ): Array<{
     sku: string;
     quantity: number;
@@ -475,7 +478,7 @@ export class InquireEdStrategy extends CustomerStrategy {
       'Delivery Notes',
       'Total Number of Boxes Ordered',
       'Total Number of TEs Ordered',
-      'Fall 2025 shipDate',
+      'Fall 2025 Earliest Delivery Date',
       'Appointment Required?',
     ];
 
@@ -510,7 +513,7 @@ export class InquireEdStrategy extends CustomerStrategy {
 
   private parseQuantityString(
     value: string,
-    fileType: InquireEdFileType,
+    fileType: InquirEDFileType,
   ): ParsedQuantity {
     const result: ParsedQuantity = { quantity: 0 };
 
@@ -571,13 +574,13 @@ export class InquireEdStrategy extends CustomerStrategy {
   }
 
   private getRequiredColumnsForFileType(
-    fileType: InquireEdFileType,
+    fileType: InquirEDFileType,
   ): readonly string[] {
     return fileType === 'pm' ? PM_REQUIRED_COLUMNS : TE_REQUIRED_COLUMNS;
   }
 
   private validateRow(
-    row: InquireEdProcessedRow,
+    row: InquirEDProcessedRow,
     _requiredColumns: readonly string[],
     rowNumber: number,
   ): string[] {
@@ -636,7 +639,7 @@ export class InquireEdStrategy extends CustomerStrategy {
   }
 
   private createKitFromRow(
-    row: InquireEdProcessedRow,
+    row: InquirEDProcessedRow,
     index: number,
     timestamp: Date,
   ): CustomerKit {
@@ -680,7 +683,7 @@ export class InquireEdStrategy extends CustomerStrategy {
    */
   private calculateOrdershipDates(kits: CustomerKit[]): void {
     console.log(
-      `[EARLIEST-DELIVERY] InquireEd: Processing ${kits.length} kits for shipDate calculation`,
+      `[EARLIEST-DELIVERY] InquirED: Processing ${kits.length} kits for shipDate calculation`,
     );
 
     // Find the earliest date from ALL kits that have dates
@@ -707,6 +710,14 @@ export class InquireEdStrategy extends CustomerStrategy {
     console.log(
       `[EARLIEST-DELIVERY] Earliest date found across all kits: "${earliestDate}"`,
     );
+
+    // If no earliest date found, use default date
+    if (!earliestDate) {
+      earliestDate = '8/7/2025';
+      console.log(
+        `[EARLIEST-DELIVERY] No dates found in any kits, using default date: ${earliestDate}`,
+      );
+    }
 
     // Apply earliest date to any kits missing delivery dates
     if (earliestDate && kitsWithoutDates > 0) {
@@ -803,7 +814,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     const items: CustomerKitItem[] = [];
 
     products.forEach((product, index) => {
-      const productInfo = this.inquireEdService.getSkuInfo(product.sku);
+      const productInfo = this.inquirEDService.getSkuInfo(product.sku);
 
       const item: CustomerKitItem = {
         id: this.generateItemId(kitId, index),
@@ -832,7 +843,7 @@ export class InquireEdStrategy extends CustomerStrategy {
       gradeLevel?: string;
       needsSticker?: boolean;
     },
-    productInfo?: InquireEdProductInfo,
+    productInfo?: InquirEDProductInfo,
   ): string {
     let description = productInfo?.description || product.sku;
 
@@ -850,7 +861,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     return description;
   }
 
-  private buildSpecialInstructions(row: InquireEdProcessedRow): string[] {
+  private buildSpecialInstructions(row: InquirEDProcessedRow): string[] {
     const instructions: string[] = [];
 
     if (row.deliveryInfo.appointmentRequired) {
@@ -866,5 +877,68 @@ export class InquireEdStrategy extends CustomerStrategy {
     }
 
     return instructions;
+  }
+
+  /**
+   * Convert delivery date to ship date by subtracting 2 days
+   * If no delivery date provided, returns default ship date of 8/7/2025
+   */
+  private calculateShipDate(deliveryDateString: string): string {
+    const cleanedDate = deliveryDateString?.trim();
+
+    // If no date provided, return default
+    if (!cleanedDate) {
+      return '8/7/2025';
+    }
+
+    try {
+      // Parse the date string - handle various formats
+      let parsedDate: Date;
+
+      // Try MM/DD/YYYY format first (most common)
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cleanedDate)) {
+        parsedDate = new Date(cleanedDate);
+      }
+      // Try MM/DD/YY format
+      else if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(cleanedDate)) {
+        parsedDate = new Date(cleanedDate);
+      }
+      // Try YYYY-MM-DD format
+      else if (/^\d{4}-\d{2}-\d{2}$/.test(cleanedDate)) {
+        parsedDate = new Date(cleanedDate);
+      }
+      // Try MM-DD-YYYY format
+      else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(cleanedDate)) {
+        const parts = cleanedDate.split('-');
+        parsedDate = new Date(`${parts[0]}/${parts[1]}/${parts[2]}`);
+      } else {
+        // Fallback: try direct parsing
+        parsedDate = new Date(cleanedDate);
+      }
+
+      // Check if date is valid
+      if (isNaN(parsedDate.getTime())) {
+        console.warn(
+          `Invalid date format: ${cleanedDate}, using default ship date`,
+        );
+        return '8/7/2025';
+      }
+
+      // Subtract 2 days
+      parsedDate.setDate(parsedDate.getDate() - 2);
+
+      // Format back to MM/DD/YYYY
+      const month = (parsedDate.getMonth() + 1).toString();
+      const day = parsedDate.getDate().toString();
+      const year = parsedDate.getFullYear().toString();
+
+      return `${month}/${day}/${year}`;
+    } catch (error) {
+      console.warn(
+        `Error parsing date: ${cleanedDate}, using default ship date`,
+        error,
+      );
+      return '8/7/2025';
+    }
   }
 }

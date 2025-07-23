@@ -186,7 +186,7 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 **Customer Strategies Added:**
 - **HH Global Strategy** - Standard customer processing
 - **Georgia Baptist Strategy** - Mission board specific requirements
-- **InquireEd Strategy** - Educational customer needs
+- **InquirED Strategy** - Educational customer needs
 
 **Technical Achievements:**
 - Strategy pattern implementation for scalable customer support
@@ -241,7 +241,7 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 **Templates Created:**
 - `backend/views/templates/default.hbs` - Standard customer template
 - `backend/views/templates/georgia-baptist.hbs` - Georgia Baptist specific
-- `backend/views/templates/inquire-ed.hbs` - InquireEd specific
+- `backend/views/templates/inquire-ed.hbs` - InquirED specific
 - `backend/views/styles/base.css` - Base CSS styles
 
 **Architecture Benefits:**
