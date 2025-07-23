@@ -79,7 +79,7 @@ None - all tasks completed successfully.
   - Frontend now fetches HTML preview from backend instead of using React components
   - Exact template matching between preview and PDF generation
 
-### 3. Earliest Delivery Date Automation
+### 3. Ship Date Automation
 - **Problem**: InquireEd orders without earliest delivery dates should auto-populate from earliest dates in the upload
 - **Solution**: Comprehensive calculation system
 - **Algorithm**:
@@ -111,9 +111,9 @@ async previewPackingSlip(@Body() packingSlipData: any) {
 }
 ```
 
-### Earliest Delivery Date Calculation
+### Ship Date Calculation
 ```typescript
-private calculateOrderEarliestDeliveryDates(kits: CustomerKit[]): void {
+private calculateOrdershipDates(kits: CustomerKit[]): void {
   // 1. Find earliest date from all kits with dates
   // 2. Apply to kits missing dates  
   // 3. Ensure every kit has delivery date
@@ -166,7 +166,7 @@ private readonly isDevelopment = process.env.NODE_ENV !== 'production';
 - **After**: Server-side HTML preview fetched from backend
 - **Impact**: Perfect consistency between preview and PDF, but requires backend running for preview
 
-### Earliest Delivery Date Logic
+### Ship Date Logic
 - **Before**: Manual handling of empty delivery dates
 - **After**: Automatic population using earliest date from upload
 - **Impact**: All kits guaranteed to have delivery dates
@@ -228,8 +228,8 @@ private readonly isDevelopment = process.env.NODE_ENV !== 'production';
 - Handlebars templates in `backend/views/templates/` are single source of truth
 - Frontend preview now requires backend to be running
 
-### 3. Earliest Delivery Date Feature
-- Logic in `inquire-ed.strategy.ts` `calculateOrderEarliestDeliveryDates()`
+### 3. Ship Date Feature
+- Logic in `inquire-ed.strategy.ts` `calculateOrdershipDates()`
 - Debug with `[EARLIEST-DELIVERY]` log prefix
 - Each CSV row = separate order (no grouping needed)
 

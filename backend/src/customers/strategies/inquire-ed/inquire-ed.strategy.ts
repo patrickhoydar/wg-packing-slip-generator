@@ -159,9 +159,11 @@ export class InquireEdStrategy extends CustomerStrategy {
       }
     }
 
-    // Post-process kits to calculate earliest delivery dates for orders
-    console.log(`[EARLIEST-DELIVERY] InquireEd: Generated ${kits.length} kits, starting earliest delivery date calculation`);
-    this.calculateOrderEarliestDeliveryDates(kits);
+    // Post-process kits to calculate shipDates for orders
+    console.log(
+      `[EARLIEST-DELIVERY] InquireEd: Generated ${kits.length} kits, starting shipDate calculation`,
+    );
+    this.calculateOrdershipDates(kits);
 
     return kits;
   }
@@ -216,11 +218,9 @@ export class InquireEdStrategy extends CustomerStrategy {
       instructions.push(`Special Notes: ${deliveryInfo.deliveryNotes}`);
     }
 
-    // Add earliest delivery date
-    if (deliveryInfo.earliestDeliveryDate) {
-      instructions.push(
-        `Earliest Delivery: ${deliveryInfo.earliestDeliveryDate}`,
-      );
+    // Add shipDate
+    if (deliveryInfo.shipDate) {
+      instructions.push(`Earliest Delivery: ${deliveryInfo.shipDate}`);
     }
 
     return {
@@ -240,7 +240,7 @@ export class InquireEdStrategy extends CustomerStrategy {
         'Delivery Address',
         'Shipping Contact Name',
         'Shipping Contact Email',
-        'Fall 2025 Earliest Delivery Date',
+        'Fall 2025 shipDate',
       ],
       sampleData: {
         pmOrders: {
@@ -414,9 +414,7 @@ export class InquireEdStrategy extends CustomerStrategy {
       receivingHours:
         this.csvParser.cleanString(row['Receiving Hours']) || '8 AM - 4 PM',
       deliveryNotes: this.csvParser.cleanString(row['Delivery Notes']),
-      earliestDeliveryDate: this.csvParser.cleanString(
-        row['Fall 2025 Earliest Delivery Date'],
-      ),
+      shipDate: this.csvParser.cleanString(row['Fall 2025 shipDate']),
       appointmentRequired:
         this.csvParser
           .cleanString(row['Appointment Required?'])
@@ -477,7 +475,7 @@ export class InquireEdStrategy extends CustomerStrategy {
       'Delivery Notes',
       'Total Number of Boxes Ordered',
       'Total Number of TEs Ordered',
-      'Fall 2025 Earliest Delivery Date',
+      'Fall 2025 shipDate',
       'Appointment Required?',
     ];
 
@@ -604,7 +602,7 @@ export class InquireEdStrategy extends CustomerStrategy {
     // }
 
     // Note: Dock, Paved Path, Receiving Days, Receiving Hours are always present due to defaults
-    // All other fields (Shipping Contact Phone, Delivery Notes, Earliest Delivery Date, Appointment Required) are OPTIONAL
+    // All other fields (Shipping Contact Phone, Delivery Notes, shipDate, Appointment Required) are OPTIONAL
 
     // Validate email format (only if provided)
     if (
@@ -623,16 +621,13 @@ export class InquireEdStrategy extends CustomerStrategy {
     }
 
     // Validate delivery date format (only if provided and not empty)
-    if (
-      row.deliveryInfo.earliestDeliveryDate &&
-      row.deliveryInfo.earliestDeliveryDate.trim() !== ''
-    ) {
+    if (row.deliveryInfo.shipDate && row.deliveryInfo.shipDate.trim() !== '') {
       const isValidDate = DELIVERY_DATE_PATTERNS.some((pattern) =>
-        pattern.test(row.deliveryInfo.earliestDeliveryDate),
+        pattern.test(row.deliveryInfo.shipDate),
       );
       if (!isValidDate) {
         errors.push(
-          `${prefix} Invalid delivery date format: ${row.deliveryInfo.earliestDeliveryDate}`,
+          `${prefix} Invalid delivery date format: ${row.deliveryInfo.shipDate}`,
         );
       }
     }
@@ -680,22 +675,24 @@ export class InquireEdStrategy extends CustomerStrategy {
   }
 
   /**
-   * Calculate and set earliest delivery dates.
+   * Calculate and set shipDates.
    * Find the earliest date from all kits and apply it to kits missing delivery dates.
    */
-  private calculateOrderEarliestDeliveryDates(kits: CustomerKit[]): void {
-    console.log(`[EARLIEST-DELIVERY] InquireEd: Processing ${kits.length} kits for earliest delivery date calculation`);
-    
+  private calculateOrdershipDates(kits: CustomerKit[]): void {
+    console.log(
+      `[EARLIEST-DELIVERY] InquireEd: Processing ${kits.length} kits for shipDate calculation`,
+    );
+
     // Find the earliest date from ALL kits that have dates
     let earliestDate: string | null = null;
     let kitsWithDates = 0;
     let kitsWithoutDates = 0;
-    
+
     for (const kit of kits) {
       const deliveryInfo = kit.metadata.customFields.deliveryInfo;
-      if (deliveryInfo.earliestDeliveryDate && deliveryInfo.earliestDeliveryDate.trim() !== '') {
+      if (deliveryInfo.shipDate && deliveryInfo.shipDate.trim() !== '') {
         kitsWithDates++;
-        const currentDate = deliveryInfo.earliestDeliveryDate.trim();
+        const currentDate = deliveryInfo.shipDate.trim();
         if (!earliestDate || this.isDateEarlier(currentDate, earliestDate)) {
           earliestDate = currentDate;
         }
@@ -703,32 +700,43 @@ export class InquireEdStrategy extends CustomerStrategy {
         kitsWithoutDates++;
       }
     }
-    
-    console.log(`[EARLIEST-DELIVERY] Analysis: ${kitsWithDates} kits with dates, ${kitsWithoutDates} kits without dates`);
-    console.log(`[EARLIEST-DELIVERY] Earliest date found across all kits: "${earliestDate}"`);
-    
+
+    console.log(
+      `[EARLIEST-DELIVERY] Analysis: ${kitsWithDates} kits with dates, ${kitsWithoutDates} kits without dates`,
+    );
+    console.log(
+      `[EARLIEST-DELIVERY] Earliest date found across all kits: "${earliestDate}"`,
+    );
+
     // Apply earliest date to any kits missing delivery dates
     if (earliestDate && kitsWithoutDates > 0) {
       let updatedCount = 0;
       for (const kit of kits) {
         const deliveryInfo = kit.metadata.customFields.deliveryInfo;
-        if (!deliveryInfo.earliestDeliveryDate || deliveryInfo.earliestDeliveryDate.trim() === '') {
-          console.log(`[EARLIEST-DELIVERY] UPDATING kit ${kit.id} (${kit.recipient.company}) from "" to "${earliestDate}"`);
-          deliveryInfo.earliestDeliveryDate = earliestDate;
+        if (!deliveryInfo.shipDate || deliveryInfo.shipDate.trim() === '') {
+          console.log(
+            `[EARLIEST-DELIVERY] UPDATING kit ${kit.id} (${kit.recipient.company}) from "" to "${earliestDate}"`,
+          );
+          deliveryInfo.shipDate = earliestDate;
           updatedCount++;
         }
       }
-      console.log(`[EARLIEST-DELIVERY] Updated ${updatedCount} kits with earliest date: ${earliestDate}`);
+      console.log(
+        `[EARLIEST-DELIVERY] Updated ${updatedCount} kits with earliest date: ${earliestDate}`,
+      );
     }
-    
+
     // Final verification
-    console.log(`[EARLIEST-DELIVERY] Final verification - all ${kits.length} kits after calculation:`);
+    console.log(
+      `[EARLIEST-DELIVERY] Final verification - all ${kits.length} kits after calculation:`,
+    );
     for (const kit of kits) {
       const deliveryInfo = kit.metadata.customFields.deliveryInfo;
-      console.log(`[EARLIEST-DELIVERY] Final: Kit ${kit.id} (${kit.recipient.company}) earliestDeliveryDate: "${deliveryInfo.earliestDeliveryDate}"`);
+      console.log(
+        `[EARLIEST-DELIVERY] Final: Kit ${kit.id} (${kit.recipient.company}) shipDate: "${deliveryInfo.shipDate}"`,
+      );
     }
   }
-
 
   /**
    * Compare two date strings to determine if first date is earlier than second
@@ -829,7 +837,9 @@ export class InquireEdStrategy extends CustomerStrategy {
     let description = productInfo?.description || product.sku;
 
     // Remove the full language from the description, as it's now in the category
-    description = description.replace(/\s\(English\)/, '').replace(/\s\(Spanish\)/, '');
+    description = description
+      .replace(/\s\(English\)/, '')
+      .replace(/\s\(Spanish\)/, '');
 
     if (product.needsSticker !== undefined) {
       description += product.needsSticker

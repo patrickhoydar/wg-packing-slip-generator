@@ -1,16 +1,16 @@
 interface DeliveryInfo {
-  hasDock?: boolean;
-  hasPavedPath?: boolean;
-  receivingDays?: string;
-  receivingHours?: string;
-  deliveryNotes?: string;
-  earliestDeliveryDate?: string;
-  appointmentRequired?: boolean;
+  hasDock?: boolean
+  hasPavedPath?: boolean
+  receivingDays?: string
+  receivingHours?: string
+  deliveryNotes?: string
+  shipDate?: string
+  appointmentRequired?: boolean
 }
 
 interface DeliveryRequirementsProps {
-  deliveryInfo: DeliveryInfo;
-  shippingMethod: string;
+  deliveryInfo: DeliveryInfo
+  shippingMethod: string
 }
 
 export default function DeliveryRequirements({
@@ -18,7 +18,7 @@ export default function DeliveryRequirements({
   shippingMethod,
 }: DeliveryRequirementsProps) {
   if (!deliveryInfo) {
-    return null;
+    return null
   }
 
   return (
@@ -37,23 +37,25 @@ export default function DeliveryRequirements({
               </p>
             )}
           </div>
-          
+
           {/* Right column: Earliest Date and Receiving info */}
           <div className="flex-1 space-y-0.5">
-            {deliveryInfo.earliestDeliveryDate && (
+            {deliveryInfo.shipDate && (
               <p className="text-sm text-black">
-                <strong>Earliest Delivery Date:</strong> {deliveryInfo.earliestDeliveryDate}
+                <strong>Ship Date:</strong> {deliveryInfo.shipDate}
               </p>
             )}
             <p className="text-sm text-black">
-              <strong>Receiving Days:</strong> {deliveryInfo.receivingDays || 'M-F'}
+              <strong>Receiving Days:</strong>{" "}
+              {deliveryInfo.receivingDays || "M-F"}
             </p>
             <p className="text-sm text-black">
-              <strong>Receiving Hours:</strong> {deliveryInfo.receivingHours || '8 AM - 4 PM'}
+              <strong>Receiving Hours:</strong>{" "}
+              {deliveryInfo.receivingHours || "8 AM - 4 PM"}
             </p>
           </div>
         </div>
-        
+
         {/* Full width delivery notes section */}
         {deliveryInfo.deliveryNotes && (
           <div className="pt-1.5 border-t border-gray-200">
@@ -64,5 +66,5 @@ export default function DeliveryRequirements({
         )}
       </div>
     </div>
-  );
+  )
 }

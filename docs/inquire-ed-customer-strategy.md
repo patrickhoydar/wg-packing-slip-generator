@@ -26,14 +26,14 @@
 - **File Type**: CSV
 - **Sample Structure**:
 ```
-District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | Delivery Address | Shipping Contact Name | Shipping Contact Email | Shipping Contact Phone | Delivery Notes | Total Number of Boxes Ordered | IND-IJ-PM-NAVIG-EN-0100 | IND-IJ-PM-NAVIG-SP-0100 | ... | Fall 2025 Earliest Delivery Date | Appointment Required?
+District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | Delivery Address | Shipping Contact Name | Shipping Contact Email | Shipping Contact Phone | Delivery Notes | Total Number of Boxes Ordered | IND-IJ-PM-NAVIG-EN-0100 | IND-IJ-PM-NAVIG-SP-0100 | ... | Fall 2025 Ship Date | Appointment Required?
 ```
 
 #### Format 2: TE Orders (Teacher Editions)
 - **File Type**: CSV
 - **Sample Structure**:
 ```
-District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | Delivery Address | Shipping Contact Name | Shipping Contact Email | Shipping Contact Phone | Total Number of TEs Ordered | IND-IJ-TE-NAVIG-0100 | IND-IJ-TE-MYTEAM-0200 | ... | Fall 2025 Earliest Delivery Date | Appointment Required?
+District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | Delivery Address | Shipping Contact Name | Shipping Contact Email | Shipping Contact Phone | Total Number of TEs Ordered | IND-IJ-TE-NAVIG-0100 | IND-IJ-TE-MYTEAM-0200 | ... | Fall 2025 Ship Date | Appointment Required?
 ```
 
 ### Required Columns
@@ -47,7 +47,7 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
   - `IND-IJ-PM-*` columns (PM Orders) - Product quantities with grade info
   - `IND-IJ-TE-*` columns (TE Orders) - Teacher edition quantities with sticker info
 - **Delivery Requirements**:
-  - `Fall 2025 Earliest Delivery Date` - Earliest acceptable delivery date
+  - `Fall 2025 Ship Date` - Earliest acceptable delivery date
   - `Appointment Required?` - Whether appointment is needed
 
 ### Optional Columns
@@ -85,7 +85,7 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
 - **Shipping Address**: Must have valid `Delivery Address`
 - **Contact Information**: Must have `Shipping Contact Name` and `Shipping Contact Email`
 - **Product Quantities**: At least one product column must have valid quantity
-- **Delivery Requirements**: Must have valid `Fall 2025 Earliest Delivery Date`
+- **Delivery Requirements**: Must have valid `Fall 2025 Ship Date`
 
 ### Business Rule Validation
 - **Minimum Order Requirements**: At least one product with quantity > 0

@@ -1,5 +1,11 @@
 # InquirED Packing Slip Updates (Acct. Exec Review)
 
+## Print Order
+- Sort slips by earliest Ship Date
+
+## Sub-header
+- Put shipment id in top right parallel to the Job Number
+
 ## Ship To
 - Add Phone Number when available
 
@@ -15,3 +21,14 @@
 ## Sub Order Details Table
 - Remove total Items compeltely
 - Move "Total Quantity" to bottom right of table under individual totals
+
+## Shipping Notes
+- Shipping Hours: If blank set Appointment Required to Yes and put N/A for Receiving Hours
+- Earliest Delivery Date: Change it to Ship Date
+	- Back date each Ship Date by two days
+	- If Expected Delivery Date is blank set the Ship Date to 8/7
+
+	
+# Grade Sticker Sheets
+- Unique identifier (shipment ID) for each shipment
+- Combine grades on 1 sheet

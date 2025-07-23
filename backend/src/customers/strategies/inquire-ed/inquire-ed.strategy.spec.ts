@@ -29,7 +29,7 @@ describe('InquireEdStrategy', () => {
 
   describe('parseFile', () => {
     it('should parse PM Orders CSV file', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-NAVIG-SP-0100,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-NAVIG-SP-0100,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","1, 1",8/15/2025,No`;
 
@@ -46,7 +46,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","1, 1",8/
     });
 
     it('should parse TE Orders CSV file with complex sticker formats', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",Yes,Yes,M-F,6:30-4,"123 Main St
 Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Needs Sticker: K","26, Needs Sticker: 4",8/15/2025,Yes`;
 
@@ -95,7 +95,7 @@ value1,value2`;
     });
 
     it('should handle file with custom SKU columns', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,CUSTOM-SKU-1,CUSTOM-SKU-2,ANOTHER-PRODUCT-SKU,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,CUSTOM-SKU-1,CUSTOM-SKU-2,ANOTHER-PRODUCT-SKU,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","3, 1","1, 2",8/15/2025,No`;
 
@@ -113,7 +113,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K","3, 1","1
     });
 
     it('should handle PM Orders with numeric grades', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/15/2025,No`;
 
@@ -155,7 +155,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
               hasPavedPath: true,
               receivingDays: 'M-F',
               receivingHours: '8-4',
-              earliestDeliveryDate: '8/15/2025',
+              shipDate: '8/15/2025',
               appointmentRequired: false,
             },
             products: [
@@ -201,7 +201,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
               hasPavedPath: true,
               receivingDays: 'M-F',
               receivingHours: '8-4',
-              earliestDeliveryDate: '',
+              shipDate: '',
               appointmentRequired: false,
             },
             products: [],
@@ -227,7 +227,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
       expect(result.errors).toContain(
         'Row 1: Invalid email format: invalid-email',
       );
-      // Note: Earliest Delivery Date is optional, so this should not be in errors
+      // Note: shipDate is optional, so this should not be in errors
       expect(result.errors).toContain('Row 1: No products found');
     });
   });
@@ -250,7 +250,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
               receivingDays: 'M-F',
               receivingHours: '8-4',
               deliveryNotes: 'Test notes',
-              earliestDeliveryDate: '8/15/2025',
+              shipDate: '8/15/2025',
               appointmentRequired: false,
             },
             products: [
@@ -302,7 +302,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
               hasPavedPath: true,
               receivingDays: 'M-F',
               receivingHours: '8-4',
-              earliestDeliveryDate: '8/15/2025',
+              shipDate: '8/15/2025',
               appointmentRequired: false,
             },
             products: [],
@@ -387,7 +387,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
               receivingDays: 'M-F',
               receivingHours: '8-4',
               deliveryNotes: 'Test delivery notes',
-              earliestDeliveryDate: '8/15/2025',
+              shipDate: '8/15/2025',
               appointmentRequired: true,
             },
           },
@@ -429,7 +429,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"3, 1","4, 5",8/
 
   describe('quantity parsing edge cases', () => {
     it('should handle malformed quantity strings gracefully', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,IND-IJ-TE-PASTF-0300,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",Yes,Yes,M-F,6:30-4,"123 Main St
 Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30","","invalid format",8/15/2025,Yes`;
 
@@ -447,7 +447,7 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30","","invalid format",
     });
 
     it('should normalize grade levels correctly', async () => {
-      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 Earliest Delivery Date,Appointment Required?
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Delivery Notes,Total Number of Boxes Ordered,IND-IJ-PM-NAVIG-EN-0100,IND-IJ-PM-MYTEAM-EN-0200,Fall 2025 shipDate,Appointment Required?
 "Test School, CO",No,Yes,Monday - Friday,8 am - 4 pm,"123 Main St
 Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, k","3, KG",8/15/2025,No`;
 

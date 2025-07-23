@@ -9,7 +9,7 @@ export interface InquireEdBaseRow {
   'Shipping Contact Email': string;
   'Shipping Contact Phone': string;
   'Delivery Notes'?: string;
-  'Fall 2025 Earliest Delivery Date': string;
+  'Fall 2025 shipDate': string;
   'Appointment Required?': string;
 }
 
@@ -105,7 +105,7 @@ export interface InquireEdDeliveryInfo {
   receivingDays: string;
   receivingHours: string;
   deliveryNotes?: string;
-  earliestDeliveryDate: string;
+  shipDate: string;
   appointmentRequired: boolean;
 }
 
@@ -137,7 +137,7 @@ export const PM_REQUIRED_COLUMNS = [
   'Delivery Address',
   'Shipping Contact Name',
   'Shipping Contact Email',
-  'Fall 2025 Earliest Delivery Date',
+  'Fall 2025 shipDate',
 ] as const;
 
 export const TE_REQUIRED_COLUMNS = [
@@ -145,7 +145,7 @@ export const TE_REQUIRED_COLUMNS = [
   'Delivery Address',
   'Shipping Contact Name',
   'Shipping Contact Email',
-  'Fall 2025 Earliest Delivery Date',
+  'Fall 2025 shipDate',
 ] as const;
 
 // Product column patterns
