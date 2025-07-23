@@ -552,7 +552,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   ): Promise<string> {
     try {
       const customerStrategy = this.getCustomerStrategy(customerCode);
-      
+
       // Generate the base HTML fragment
       const htmlFragment = await this.generatePackingSlipHtml(
         packingSlipData,
@@ -562,9 +562,11 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Get styles and prepend them for the preview
       const styles = this.stylesCache.get(customerStrategy);
       if (!styles) {
-        throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+        throw new Error(
+          `Styles not found for customer strategy: ${customerStrategy}`,
+        );
       }
-      
+
       return `<style>${styles}</style>${htmlFragment}`;
     } catch (error) {
       this.logger.error('Error generating HTML preview:', error);
@@ -777,7 +779,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
       const styles = this.stylesCache.get(customerStrategy);
       if (!styles) {
-        throw new Error(`Styles not found for customer strategy: ${customerStrategy}`);
+        throw new Error(
+          `Styles not found for customer strategy: ${customerStrategy}`,
+        );
       }
 
       const html = this.generatePdfHtml(htmlFragment, styles);
@@ -956,6 +960,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Delivery information for InquirED templates
       deliveryInfo: data.deliveryInfo || null,
       shippingMethod: data.shippingMethod || 'Standard Ground',
+
+      // CRITICAL: Pass through the entire kit object for customer-specific templates
+      metadata: data.metadata || null,
     };
 
     return templateData;
@@ -1002,6 +1009,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Add delivery information for InquirED templates
       deliveryInfo: deliveryInfo || {},
       shippingMethod: shippingMethod,
+      // CRITICAL: Pass through the entire kit object so template has access to metadata
+      metadata: kit.metadata || null,
     };
   }
 

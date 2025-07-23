@@ -263,7 +263,6 @@ export class GeorgiaBaptistStrategy extends CustomerStrategy {
     timestamp: Date,
   ): CustomerKit {
     const kitId = this.generateKitId(this.customerCode, index, timestamp);
-
     // Parse product quantities
     const products = this.parseProductQuantities(row);
     const items = this.createKitItems(kitId, products);
@@ -319,6 +318,8 @@ export class GeorgiaBaptistStrategy extends CustomerStrategy {
       },
       items,
       metadata: {
+        kitType: this.cleanString(row['Kit Conf Type']) || 'Unknown',
+        ref2: row.RFRNC2,
         originalRowIndex: index,
         orderReference:
           fileType === 'ups' ? this.cleanString(row.RFRNC1) : undefined,

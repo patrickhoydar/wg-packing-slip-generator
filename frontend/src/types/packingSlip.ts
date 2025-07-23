@@ -37,6 +37,10 @@ export interface Order {
   shipping: number
   total: number
   status: "pending" | "processing" | "shipped" | "delivered"
+  metadata?: {
+    kitType?: string
+    ref2?: string
+  }
 }
 
 export interface Company {
@@ -64,4 +68,8 @@ export interface PackingSlip {
   notes?: string
   deliveryInfo?: DeliveryInfo
   shippingMethod?: string
+  metadata?: {
+    kitType?: string
+    ref2?: string
+  }
 }

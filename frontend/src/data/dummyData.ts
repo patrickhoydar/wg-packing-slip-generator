@@ -91,4 +91,8 @@ export const dummyPackingSlip: PackingSlip = {
   company: dummyCompany,
   generatedDate: "2025-07-08",
   notes: "Handle with care - fragile items included",
+  metadata: {
+    kitType: "Kit 1",
+    ref2: "001",
+  },
 }

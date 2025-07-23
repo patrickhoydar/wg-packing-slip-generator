@@ -77,6 +77,8 @@ export interface CustomerKitItem {
   sku: string;
   name: string;
   description: string;
+  ref2?: string;
+  kitType?: string;
   quantity: number;
   category: any;
   customProperties?: Record<string, any>;

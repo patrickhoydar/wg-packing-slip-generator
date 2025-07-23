@@ -19,22 +19,11 @@
         </div>
       </div>
 
-      <!-- Ship To Information -->
-      <div class="ship-to">
-        <div>
-          <h3 class="ship-to-title">Ship To:</h3>
-          <div class="ship-to-details">
-            {{#if shipTo.company}}
-            <p class="company-name">{{shipTo.company}}</p>
-            {{/if}}
-            <p class="company-name">{{shipTo.name}}</p>
-            <p>{{shipTo.address.street}}</p>
-            <p>{{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zipCode}}</p>
-            <p>{{shipTo.address.country}}</p>
-            {{#if shipTo.email}}
-            <p>{{shipTo.email}}</p>
-            {{/if}}
-          </div>
+      <!-- Meta Data -->
+      <div class="meta-data">
+        <div class="flex items-center mb-4">
+          <p class="text-lg pr-6 font-bold">Kit Type: {{metadata.kitType}}</p>
+          <p class="text-lg pr-6 font-bold">Ref2: {{metadata.ref2}}</p>
         </div>
       </div>
 
