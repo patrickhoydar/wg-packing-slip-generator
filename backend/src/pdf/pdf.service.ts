@@ -27,8 +27,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   private browserInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private pagePool: puppeteer.Page[] = [];
-  private readonly maxPoolSize = 3;
-  private readonly maxConcurrency = 3;
+  private readonly maxPoolSize = 5;
+  private readonly maxConcurrency = 5;
   private currentConcurrency = 0;
   private readonly pendingRequests: PdfRequest[] = [];
   private cleanupTimeoutId: NodeJS.Timeout | null = null;
@@ -444,8 +444,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Graceful shutdown of current browser
       await this.performCleanup();
 
-      // Wait a moment for cleanup
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Immediate reinitialize - no wait needed
 
       // Initialize new browser
       this.initializationPromise = this.initializeBrowser();
@@ -482,8 +481,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Full cleanup first
       await this.cleanup();
 
-      // Wait a moment for cleanup to complete
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Immediate reinitialize - no wait needed
 
       // Reinitialize browser and templates
       this.initializationPromise = this.initializeBrowser();
@@ -683,7 +681,155 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Batch PDF generation
+  // Batch PDF generation with chunking and local storage
+  async generateBatchPDFsToDirectory(
+    customerCode: string,
+    kits: any[],
+    outputDir: string,
+    chunkSize: number = 100,
+  ): Promise<{
+    totalGenerated: number;
+    outputDirectory: string;
+    chunks: Array<{
+      chunkIndex: number;
+      startIndex: number;
+      endIndex: number;
+      filesGenerated: number;
+      error?: string;
+    }>;
+  }> {
+    if (this.isShuttingDown) {
+      throw new Error('PDF service is shutting down');
+    }
+
+    // Ensure browser is ready before starting batch generation
+    await this.ensureBrowserReady();
+
+    // Create output directory
+    try {
+      await fs.promises.mkdir(outputDir, { recursive: true });
+      this.logger.log(`Created output directory: ${outputDir}`);
+
+      // Verify directory was created successfully
+      const stats = await fs.promises.stat(outputDir);
+      if (!stats.isDirectory()) {
+        throw new Error(`Failed to create directory: ${outputDir}`);
+      }
+      this.logger.log(`Directory verified: ${outputDir}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to create output directory: ${outputDir}`,
+        error,
+      );
+      throw error;
+    }
+
+    // Determine customer strategy based on customer code
+    const customerStrategy = this.getCustomerStrategy(customerCode);
+
+    // Split kits into chunks
+    const chunks: any[][] = [];
+    for (let i = 0; i < kits.length; i += chunkSize) {
+      chunks.push(kits.slice(i, i + chunkSize));
+    }
+
+    this.logger.log(
+      `Processing ${kits.length} kits in ${chunks.length} chunks of ${chunkSize}`,
+    );
+
+    const results: Array<{
+      chunkIndex: number;
+      startIndex: number;
+      endIndex: number;
+      filesGenerated: number;
+      error?: string;
+    }> = [];
+    let totalGenerated = 0;
+
+    // Process each chunk sequentially to avoid overwhelming the browser
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const chunk = chunks[chunkIndex];
+      const startIndex = chunkIndex * chunkSize;
+      const endIndex = startIndex + chunk.length - 1;
+
+      this.logger.log(
+        `[PROGRESS] Processing chunk ${chunkIndex + 1}/${chunks.length} (kits ${startIndex}-${endIndex}) - ${Math.round((chunkIndex / chunks.length) * 100)}% complete`,
+      );
+
+      try {
+        // Force browser recovery less frequently for speed
+        if (chunkIndex > 0 && chunkIndex % 10 === 0) {
+          this.logger.log(
+            `[BROWSER] Recycling browser after ${chunkIndex} chunks to prevent memory issues`,
+          );
+          await this.recycleBrowser();
+        }
+
+        // Generate PDFs for this chunk with higher concurrency for speed
+        const limiter = this.concurrencyService.createLimiter(8); // Increased for speed
+
+        const chunkStartTime = Date.now();
+        const chunkPromises = chunk.map((kit, kitIndex) => {
+          const globalIndex = startIndex + kitIndex;
+          return limiter.add(() =>
+            this.generateSinglePdfFile(
+              kit,
+              outputDir,
+              globalIndex,
+              customerStrategy,
+            ),
+          );
+        });
+
+        const chunkFiles = await Promise.all(chunkPromises);
+        const filesGenerated = chunkFiles.filter((file) => file).length;
+        totalGenerated += filesGenerated;
+        const chunkDuration = Date.now() - chunkStartTime;
+
+        results.push({
+          chunkIndex,
+          startIndex,
+          endIndex,
+          filesGenerated,
+        });
+
+        const totalProgress = Math.round((totalGenerated / kits.length) * 100);
+        const estimatedTimeRemaining =
+          chunks.length > chunkIndex + 1
+            ? Math.round(
+                (chunkDuration * (chunks.length - chunkIndex - 1)) / 1000,
+              )
+            : 0;
+
+        this.logger.log(
+          `[PROGRESS] Chunk ${chunkIndex + 1}/${chunks.length} completed: ${filesGenerated} PDFs in ${Math.round(chunkDuration / 1000)}s | Total: ${totalGenerated}/${kits.length} (${totalProgress}%) | ETA: ${estimatedTimeRemaining}s`,
+        );
+
+        // No delay needed - browser pooling handles recovery
+      } catch (error) {
+        this.logger.error(`Error processing chunk ${chunkIndex + 1}:`, error);
+        results.push({
+          chunkIndex,
+          startIndex,
+          endIndex,
+          filesGenerated: 0,
+          error: error.message,
+        });
+      }
+    }
+
+    this.logger.log(
+      `Batch generation completed: ${totalGenerated}/${kits.length} PDFs generated`,
+    );
+
+    return {
+      totalGenerated,
+      outputDirectory: outputDir,
+      chunks: results,
+    };
+  }
+
+  // Legacy batch PDF generation (kept for backward compatibility)
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
     if (this.isShuttingDown) {
       throw new Error('PDF service is shutting down');
@@ -696,9 +842,15 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     const tempDir = path.join(os.tmpdir(), 'wg-packing-slips', sessionId);
 
     try {
-      // Create temp directory
+      // Create temp directory with better error handling
       await fs.promises.mkdir(tempDir, { recursive: true });
       this.logger.log(`Created temp directory: ${tempDir}`);
+
+      // Verify directory was created
+      const stats = await fs.promises.stat(tempDir);
+      if (!stats.isDirectory()) {
+        throw new Error(`Failed to create temp directory: ${tempDir}`);
+      }
 
       // Determine customer strategy based on customer code
       const customerStrategy = this.getCustomerStrategy(customerCode);
@@ -787,8 +939,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       const html = this.generatePdfHtml(htmlFragment, styles);
 
       await page.setContent(html, {
-        waitUntil: 'networkidle0',
-        timeout: 30000,
+        waitUntil: 'domcontentloaded', // Faster than networkidle0
+        timeout: 10000, // Reduced timeout
       });
 
       const pdf = await page.pdf({
@@ -841,11 +993,14 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   private async generateSinglePdfFile(
     kit: any,
-    tempDir: string,
+    outputDir: string,
     index: number,
     customerStrategy: string,
   ): Promise<string> {
     try {
+      // Ensure output directory exists
+      await fs.promises.mkdir(outputDir, { recursive: true });
+
       // Convert kit data to the expected format
       const packingSlipData = this.convertKitToPackingSlipData(kit);
 
@@ -855,11 +1010,13 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         customerStrategy,
       );
 
-      // Save to temp file with order type prefix
+      // Save to output file with RFRNC2 as prefix and order type
       const orderType = kit.metadata?.customFields?.fileType || 'unknown';
       const orderTypePrefix = orderType.toUpperCase();
-      const filename = `${String(index).padStart(3, '0')}-${orderTypePrefix}-${kit.id}.pdf`;
-      const filepath = path.join(tempDir, filename);
+      const rfrnc2 = kit.metadata?.ref2 || String(index).padStart(3, '0'); // Fallback to index if RFRNC2 not available
+      const filename = `${String(rfrnc2).padStart(3, '0')}-${orderTypePrefix}-${kit.id}.pdf`;
+      const filepath = path.join(outputDir, filename);
+
       await fs.promises.writeFile(filepath, pdfBuffer);
 
       return filepath;
@@ -906,17 +1063,6 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         (sum: number, item: any) => sum + item.quantity,
         0,
       ) || 0;
-
-    // Debug logging
-    this.logger.debug(
-      `[PDF-DEBUG] Processing PDF for company: "${data.order?.customer?.company}" with deliveryInfo:`,
-      data.deliveryInfo,
-    );
-    this.logger.debug(
-      'prepareTemplateData - shippingMethod:',
-      data.shippingMethod,
-    );
-    this.logger.debug('prepareTemplateData - orderType:', data.orderType);
 
     const templateData = {
       // Ship to information

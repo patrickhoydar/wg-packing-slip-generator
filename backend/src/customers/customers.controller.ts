@@ -72,14 +72,15 @@ export class CustomersController {
     };
   }
 
-  @Post(':customerCode/generate-pdfs')
-  async generateBatchPDFs(
+  @Post(':customerCode/generate-pdfs-chunked')
+  async generateBatchPDFsChunked(
     @Param('customerCode') customerCode: string,
-    @Body() body: { kits: any[] },
+    @Body() body: { kits: any[]; chunkSize?: number },
     @Res() res: Response,
   ) {
     try {
       const kits = body.kits || [];
+      const chunkSize = body.chunkSize || 100;
 
       if (!kits || kits.length === 0) {
         return res.status(HttpStatus.BAD_REQUEST).json({
@@ -88,26 +89,70 @@ export class CustomersController {
         });
       }
 
-      const pdfBuffer = await this.customersService.generateBatchPDFs(
+      const result = await this.customersService.generateBatchPDFsToDirectory(
         customerCode,
         kits,
+        chunkSize,
       );
 
-      // Determine order type from the first kit (all kits should be the same type)
-      const orderType = kits[0]?.metadata?.customFields?.fileType || 'unknown';
-      const orderTypePrefix = orderType.toUpperCase();
-
-      const filename = `${orderTypePrefix}-${customerCode}-packing-slips-${new Date().toISOString().split('T')[0]}.pdf`;
-
-      res.set({
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length.toString(),
+      // Return information about the generated PDFs instead of the files themselves
+      res.status(HttpStatus.OK).json({
+        success: true,
+        message: `Generated ${result.totalGenerated} of ${kits.length} PDFs`,
+        data: {
+          totalRequested: kits.length,
+          totalGenerated: result.totalGenerated,
+          outputDirectory: result.outputDirectory,
+          chunks: result.chunks,
+          instructions: 'PDFs have been saved to the local directory. Check the server logs for the exact path.',
+        },
       });
-
-      res.status(HttpStatus.OK).send(pdfBuffer);
     } catch (error) {
-      console.error('Error generating batch PDFs:', error);
+      console.error('Error generating chunked batch PDFs:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to generate PDFs',
+        error: error.message,
+      });
+    }
+  }
+
+  @Post(':customerCode/generate-pdfs')
+  async generateBatchPDFs(
+    @Param('customerCode') customerCode: string,
+    @Body() body: { kits: any[]; chunkSize?: number },
+    @Res() res: Response,
+  ) {
+    try {
+      const kits = body.kits || [];
+      const chunkSize = body.chunkSize || 100;
+
+      if (!kits || kits.length === 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'No kits provided for PDF generation',
+          error: 'kits array is empty or missing',
+        });
+      }
+
+      const result = await this.customersService.generateBatchPDFsToDirectory(
+        customerCode,
+        kits,
+        chunkSize,
+      );
+
+      // Return information about the generated PDFs instead of the files themselves
+      res.status(HttpStatus.OK).json({
+        success: true,
+        message: `Generated ${result.totalGenerated} of ${kits.length} PDFs`,
+        data: {
+          totalRequested: kits.length,
+          totalGenerated: result.totalGenerated,
+          outputDirectory: result.outputDirectory,
+          chunks: result.chunks,
+          instructions: 'PDFs have been saved to the local directory. Check the server logs for the exact path.',
+        },
+      });
+    } catch (error) {
+      console.error('Error generating chunked batch PDFs:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to generate PDFs',
         error: error.message,

@@ -5,6 +5,8 @@ import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-bap
 import { InquirEDStrategy } from './strategies/inquire-ed/inquire-ed.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import * as JSZip from 'jszip';
+import * as path from 'path';
+import * as os from 'os';
 
 @Injectable()
 export class CustomersService implements OnModuleInit {
@@ -59,8 +61,59 @@ export class CustomersService implements OnModuleInit {
     return await strategy.validateData(parsedData);
   }
 
+  // New chunked batch generation with local directory storage
+  async generateBatchPDFsToDirectory(
+    customerCode: string, 
+    kits: any[], 
+    chunkSize: number = 100
+  ): Promise<{
+    totalGenerated: number;
+    outputDirectory: string;
+    chunks: Array<{
+      chunkIndex: number;
+      startIndex: number;
+      endIndex: number;
+      filesGenerated: number;
+      error?: string;
+    }>;
+  }> {
+    console.log(`[BATCH] Starting NEW chunked batch PDF generation for ${kits.length} kits in chunks of ${chunkSize}`);
+
+    // Create a unique output directory
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('.')[0];
+    const sessionId = `${customerCode}-${timestamp}`;
+    
+    // Use a dedicated directory for packing slips in the current working directory
+    const outputDir = path.join(process.cwd(), 'generated-packing-slips', sessionId);
+
+    console.log(`[BATCH] PDFs will be saved to: ${outputDir}`);
+    console.log(`[BATCH] Expected output: ~${Math.ceil(kits.length / chunkSize)} chunks with up to ${chunkSize} PDFs each`);
+
+    const startTime = Date.now();
+
+    // Use the new chunked PDF service method
+    const result = await this.pdfService.generateBatchPDFsToDirectory(
+      customerCode,
+      kits,
+      outputDir,
+      chunkSize
+    );
+
+    const totalDuration = Math.round((Date.now() - startTime) / 1000);
+    const successRate = Math.round((result.totalGenerated / kits.length) * 100);
+
+    console.log(`[BATCH] Chunked generation completed in ${totalDuration}s: ${result.totalGenerated}/${kits.length} PDFs generated (${successRate}% success rate)`);
+    console.log(`[BATCH] PDFs saved to directory: ${result.outputDirectory}`);
+    
+    if (result.totalGenerated < kits.length) {
+      console.warn(`[BATCH] WARNING: ${kits.length - result.totalGenerated} PDFs failed to generate. Check logs for details.`);
+    }
+
+    return result;
+  }
+
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
-    console.log(`Starting batch PDF generation for ${kits.length} kits`);
+    console.log(`[OLD] Starting OLD batch PDF generation for ${kits.length} kits`);
 
     // Use the consolidated PDF service for batch generation
     const mergedPdfBuffer = await this.pdfService.generateBatchPDFs(

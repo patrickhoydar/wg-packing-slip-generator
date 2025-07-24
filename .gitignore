@@ -94,3 +94,4 @@ temp/
 *.env.production
 *.env.staging
 .gemini-clipboard
+generated-packing-slips/
