@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Res, HttpStatus, Query, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  HttpStatus,
+  Query,
+  Get,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { PdfService } from './pdf.service';
 
@@ -54,8 +62,8 @@ export class PdfController {
       res.set({
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        Pragma: 'no-cache',
+        Expires: '0',
       });
 
       res.status(HttpStatus.OK).send(html);

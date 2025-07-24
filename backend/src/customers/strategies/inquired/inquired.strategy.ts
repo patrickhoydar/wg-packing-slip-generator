@@ -8,7 +8,7 @@ import {
   CustomerKitItem,
 } from '../base/customer-strategy.interface';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
-import { InquirEDService } from './inquire-ed.service';
+import { InquirEDService } from './inquired.service';
 import {
   InquirEDRow,
   InquirEDPMRow,
@@ -26,11 +26,11 @@ import {
   GRADE_LEVEL_PATTERN,
   STICKER_PATTERN,
   DELIVERY_DATE_PATTERNS,
-} from './inquire-ed.types';
+} from './inquired.types';
 
 @Injectable()
 export class InquirEDStrategy extends CustomerStrategy {
-  customerCode = 'INQUIRE_ED';
+  customerCode = 'INQUIRED';
   displayName = 'InquirED';
 
   constructor(
@@ -177,9 +177,9 @@ export class InquirEDStrategy extends CustomerStrategy {
         secondary: '#64748b', // Gray
       },
       customStyling: {
-        headerStyle: 'inquire-ed-header',
+        headerStyle: 'inquired-header',
         footerText: 'InquirED Educational Materials',
-        logoUrl: '/assets/logos/inquire-ed.png',
+        logoUrl: '/assets/logos/inquired.png',
       },
     };
   }
@@ -827,13 +827,40 @@ export class InquirEDStrategy extends CustomerStrategy {
           gradeLevel: product.gradeLevel,
           needsSticker: product.needsSticker,
           productCategory: productInfo?.category,
+          originalIndex: index, // Track original order for sorting
         },
       };
 
       items.push(item);
     });
 
-    return items;
+    // Sort items: English first, then Spanish, maintaining original order within each group
+    const sortedItems = items.sort((a, b) => {
+      const categoryA = a.customProperties?.productCategory || '';
+      const categoryB = b.customProperties?.productCategory || '';
+
+      // Define sort order for categories
+      const getSortOrder = (category: string): number => {
+        if (category === 'Printed Materials (EN)') return 1; // English first
+        if (category === 'Printed Materials (SP)') return 2; // Spanish second
+        return 0; // Teacher Editions and others stay at top
+      };
+
+      const orderA = getSortOrder(categoryA);
+      const orderB = getSortOrder(categoryB);
+
+      // First sort by category order
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // Within same category, maintain original order
+      const originalIndexA = a.customProperties?.originalIndex || 0;
+      const originalIndexB = b.customProperties?.originalIndex || 0;
+      return originalIndexA - originalIndexB;
+    });
+
+    return sortedItems;
   }
 
   private buildProductDescription(

@@ -104,7 +104,8 @@ export class CustomersController {
           totalGenerated: result.totalGenerated,
           outputDirectory: result.outputDirectory,
           chunks: result.chunks,
-          instructions: 'PDFs have been saved to the local directory. Check the server logs for the exact path.',
+          instructions:
+            'PDFs have been saved to the local directory. Check the server logs for the exact path.',
         },
       });
     } catch (error) {
@@ -148,7 +149,8 @@ export class CustomersController {
           totalGenerated: result.totalGenerated,
           outputDirectory: result.outputDirectory,
           chunks: result.chunks,
-          instructions: 'PDFs have been saved to the local directory. Check the server logs for the exact path.',
+          instructions:
+            'PDFs have been saved to the local directory. Check the server logs for the exact path.',
         },
       });
     } catch (error) {

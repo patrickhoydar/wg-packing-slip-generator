@@ -241,7 +241,7 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 **Templates Created:**
 - `backend/views/templates/default.hbs` - Standard customer template
 - `backend/views/templates/georgia-baptist.hbs` - Georgia Baptist specific
-- `backend/views/templates/inquire-ed.hbs` - InquirED specific
+- `backend/views/templates/inquired.hbs` - InquirED specific
 - `backend/views/styles/base.css` - Base CSS styles
 
 **Architecture Benefits:**

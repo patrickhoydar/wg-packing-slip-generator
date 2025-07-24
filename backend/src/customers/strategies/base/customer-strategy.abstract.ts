@@ -108,7 +108,9 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
     }
 
     // Step 3: Generate kits
-    console.log(`[UPLOAD-DEBUG] About to call generateKits() with ${parsedData.rawData.length} rows`);
+    console.log(
+      `[UPLOAD-DEBUG] About to call generateKits() with ${parsedData.rawData.length} rows`,
+    );
     const kits = await this.generateKits(parsedData);
     console.log(`[UPLOAD-DEBUG] generateKits() returned ${kits.length} kits`);
 

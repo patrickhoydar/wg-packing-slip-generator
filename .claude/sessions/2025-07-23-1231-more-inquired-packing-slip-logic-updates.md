@@ -19,7 +19,7 @@
 
 **Changes Made:**
 1. **Row Processing Logic:** Updated `processRow()` method to set default shipDate
-   - Modified: `inquire-ed.strategy.ts:417-419`
+   - Modified: `inquired.strategy.ts:417-419`
    - Added fallback: `|| '8/7/2025'` when column is empty
 
 2. **Calculate Order Ship Dates:** Enhanced `calculateOrdershipDates()` function
@@ -38,8 +38,8 @@
 - Default date format matches existing validation patterns (MM/DD/YYYY)
 
 **Files Modified:**
-- `inquire-ed.strategy.ts` - Core logic implementation
-- `inquire-ed.strategy.spec.ts` - Test cases and column name fixes
+- `inquired.strategy.ts` - Core logic implementation
+- `inquired.strategy.spec.ts` - Test cases and column name fixes
 
 **Test Results:** ✅ All tests passing (19/19)
 **TypeScript Compilation:** ✅ No errors

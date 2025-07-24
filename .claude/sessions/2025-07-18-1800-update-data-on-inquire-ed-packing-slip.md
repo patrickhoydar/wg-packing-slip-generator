@@ -1,7 +1,7 @@
 # Session: Update Data on InquireEd Packing Slip
 
 **Start Time:** 2025-07-18 18:00
-**Session File:** `.claude/sessions/2025-07-18-1800-update-data-on-inquire-ed-packing-slip.md`
+**Session File:** `.claude/sessions/2025-07-18-1800-update-data-on-inquired-packing-slip.md`
 
 ## Session Overview
 
@@ -18,7 +18,7 @@ Starting a new development session focused on updating the data structure, data 
 
 ✅ **Phase 1: Analysis** - Analyzed current InquireEd template and data structure
 ✅ **Phase 2: PDF Service Updates** - Updated PDF service to pass order type to template
-✅ **Phase 3: Template Updates** - Updated inquire-ed.hbs template with conditional columns
+✅ **Phase 3: Template Updates** - Updated inquired.hbs template with conditional columns
 ✅ **Phase 4: Testing** - Build successful, changes ready for testing
 
 ## Key Changes Made
@@ -30,7 +30,7 @@ Starting a new development session focused on updating the data structure, data 
 - Integrated helper registration into the module initialization process
 
 ### 2. **Template Updates**
-- Updated `inquire-ed.hbs` template with conditional column headers based on order type
+- Updated `inquired.hbs` template with conditional column headers based on order type
 - **TE Orders**: Show SKU, Description, Sticker (Yes/No), and QTY columns
 - **PM Orders**: Show SKU, Description, and QTY columns (no sticker column)
 - Used handlebars `{{#if (eq orderType 'te')}}` conditional logic
@@ -49,7 +49,7 @@ Starting a new development session focused on updating the data structure, data 
   - Added `registerHandlebarsHelpers()` method
   - Updated `onModuleInit()` to register helpers
 
-- **backend/views/templates/inquire-ed.hbs**
+- **backend/views/templates/inquired.hbs**
   - Added conditional column headers for TE vs PM orders
   - Added conditional row data display
   - Integrated sticker information display for TE orders
@@ -106,11 +106,11 @@ Starting a new development session focused on updating the data structure, data 
 - `backend/src/customers/strategies/base/customer-strategy.abstract.ts` - Added job number support to base strategy
 - `backend/src/customers/strategies/base/customer-strategy.interface.ts` - Added jobNumber field to CustomerKit interface and processFile method
 - `backend/src/customers/strategies/hh-global/hh-global.strategy.ts` - Strategy updates
-- `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.ts` - Strategy updates
+- `backend/src/customers/strategies/inquired/inquired.strategy.ts` - Strategy updates
 - `backend/src/main.ts` - Main application updates
 - `backend/src/pdf/pdf.service.ts` - Added shipping logic, delivery requirements, preview support
 - `backend/views/styles/base.css` - Updated padding, margins, added delivery requirements styling
-- `backend/views/templates/inquire-ed.hbs` - Added delivery requirements section, address formatting
+- `backend/views/templates/inquired.hbs` - Added delivery requirements section, address formatting
 
 **Frontend Changes:**
 - `frontend/src/app/page.tsx` - Added preview functionality and kit selector
@@ -244,7 +244,7 @@ footerTemplate: '<div></div>', // Empty footer to create space
 - Added flexbox utilities for delivery requirements
 - Optimized section margins: `margin-bottom: 1.5rem` → `margin-bottom: 1rem`
 
-### Template Updates (inquire-ed.hbs):
+### Template Updates (inquired.hbs):
 - Added delivery requirements section with conditional logic
 - Updated address formatting for consolidated display
 - Enhanced shipping method display integration

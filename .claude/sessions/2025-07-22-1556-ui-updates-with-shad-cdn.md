@@ -234,15 +234,15 @@ Transform the amateur-looking UI into a professional, modern interface using sha
   - `README.md` - Customer strategy references
   - `backend/src/customers/customers.module.ts` - Import and provider updates
   - `backend/src/customers/customers.service.ts` - Service references and comments
-  - `backend/src/customers/strategies/inquire-ed/index.ts` - Export statements
-  - `backend/src/customers/strategies/inquire-ed/inquire-ed.service.ts` - Class names and references
-  - `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.spec.ts` - Test class names and assertions
-  - `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.ts` - Strategy class and display names (30 edits)
-  - `backend/src/customers/strategies/inquire-ed/inquire-ed.types.ts` - All interface names
+  - `backend/src/customers/strategies/inquired/index.ts` - Export statements
+  - `backend/src/customers/strategies/inquired/inquired.service.ts` - Class names and references
+  - `backend/src/customers/strategies/inquired/inquired.strategy.spec.ts` - Test class names and assertions
+  - `backend/src/customers/strategies/inquired/inquired.strategy.ts` - Strategy class and display names (30 edits)
+  - `backend/src/customers/strategies/inquired/inquired.types.ts` - All interface names
   - `backend/src/pdf/pdf.service.ts` - Template comments
-  - `docs/inquire-ed-customer-strategy.md` - Customer name and branding references
+  - `docs/inquired-customer-strategy.md` - Customer name and branding references
   - `frontend/src/components/PackingSlipLayout.tsx` - Comment update
-  - `test-inquire-ed.js` - Function names and file paths
+  - `test-inquired.js` - Function names and file paths
 
 **Recent Commits:** No new commits made (working directory changes only)  
 **Final Git Status:** 14 modified files ready for commit

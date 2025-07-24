@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
-import { InquirEDProductInfo } from './inquire-ed.types';
+import { InquirEDProductInfo } from './inquired.types';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -88,9 +88,7 @@ export class InquirEDService {
     );
   }
 
-  private mapCategoryToType(
-    category: string,
-  ): InquirEDProductInfo['category'] {
+  private mapCategoryToType(category: string): InquirEDProductInfo['category'] {
     const normalizedCategory = category.toLowerCase().trim();
 
     if (normalizedCategory.includes('english')) {
@@ -208,97 +206,97 @@ export class InquirEDService {
       // Printed Materials (SP)
       {
         sku: 'IND-IJ-PM-NAVIG-SP-0100',
-        description: 'Navigating School (Spanish)',
+        description: 'Desenvolverse en la Escuela',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-MYTEAM-SP-0200',
-        description: 'My Team and Self (Spanish)',
+        description: 'Mi Equipo y Yo',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-PASTF-SP-0300',
-        description: 'Past, Present, and Future (Spanish)',
+        description: 'Pasado, Presente, y Futuro',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-FAMLF-SP-0400',
-        description: 'Families Near and Far (Spanish)',
+        description: 'Familias de Todas Partes',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-LOCAT-SP-0500',
-        description: 'Our Special Location (Spanish)',
+        description: 'Nuestra Ubicacion Especial',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-CIVIC-SP-0600',
-        description: 'Civic Engagement (Spanish)',
+        description: 'Compromiso Civico',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-NEEDS-SP-0700',
-        description: 'Meeting Needs and Wants (Spanish)',
+        description: 'Satisfacer ecesidades y deseos',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-LAND-SP-0800',
-        description: 'Our Changing Landscape (Spanish)',
+        description: 'Nuestro paisaje cambiante',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-INNOV-SP-0900',
-        description: 'Innovation (Spanish)',
+        description: 'Innovacion',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-GLOBAL-SP-1000',
-        description: 'Global Connections (Spanish)',
+        description: 'Conexiones globales',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-MIGRA-SP-1100',
-        description: 'Migration and Movement (Spanish)',
+        description: 'Migracion y movimiento',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-CIVRT-SP-1200',
-        description: 'The 20th Century Civil Rights Movement (Spanish)',
+        description: 'Movimiento por los derechos civiles del siglo XX',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-NATRES-SP-1300',
-        description: 'Natural Resources of the US (Spanish)',
+        description: 'Recursos naturales de los EE. UU.',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-OURST-SP-1400',
-        description: 'Our State and Region (Spanish)',
+        description: 'Nuestro Estao y Region',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-ECON-SP-1500',
-        description: 'Economic Choices (Spanish)',
+        description: 'Decisiones economicas',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-NATAM-SP-1600',
-        description: 'Native America (Spanish)',
+        description: 'America Nativa',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-COLO-SP-1700',
-        description: 'The Colonial Era (Spanish)',
+        description: 'La epoca colonial',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-AMREV-SP-1800',
-        description: 'The American Revolution (Spanish)',
+        description: 'La revolucion estadounidense',
         category: 'Printed Materials (SP)',
       },
       {
         sku: 'IND-IJ-PM-RIGHTS-SP-1900',
-        description: 'Rights and Responsibilities (Spanish)',
+        description: 'Derechos y responsabilidades',
         category: 'Printed Materials (SP)',
       },
 

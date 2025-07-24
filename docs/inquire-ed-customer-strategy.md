@@ -4,7 +4,7 @@
 
 ### Customer Information
 - **Customer Name**: InquirED
-- **Customer Code**: INQUIRE_ED
+- **Customer Code**: INQUIRED
 - **Display Name**: InquirED
 - **Contact Information**: Educational materials publisher
 - **Implementation Priority**: High
@@ -166,10 +166,10 @@ District or School | Dock? | Paved Path? | Receiving Days | Receiving Hours | De
 ## 8. Implementation Checklist
 
 ### File Structure
-- [x] `backend/src/customers/strategies/inquire-ed/`
-- [ ] `inquire-ed.strategy.ts` - Main strategy implementation
-- [ ] `inquire-ed.types.ts` - TypeScript interfaces
-- [ ] `inquire-ed.service.ts` - SKU lookup service
+- [x] `backend/src/customers/strategies/inquired/`
+- [ ] `inquired.strategy.ts` - Main strategy implementation
+- [ ] `inquired.types.ts` - TypeScript interfaces
+- [ ] `inquired.service.ts` - SKU lookup service
 - [ ] `index.ts` - Export configuration
 
 ### Core Implementation

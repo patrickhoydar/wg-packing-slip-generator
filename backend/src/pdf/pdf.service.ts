@@ -93,8 +93,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       stylesPath: path.join(viewsDir, 'styles', 'base.css'),
     });
 
-    this.templateConfigs.set('inquire-ed', {
-      templatePath: path.join(viewsDir, 'templates', 'inquire-ed.hbs'),
+    this.templateConfigs.set('INQUIRED', {
+      templatePath: path.join(viewsDir, 'templates', 'inquired.hbs'),
       stylesPath: path.join(viewsDir, 'styles', 'base.css'),
     });
   }
@@ -1118,7 +1118,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     // Map customer codes to template strategies
     const customerStrategies: { [key: string]: string } = {
       GEORGIA_BAPTIST: 'georgia-baptist',
-      INQUIRE_ED: 'inquire-ed',
+      INQUIRED: 'INQUIRED',
       HH_GLOBAL: 'default',
       DEFAULT: 'default',
     };

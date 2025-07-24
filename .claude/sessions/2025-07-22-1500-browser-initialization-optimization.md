@@ -27,14 +27,14 @@ This session focused on optimizing browser initialization to fix hot reload hang
 
 **Customer Strategy System:**
 - `M` `backend/src/customers/strategies/base/customer-strategy.abstract.ts` - Added upload debug logging
-- `M` `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.ts` - **MAJOR**: Implemented earliest delivery date calculation
-- `M` `backend/src/customers/strategies/inquire-ed/inquire-ed.service.ts` - Strategy enhancements
-- `M` `backend/src/customers/strategies/inquire-ed/inquire-ed.types.ts` - Type improvements
+- `M` `backend/src/customers/strategies/inquired/inquired.strategy.ts` - **MAJOR**: Implemented earliest delivery date calculation
+- `M` `backend/src/customers/strategies/inquired/inquired.service.ts` - Strategy enhancements
+- `M` `backend/src/customers/strategies/inquired/inquired.types.ts` - Type improvements
 - `M` `backend/src/customers/strategies/georgia-baptist/georgia-baptist.types.ts` - Type consistency
 - `M` `backend/src/customers/strategies/hh-global/hh-global.types.ts` - Type consistency
 
 **Templates:**
-- `M` `backend/views/templates/inquire-ed.hbs` - Always show earliest delivery date section
+- `M` `backend/views/templates/inquired.hbs` - Always show earliest delivery date section
 
 **Frontend:**
 - `M` `frontend/src/components/PreviewPanel.tsx` - Server-side preview using backend Handlebars templates
@@ -229,7 +229,7 @@ private readonly isDevelopment = process.env.NODE_ENV !== 'production';
 - Frontend preview now requires backend to be running
 
 ### 3. Ship Date Feature
-- Logic in `inquire-ed.strategy.ts` `calculateOrdershipDates()`
+- Logic in `inquired.strategy.ts` `calculateOrdershipDates()`
 - Debug with `[EARLIEST-DELIVERY]` log prefix
 - Each CSV row = separate order (no grouping needed)
 

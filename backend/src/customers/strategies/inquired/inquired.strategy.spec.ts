@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InquirEDStrategy } from './inquire-ed.strategy';
-import { InquirEDService } from './inquire-ed.service';
+import { InquirEDStrategy } from './inquired.strategy';
+import { InquirEDService } from './inquired.service';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
 
 describe('InquirEDStrategy', () => {
@@ -23,7 +23,7 @@ describe('InquirEDStrategy', () => {
   });
 
   it('should have correct customer code and display name', () => {
-    expect(strategy.customerCode).toBe('INQUIRE_ED');
+    expect(strategy.customerCode).toBe('INQUIRED');
     expect(strategy.displayName).toBe('InquirED');
   });
 
@@ -223,7 +223,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
         metadata: {
           totalRows: 1,
           columns: ['District or School', 'Delivery Address'],
-          customerCode: 'INQUIRE_ED',
+          customerCode: 'INQUIRED',
           uploadedAt: new Date(),
           fileType: 'pm',
         },
@@ -262,7 +262,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
         metadata: {
           totalRows: 1,
           columns: ['District or School'],
-          customerCode: 'INQUIRE_ED',
+          customerCode: 'INQUIRED',
           uploadedAt: new Date(),
           fileType: 'pm',
         },
@@ -318,7 +318,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
         metadata: {
           totalRows: 1,
           columns: ['District or School'],
-          customerCode: 'INQUIRE_ED',
+          customerCode: 'INQUIRED',
           uploadedAt: new Date(),
           fileType: 'pm',
         },
@@ -327,7 +327,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
       const kits = await strategy.generateKits(mockData);
 
       expect(kits).toHaveLength(1);
-      expect(kits[0].customerCode).toBe('INQUIRE_ED');
+      expect(kits[0].customerCode).toBe('INQUIRED');
       expect(kits[0].recipient.company).toBe('Test School');
       expect(kits[0].recipient.name).toBe('John Doe');
       expect(kits[0].recipient.email).toBe('john@test.edu');
@@ -364,7 +364,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
         metadata: {
           totalRows: 1,
           columns: ['District or School'],
-          customerCode: 'INQUIRE_ED',
+          customerCode: 'INQUIRED',
           uploadedAt: new Date(),
           fileType: 'pm',
         },
@@ -380,7 +380,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
     it('should return InquirED branding', () => {
       const mockKit = {
         id: 'test-kit',
-        customerCode: 'INQUIRE_ED',
+        customerCode: 'INQUIRED',
         recipient: {
           name: 'Test',
           email: 'test@example.com',
@@ -405,7 +405,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
 
       expect(branding.companyName).toBe('InquirED');
       expect(branding.shouldOverrideCompany).toBe(true);
-      expect(branding.customStyling?.headerStyle).toBe('inquire-ed-header');
+      expect(branding.customStyling?.headerStyle).toBe('inquired-header');
       expect(branding.customStyling?.footerText).toBe(
         'InquirED Educational Materials',
       );
@@ -416,7 +416,7 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, K",9/1/2025,
     it('should return shipping rules with special instructions', () => {
       const mockKit = {
         id: 'test-kit',
-        customerCode: 'INQUIRE_ED',
+        customerCode: 'INQUIRED',
         recipient: {
           name: 'Test',
           email: 'test@example.com',

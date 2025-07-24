@@ -4,8 +4,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, RefreshCw, FileType, HardDrive, Columns } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  AlertCircle,
+  RefreshCw,
+  FileType,
+  HardDrive,
+  Columns,
+} from "lucide-react"
 
 interface CustomerSelectorProps {
   onCustomerSelect: (customer: CustomerStrategy | null) => void
@@ -42,20 +54,6 @@ export default function CustomerSelector({
     }
   }
 
-  const handleCustomerChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selectedCode = event.target.value
-
-    if (selectedCode === "") {
-      onCustomerSelect(null)
-      return
-    }
-
-    const customer = strategies.find((s) => s.customerCode === selectedCode)
-    onCustomerSelect(customer || null)
-  }
-
   if (loading) {
     return (
       <Card>
@@ -75,7 +73,9 @@ export default function CustomerSelector({
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-4 h-4 text-red-600" />
-            <span className="text-sm text-red-700">Error loading customers: {error}</span>
+            <span className="text-sm text-red-700">
+              Error loading customers: {error}
+            </span>
           </div>
           <Button
             onClick={fetchAvailableStrategies}
@@ -111,7 +111,10 @@ export default function CustomerSelector({
           </SelectTrigger>
           <SelectContent>
             {strategies.map((strategy) => (
-              <SelectItem key={strategy.customerCode} value={strategy.customerCode}>
+              <SelectItem
+                key={strategy.customerCode}
+                value={strategy.customerCode}
+              >
                 {strategy.displayName}
               </SelectItem>
             ))}
@@ -136,15 +139,18 @@ export default function CustomerSelector({
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <HardDrive className="w-4 h-4 text-muted-foreground" />
               <span>Max size:</span>
               <Badge variant="secondary" className="text-xs">
-                {Math.round(selectedCustomer.instructions.maxFileSize / (1024 * 1024))}MB
+                {Math.round(
+                  selectedCustomer.instructions.maxFileSize / (1024 * 1024)
+                )}
+                MB
               </Badge>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Columns className="w-4 h-4 text-muted-foreground" />
               <span>Required columns:</span>
@@ -153,9 +159,8 @@ export default function CustomerSelector({
               </Badge>
             </div>
 
-            {selectedCustomer.instructions.sampleData?.specialNotes &&
-            Array.isArray(
-              selectedCustomer.instructions.sampleData.specialNotes
+            {Array.isArray(
+              selectedCustomer.instructions.sampleData?.specialNotes
             ) && (
               <div className="pt-2 border-t border-border">
                 <p className="text-sm font-medium mb-2">Special Notes:</p>

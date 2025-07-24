@@ -42,7 +42,7 @@ Starting a new development session focused on PDF configuration refactoring and 
 - backend/views/templates/base.hbs - Base handlebars template (unused)
 - backend/views/templates/default.hbs - Default customer template
 - backend/views/templates/georgia-baptist.hbs - Georgia Baptist specific template
-- backend/views/templates/inquire-ed.hbs - InquireEd specific template
+- backend/views/templates/inquired.hbs - InquireEd specific template
 
 ## Architecture Improvements
 
@@ -133,7 +133,7 @@ The refactoring successfully eliminated DRY violations while maintaining all fun
 - `README.md` - Comprehensive project documentation
 - `backend/views/templates/default.hbs` - Default customer template
 - `backend/views/templates/georgia-baptist.hbs` - Georgia Baptist template
-- `backend/views/templates/inquire-ed.hbs` - InquireEd template
+- `backend/views/templates/inquired.hbs` - InquireEd template
 - `backend/views/templates/base.hbs` - Base template (unused)
 - `backend/views/styles/base.css` - Base CSS styles
 

@@ -1,4 +1,4 @@
-# InquireED Packing Slip Logic
+# InquirED Packing Slip Logic
 
 ### Shipping Services 
 ColB (Dock?) and ColC (Paved Path?) decision logic. These two columns impact the shipping services to be used for a shipment. 

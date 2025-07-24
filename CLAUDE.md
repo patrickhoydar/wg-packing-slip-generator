@@ -206,7 +206,7 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 - `multer@^1.4.5` - File upload handling
 - `pdf-lib@^1.17.1` - PDF manipulation and merging
 
-**Session File:** `.claude/sessions/2025-07-17-1245-add-inquireEd-customer.md`
+**Session File:** `.claude/sessions/2025-07-17-1245-add-inquirED-customer.md`
 
 ### Session 4: PDF Config Refactor and Handlebars Templating (2025-07-18 16:00-17:30)
 **Status:** ✅ COMPLETED
@@ -241,7 +241,7 @@ cd backend && npm run start:dev # Backend: http://localhost:3001
 **Templates Created:**
 - `backend/views/templates/default.hbs` - Standard customer template
 - `backend/views/templates/georgia-baptist.hbs` - Georgia Baptist specific
-- `backend/views/templates/inquire-ed.hbs` - InquirED specific
+- `backend/views/templates/inquired.hbs` - InquirED specific
 - `backend/views/styles/base.css` - Base CSS styles
 
 **Architecture Benefits:**

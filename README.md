@@ -109,7 +109,7 @@ wg-packing-slip-generator/
 
 ### PDF Generation
 - `POST /pdf/generate-packing-slip` - Generate single PDF
-  - Query: `?customerStrategy=default|georgia-baptist|inquire-ed`
+  - Query: `?customerStrategy=default|georgia-baptist|inquired`
   - Body: Packing slip data object
 
 ### Customer Management
@@ -140,7 +140,7 @@ wg-packing-slip-generator/
 Templates are located in `backend/views/templates/`:
 - `default.hbs` - Standard customer template
 - `georgia-baptist.hbs` - Georgia Baptist specific
-- `inquire-ed.hbs` - InquirED specific
+- `inquired.hbs` - InquirED specific
 
 ### Template Features
 - **Dynamic Content** - Customer-specific data binding

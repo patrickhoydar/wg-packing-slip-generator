@@ -22,7 +22,7 @@
 
 2. **Core Implementation**
    - Created common CSV parsing service (`backend/src/common/services/csv-parser.service.ts`)
-   - Implemented InquireEd strategy (`backend/src/customers/strategies/inquire-ed/`)
+   - Implemented InquireEd strategy (`backend/src/customers/strategies/inquired/`)
    - Added TypeScript interfaces and types
    - Created comprehensive test coverage
 
@@ -64,12 +64,12 @@
 
 ### Created
 - `docs/customer-strategy-template.md` - Reusable template for future customer implementations
-- `docs/inquire-ed-customer-strategy.md` - InquireEd-specific PRD
+- `docs/inquired-customer-strategy.md` - InquireEd-specific PRD
 - `backend/src/common/services/csv-parser.service.ts` - Common CSV parsing service
-- `backend/src/customers/strategies/inquire-ed/inquire-ed.types.ts` - TypeScript interfaces
-- `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.ts` - Main strategy implementation
-- `backend/src/customers/strategies/inquire-ed/inquire-ed.strategy.spec.ts` - Test coverage
-- `backend/src/customers/strategies/inquire-ed/index.ts` - Export configuration
+- `backend/src/customers/strategies/inquired/inquired.types.ts` - TypeScript interfaces
+- `backend/src/customers/strategies/inquired/inquired.strategy.ts` - Main strategy implementation
+- `backend/src/customers/strategies/inquired/inquired.strategy.spec.ts` - Test coverage
+- `backend/src/customers/strategies/inquired/index.ts` - Export configuration
 
 ### Modified
 - `.claude/sessions/2025-07-17-1245-add-inquireEd-customer.md` - Session documentation
