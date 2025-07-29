@@ -179,7 +179,7 @@ export class HHGlobalStrategy extends CustomerStrategy {
     return hasSeedGuides || hasOnePagers;
   }
 
-  async generateKits(data: ParsedCustomerData): Promise<CustomerKit[]> {
+  async generateKits(data: ParsedCustomerData, jobNumber?: string): Promise<CustomerKit[]> {
     const kits: CustomerKit[] = [];
     const timestamp = new Date();
 

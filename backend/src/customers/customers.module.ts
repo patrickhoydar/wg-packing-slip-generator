@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
@@ -9,6 +9,10 @@ import { InquirEDStrategy } from './strategies/inquired/inquired.strategy';
 import { InquirEDService } from './strategies/inquired/inquired.service';
 import { CsvParserService } from '../common/services/csv-parser.service';
 import { PdfModule } from '../pdf/pdf.module';
+import { PaceModule } from '../pace/pace.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { ShipmentsModule } from '../shipments/shipments.module';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
   imports: [
@@ -36,6 +40,10 @@ import { PdfModule } from '../pdf/pdf.module';
       },
     }),
     PdfModule,
+    PaceModule,
+    PrismaModule,
+    ShipmentsModule,
+    forwardRef(() => JobsModule),
   ],
   controllers: [CustomersController],
   providers: [

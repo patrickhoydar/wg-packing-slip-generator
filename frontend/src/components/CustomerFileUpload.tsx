@@ -86,14 +86,18 @@ export default function CustomerFileUpload({
     const targetFile = fileToUpload || file
     if (!targetFile || !customer) return
 
+    // Validate that job number is provided
+    if (!jobNumber.trim()) {
+      alert("Job number is required")
+      return
+    }
+
     setUploading(true)
 
     try {
       const formData = new FormData()
       formData.append("file", targetFile)
-      if (jobNumber.trim()) {
-        formData.append("jobNumber", jobNumber.trim())
-      }
+      formData.append("jobNumber", jobNumber.trim())
 
       const response = await fetch(
         `http://localhost:5001/customers/${customer.customerCode}/upload`,
@@ -150,13 +154,14 @@ export default function CustomerFileUpload({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="job-number">Job Number (Optional)</Label>
+        <Label htmlFor="job-number">Job Number *</Label>
         <Input
           id="job-number"
           type="text"
           value={jobNumber}
           onChange={(e) => setJobNumber(e.target.value)}
           placeholder="Enter job number..."
+          required
         />
       </div>
 

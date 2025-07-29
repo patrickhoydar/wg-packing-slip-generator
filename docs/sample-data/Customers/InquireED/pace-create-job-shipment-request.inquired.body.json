@@ -1,0 +1,19 @@
+{
+  "job": "206929",
+  "shipmentType": 18,
+  "shipVia": 1,
+  "quantity": 1,
+  "contactFirstName": "recipient.name",
+  "contactLastName": "recipient.company",
+  "address1": "Vedo Outsourcing",
+  "address2": "2201 Fenkell Ave",
+  "zip": "20546-0002",
+  "city": "PEARLAND",
+  "country": 1,
+  "stateKey": "1:TX",
+  "dateTime": "2025-07-21T13:51:17",
+  "carton1Count": 1,
+  "count1": 1,
+  "carton1Quantity": 1,
+  "u_internalShipNotes": "metadata.customFields.deliveryInfo.deliveryNotes"
+}

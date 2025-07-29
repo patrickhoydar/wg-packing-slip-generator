@@ -1,128 +1,137 @@
 export interface CustomerStrategy {
-  customerCode: string;
-  displayName: string;
+  customerCode: string
+  displayName: string
   instructions: {
-    acceptedFormats: string[];
-    maxFileSize: number;
-    requiredColumns: string[];
-    sampleData?: Record<string, unknown>;
-  };
-  parser: CustomerDataParser;
-  templateConfig: TemplateConfiguration;
+    acceptedFormats: string[]
+    maxFileSize: number
+    requiredColumns: string[]
+    sampleData?: Record<string, unknown>
+  }
+  parser: CustomerDataParser
+  templateConfig: TemplateConfiguration
 }
 
 export interface CustomerDataParser {
-  fileTypes: string[];
-  delimiter: string;
-  encoding: string;
-  hasHeader: boolean;
-  parseRow: (row: string[], headers: string[]) => CustomerKit;
-  validateFile: (data: string[][]) => ValidationResult;
-  detectFileType: (headers: string[]) => 'ups' | 'pobox' | 'unknown';
+  fileTypes: string[]
+  delimiter: string
+  encoding: string
+  hasHeader: boolean
+  parseRow: (row: string[], headers: string[]) => CustomerKit
+  validateFile: (data: string[][]) => ValidationResult
+  detectFileType: (headers: string[]) => "ups" | "pobox" | "unknown"
 }
 
 export interface TemplateConfiguration {
-  requiredFields: string[];
-  optionalFields: string[];
-  fieldMappings: Record<string, string>;
-  defaultValues: Record<string, unknown>;
-  customRules: CustomRule[];
+  requiredFields: string[]
+  optionalFields: string[]
+  fieldMappings: Record<string, string>
+  defaultValues: Record<string, unknown>
+  customRules: CustomRule[]
 }
 
 export interface CustomRule {
-  field: string;
-  condition: (value: unknown) => boolean;
-  action: (value: unknown) => unknown;
-  description: string;
+  field: string
+  condition: (value: unknown) => boolean
+  action: (value: unknown) => unknown
+  description: string
 }
 
 export interface UploadResult {
-  success: boolean;
-  message: string;
+  success: boolean
+  message: string
   data?: {
-    kitsGenerated: number;
-    validation: ValidationResult;
-    metadata: Record<string, unknown>;
-    kits: CustomerKit[];
-  };
+    kitsGenerated: number
+    validation: ValidationResult
+    metadata: Record<string, unknown>
+    kits: CustomerKit[]
+  }
 }
 
 export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  validRows: number;
-  totalRows: number;
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+  validRows: number
+  totalRows: number
 }
 
 export interface CustomerKit {
-  id: string;
-  customerCode: string;
+  id: string
+  jobNumber: string
+  customerCode: string
   recipient: {
-    name: string;
-    company: string;
+    name: string
+    company: string
     address: {
-      street: string;
-      street2?: string;
-      city: string;
-      state: string;
-      zipCode: string;
-      country?: string;
-    };
-  };
+      street: string
+      street2?: string
+      city: string
+      state: string
+      zipCode: string
+      country?: string
+    }
+  }
   sender: {
-    company: string;
+    company: string
     address: {
-      street: string;
-      city: string;
-      state: string;
-      zipCode: string;
-    };
-  };
+      street: string
+      city: string
+      state: string
+      zipCode: string
+    }
+  }
   billing?: {
-    company: string;
+    company: string
     address: {
-      street: string;
-      city: string;
-      state: string;
-      zipCode: string;
-    };
-  };
-  items: CustomerKitItem[];
+      street: string
+      city: string
+      state: string
+      zipCode: string
+    }
+  }
+  items: CustomerKitItem[]
   shipping: {
-    service: string;
-    weight?: number;
-    packageCount?: number;
-    isResidential: boolean;
-    account?: string;
-  };
+    service: string
+    weight?: number
+    packageCount?: number
+    isResidential: boolean
+    account?: string
+  }
   metadata: {
-    originalRowIndex: number;
-    customFields: Record<string, unknown>;
-    orderReference: string;
-    sequenceNumber: string;
-    specialInstructions?: string[];
-  };
+    originalRowIndex: number
+    customFields: Record<string, unknown>
+    orderReference: string
+    sequenceNumber: string
+    specialInstructions?: string[]
+  }
 }
 
 export interface CustomerKitItem {
-  id: string;
-  sku: string;
-  name: string;
-  description: string;
-  quantity: number;
-  category: 'posters-eng' | 'posters-spa' | 'inserts' | 'guides-eng' | 'guides-spa' | 'envelopes' | 'cards' | 'other';
-  customProperties?: Record<string, unknown>;
+  id: string
+  sku: string
+  name: string
+  description: string
+  quantity: number
+  category:
+    | "posters-eng"
+    | "posters-spa"
+    | "inserts"
+    | "guides-eng"
+    | "guides-spa"
+    | "envelopes"
+    | "cards"
+    | "other"
+  customProperties?: Record<string, unknown>
 }
 
-export type CustomerType = 'georgia-baptist' | 'just-right-reader';
+export type CustomerType = "georgia-baptist" | "just-right-reader"
 
 export interface Customer {
-  id: string;
-  name: string;
-  type: CustomerType;
-  strategy: CustomerStrategy;
-  active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  name: string
+  type: CustomerType
+  strategy: CustomerStrategy
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
 }

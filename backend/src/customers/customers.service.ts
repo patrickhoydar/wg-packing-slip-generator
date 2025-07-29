@@ -1,9 +1,15 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject, forwardRef } from '@nestjs/common';
 import { CustomerStrategyFactory } from './strategies/base/customer-strategy.factory';
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquirEDStrategy } from './strategies/inquired/inquired.strategy';
 import { PdfService } from '../pdf/pdf.service';
+import { PaceService } from '../pace/pace.service';
+import { CreateJobShipmentResponse } from '../pace/interfaces/pace.interface';
+import { PrismaService } from '../prisma/prisma.service';
+import { ShipmentsService } from '../shipments/shipments.service';
+import { JobsService } from '../jobs/jobs.service';
+import { Job, Customer, Shipment } from '@prisma/client';
 import * as JSZip from 'jszip';
 import * as path from 'path';
 import * as os from 'os';
@@ -16,6 +22,11 @@ export class CustomersService implements OnModuleInit {
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
     private readonly inquirEDStrategy: InquirEDStrategy,
     private readonly pdfService: PdfService,
+    private readonly paceService: PaceService,
+    private readonly prisma: PrismaService,
+    private readonly shipmentsService: ShipmentsService,
+    @Inject(forwardRef(() => JobsService))
+    private readonly jobsService: JobsService,
   ) {}
 
   onModuleInit() {
@@ -30,6 +41,28 @@ export class CustomersService implements OnModuleInit {
 
   async getAvailableStrategies() {
     return this.strategyFactory.getAllStrategies();
+  }
+
+  async getAllCustomers() {
+    return this.prisma.customer.findMany({
+      select: {
+        id: true,
+        customerCode: true,
+        displayName: true,
+        defaultShipVia: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async getCustomerByCode(customerCode: string) {
+    return this.prisma.customer.findUnique({
+      where: {
+        customerCode: customerCode.toUpperCase(),
+      },
+    });
   }
 
   async getUploadInstructions(customerCode: string) {
@@ -48,7 +81,40 @@ export class CustomersService implements OnModuleInit {
     jobNumber?: string,
   ) {
     const strategy = this.strategyFactory.getStrategy(customerCode);
-    return await strategy.processFile(fileBuffer, filename, jobNumber);
+    const result = await strategy.processFile(fileBuffer, filename, jobNumber);
+
+    // If jobNumber is provided, check for existing job and merge ERP shipment IDs
+    if (jobNumber && result.kits.length > 0) {
+      console.log(`[ERP-MERGE] Checking for existing job: ${jobNumber}`);
+
+      // Get customer by customer code
+      const customer = await this.getCustomerByCode(customerCode);
+      if (customer) {
+        // Check if job already exists
+        const existingJob = await this.jobsService.findByJobNumber(
+          customer.id,
+          jobNumber,
+        );
+
+        if (existingJob && (existingJob as any).shipments) {
+          const shipments = (existingJob as any).shipments;
+          console.log(
+            `[ERP-MERGE] Found existing job with ${shipments.length} shipments`,
+          );
+
+          // Merge ERP shipment IDs into kits
+          result.kits = this.mergeErpShipmentIds(result.kits, shipments);
+        } else {
+          console.log(
+            `[ERP-MERGE] No existing job found for job number: ${jobNumber}`,
+          );
+        }
+      } else {
+        console.log(`[ERP-MERGE] Customer not found for code: ${customerCode}`);
+      }
+    }
+
+    return result;
   }
 
   async validateFile(
@@ -195,20 +261,35 @@ export class CustomersService implements OnModuleInit {
   async generatePreviewData(customerCode: string, kit: any) {
     const strategy = this.strategyFactory.getStrategy(customerCode);
 
+    // Debug logging to see what's in the kit
+    console.log('[PREVIEW-DEBUG] Kit data received:', {
+      id: kit.id,
+      jobNumber: kit.jobNumber,
+      shipmentId: kit.shipmentId,
+      erpShipmentId: kit.erpShipmentId,
+      hasMetadata: !!kit.metadata,
+      hasRecipient: !!kit.recipient,
+    });
+
+    // For preview purposes, generate fallback values if not present
+    const jobNumber = kit.jobNumber || 'PREVIEW-JOB';
+    const shipmentId = kit.shipmentId || `${jobNumber}-0001`;
+
     // Apply customer-specific template customization and shipping rules
     const branding = strategy.customizeTemplate(kit);
     const shippingRules = strategy.getShippingRules(kit);
 
     // Convert to the same format used by PDF service
     const deliveryInfo = kit.metadata?.customFields?.deliveryInfo;
-    const shippingMethod = this.calculateShippingMethod(deliveryInfo);
+    const shippingMethod = shippingRules.method; // Use shipping method from strategy instead of old logic
 
-    return {
+    const previewData = {
       order: {
         customer: {
           name: kit.recipient.name,
           company: kit.recipient.company,
           email: kit.recipient.email,
+          phone: kit.recipient.phone,
           shippingAddress: {
             street: kit.recipient.address.street,
             city: kit.recipient.address.city,
@@ -219,7 +300,26 @@ export class CustomersService implements OnModuleInit {
         },
         items: kit.items,
       },
-      jobNumber: kit.jobNumber || '',
+      jobNumber: jobNumber,
+      shipmentInfo: {
+        shipmentId: shipmentId,
+        erpShipmentId: kit.erpShipmentId || shipmentId, // Use erpShipmentId if available, fallback to shipmentId
+        erpSystem: kit.erpSystem || '',
+      },
+      shipTo: {
+        name: kit.recipient.name,
+        company: kit.recipient.company,
+        email: kit.recipient.email,
+        phone: kit.recipient.phone,
+        address: {
+          street: kit.recipient.address.street,
+          city: kit.recipient.address.city,
+          state: kit.recipient.address.state,
+          zipCode: kit.recipient.address.zipCode,
+          country: kit.recipient.address.country || 'US',
+        },
+      },
+      items: kit.items,
       specialInstructions: kit.metadata?.specialInstructions || '',
       generatedDate: new Date().toISOString(),
       orderType: kit.metadata?.customFields?.fileType || 'pm',
@@ -234,22 +334,24 @@ export class CustomersService implements OnModuleInit {
             0,
           ) || 0,
       },
+      // CRITICAL: Pass through the entire kit object so template has access to metadata
+      metadata: kit.metadata || null,
     };
-  }
 
-  private calculateShippingMethod(deliveryInfo: any): string {
-    if (!deliveryInfo) {
-      return 'Standard Ground';
-    }
+    // Debug logging to see what we're returning
+    console.log('[PREVIEW-DEBUG] Preview data structure:', {
+      hasJobInfo: !!previewData.jobNumber,
+      shipmentInfo: previewData.shipmentInfo,
+      jobNumber: previewData.jobNumber,
+      hasShipmentInfo: !!previewData.shipmentInfo,
+      shipmentId: previewData.shipmentInfo?.shipmentId,
+      hasShipTo: !!previewData.shipTo,
+      hasItems: !!previewData.items && previewData.items.length > 0,
+      fallbackJobNumber: jobNumber,
+      fallbackShipmentId: shipmentId,
+    });
 
-    // InquirED shipping logic based on Dock and Paved Path columns
-    if (deliveryInfo.hasDock) {
-      return 'Standard LTL Shipment';
-    } else if (deliveryInfo.hasPavedPath) {
-      return 'LTL Shipment with lift gate & inside delivery';
-    } else {
-      return 'LTL Shipment with white glove service';
-    }
+    return previewData;
   }
 
   private convertKitToPackingSlip(kit: any, branding: any, shippingRules: any) {
@@ -284,7 +386,7 @@ export class CustomersService implements OnModuleInit {
           name: kit.recipient.name,
           company: kit.recipient.company,
           email: kit.recipient.email,
-          phone: '',
+          phone: kit.recipient.phone,
           billingAddress: kit.billing?.address || kit.recipient.address,
           shippingAddress: kit.recipient.address,
         },
@@ -303,5 +405,181 @@ export class CustomersService implements OnModuleInit {
         total: 0,
       },
     };
+  }
+
+  /**
+   * Create PACE shipment for InquirED kit
+   */
+  async createPaceShipmentForKit(
+    customerCode: string,
+    kit: any,
+    jobNumber: string,
+  ): Promise<CreateJobShipmentResponse> {
+    if (customerCode.toUpperCase() !== 'INQUIRED') {
+      return {
+        success: false,
+        message:
+          'PACE integration is currently only supported for InquirED customers',
+        errors: ['Unsupported customer code for PACE integration'],
+      };
+    }
+
+    try {
+      // Use the InquirED strategy to transform kit data to PACE format
+      const pacePayload = this.inquirEDStrategy.transformKitToPaceShipment(
+        kit,
+        jobNumber,
+      );
+
+      const result = await this.paceService.createJobShipment(pacePayload);
+
+      // Find the database shipment record that corresponds to this kit
+      const shipment = await this.prisma.shipment.findFirst({
+        where: {
+          kitData: {
+            path: ['id'],
+            equals: kit.id,
+          },
+        },
+      });
+
+      if (shipment && result.success && result.shipmentId) {
+        // Update the shipment record with PACE ERP info
+        await this.shipmentsService.updateErpInfo(
+          shipment.id,
+          result.shipmentId.toString(),
+          'PACE',
+          result.response,
+        );
+      }
+
+      // Update the job contact
+      const jobContact = await this.paceService.updateJobContact(
+        result.response,
+        kit,
+      );
+
+      return { ...result, jobContact };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Failed to create PACE shipment: ${error.message}`,
+        errors: [error.message],
+      };
+    }
+  }
+
+  /**
+   * Create PACE shipments for multiple InquirED kits
+   */
+  async createPaceShipmentsForKits(
+    customerCode: string,
+    kits: any[],
+    jobNumber: string,
+  ): Promise<{
+    results: Array<{ kitId: string; result: CreateJobShipmentResponse }>;
+    summary: { total: number; successful: number; failed: number };
+  }> {
+    const results: Array<{ kitId: string; result: CreateJobShipmentResponse }> =
+      [];
+    let successful = 0;
+    let failed = 0;
+
+    for (let i = 0; i < kits.length; i++) {
+      const kit = kits[i];
+      const jobNumberId = `${jobNumber}`;
+
+      try {
+        const result = await this.createPaceShipmentForKit(
+          customerCode,
+          kit,
+          jobNumberId,
+        );
+        results.push({ kitId: kit.id, result });
+
+        if (result.success) {
+          successful++;
+        } else {
+          failed++;
+        }
+      } catch (error: any) {
+        results.push({
+          kitId: kit.id,
+          result: {
+            success: false,
+            message: `Error processing kit: ${error.message}`,
+            errors: [error.message],
+          },
+        });
+        failed++;
+      }
+    }
+
+    return {
+      results,
+      summary: {
+        total: kits.length,
+        successful,
+        failed,
+      },
+    };
+  }
+
+  async createMergedPdfFromDirectory(directoryPath: string): Promise<Buffer> {
+    return await this.pdfService.createMergedPdfFromDirectory(directoryPath);
+  }
+
+  /**
+   * Merge ERP shipment IDs from existing shipments into new kits
+   * Matches based on shipmentId from kit and kitData stored in shipment
+   */
+  private mergeErpShipmentIds(kits: any[], shipments: any[]): any[] {
+    console.log(
+      `[ERP-MERGE] Attempting to merge ${shipments.length} shipments with ${kits.length} kits`,
+    );
+
+    const updatedKits = kits.map((kit) => {
+      // Find matching shipment by checking if the kit's shipmentId matches the one stored in shipment's kitData
+      const matchingShipment = shipments.find((shipment) => {
+        try {
+          const kitData = shipment.kitData as any;
+
+          if (kitData?.shipmentId === kit.shipmentId) {
+            return true;
+          }
+          // Fallback: match by kit ID
+          if (kitData?.id === kit.id) {
+            console.log(`[ERP-MERGE] ✅ Matched by kit ID: ${kit.id}`);
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.warn(
+            `[ERP-MERGE] Error parsing kitData for shipment ${shipment.id}:`,
+            error,
+          );
+          return false;
+        }
+      });
+
+      if (matchingShipment && matchingShipment.erpShipmentId) {
+        console.log(
+          `[ERP-MERGE] Matched kit ${kit.id} with ERP shipment ID: ${matchingShipment.erpShipmentId}`,
+        );
+        return {
+          ...kit,
+          erpShipmentId: matchingShipment.erpShipmentId,
+        };
+      }
+
+      return kit;
+    });
+
+    const mergedCount = updatedKits.filter((kit) => kit.erpShipmentId).length;
+    console.log(
+      `[ERP-MERGE] Successfully merged ${mergedCount}/${kits.length} kits with ERP shipment IDs`,
+    );
+
+    return updatedKits;
   }
 }

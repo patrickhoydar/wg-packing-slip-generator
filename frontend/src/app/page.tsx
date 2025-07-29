@@ -10,8 +10,14 @@ import { dummyPackingSlip } from "../data/dummyData"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Download, Loader2 } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Download, Loader2, Plus } from "lucide-react"
 import {
   CustomerStrategy,
   UploadResult,
@@ -27,12 +33,17 @@ export default function Home() {
     "elements"
   )
   const [isGeneratingBatchPdf, setIsGeneratingBatchPdf] = useState(false)
+  const [isCreatingJob, setIsCreatingJob] = useState(false)
+  const [jobCreated, setJobCreated] = useState(false)
+  const [jobNumber, setJobNumber] = useState<string>("")
   const [previewData, setPreviewData] = useState(dummyPackingSlip)
 
   const handleCustomerSelect = (customer: CustomerStrategy | null) => {
     setSelectedCustomer(customer)
     setUploadResult(null)
     setGeneratedKits([])
+    setJobCreated(false)
+    setJobNumber("")
     // Reset preview to dummy data when changing customers
     setPreviewData(dummyPackingSlip)
     if (customer) {
@@ -46,7 +57,12 @@ export default function Home() {
 
   const handleKitsGenerated = async (kits: CustomerKit[]) => {
     setGeneratedKits(kits)
-    
+
+    // Extract job number from the first kit if available
+    if (kits.length > 0 && kits[0].jobNumber) {
+      setJobNumber(kits[0].jobNumber)
+    }
+
     // Generate preview data for the first kit
     if (kits.length > 0 && selectedCustomer) {
       try {
@@ -60,7 +76,7 @@ export default function Home() {
             body: JSON.stringify({ kit: kits[0] }),
           }
         )
-        
+
         if (response.ok) {
           const result = await response.json()
           if (result.success) {
@@ -79,6 +95,7 @@ export default function Home() {
 
     setIsGeneratingBatchPdf(true)
 
+    console.log(selectedCustomer.customerCode)
     try {
       const response = await fetch(
         `http://localhost:5001/customers/${selectedCustomer.customerCode}/generate-pdfs`,
@@ -112,6 +129,75 @@ export default function Home() {
     }
   }
 
+  const createJob = async () => {
+    if (
+      !selectedCustomer ||
+      !jobNumber ||
+      generatedKits.length === 0 ||
+      isCreatingJob
+    ) {
+      return
+    }
+
+    setIsCreatingJob(true)
+
+    try {
+      // We need to get the customer ID first
+      const customerResponse = await fetch(`http://localhost:5001/customers`)
+
+      if (!customerResponse.ok) {
+        throw new Error("Failed to fetch customers")
+      }
+
+      const customers = await customerResponse.json()
+      const customer = customers.find(
+        (c: any) => c.customerCode === selectedCustomer.customerCode
+      )
+
+      if (!customer) {
+        throw new Error("Customer not found")
+      }
+
+      // Now create the job
+      const response = await fetch("http://localhost:5001/jobs/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobNumber: jobNumber,
+          customerId: customer.id,
+          customerCode: selectedCustomer.customerCode,
+          kits: generatedKits,
+          uploadedFileName: `${selectedCustomer.customerCode}-${jobNumber}-${new Date().toISOString().split("T")[0]}.csv`,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to create job")
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        setJobCreated(true)
+        alert(
+          `Job ${jobNumber} created successfully with ${result.data.shipmentsCreated} shipments!`
+        )
+      } else {
+        throw new Error(result.message || "Job creation failed")
+      }
+    } catch (error) {
+      console.error("Error creating job:", error)
+      alert(
+        `Failed to create job: ${error instanceof Error ? error.message : "Unknown error"}`
+      )
+    } finally {
+      setIsCreatingJob(false)
+    }
+  }
+
   const renderSidebarContent = () => {
     if (activeTab === "customers") {
       return (
@@ -136,7 +222,9 @@ export default function Home() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     Preview Kit
-                    <Badge variant="secondary">{generatedKits.length} available</Badge>
+                    <Badge variant="secondary">
+                      {generatedKits.length} available
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -156,7 +244,7 @@ export default function Home() {
                               body: JSON.stringify({ kit }),
                             }
                           )
-                          
+
                           if (response.ok) {
                             const result = await response.json()
                             if (result.success) {
@@ -176,7 +264,8 @@ export default function Home() {
                     <SelectContent>
                       {generatedKits.map((kit, index) => (
                         <SelectItem key={kit.id} value={index.toString()}>
-                          {index + 1}. {kit.recipient.company || kit.recipient.name}
+                          {index + 1}.{" "}
+                          {kit.recipient.company || kit.recipient.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -218,6 +307,53 @@ export default function Home() {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Create Job Section */}
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-blue-800 flex items-center gap-2">
+                    Create Job
+                    {jobCreated && (
+                      <Badge
+                        variant="outline"
+                        className="text-green-700 bg-green-50"
+                      >
+                        Created
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <p className="text-sm text-blue-700">
+                    {jobNumber
+                      ? `Create job "${jobNumber}" with ${generatedKits.length} shipments`
+                      : "Job number not specified"}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={createJob}
+                    disabled={isCreatingJob || jobCreated || !jobNumber}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {isCreatingJob ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Job...
+                      </>
+                    ) : jobCreated ? (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Job Created Successfully
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Job
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>
@@ -236,9 +372,9 @@ export default function Home() {
         {renderSidebarContent()}
       </Sidebar>
 
-      <PreviewPanel 
-        packingSlip={previewData} 
-        customerCode={selectedCustomer?.customerCode || 'default'}
+      <PreviewPanel
+        packingSlip={previewData}
+        customerCode={selectedCustomer?.customerCode || "default"}
         useServerRendering={true}
       />
     </div>

@@ -23,11 +23,13 @@ export default function PreviewPanel({
   // Fetch HTML preview from backend when data changes
   useEffect(() => {
     const fetchHtmlPreview = async () => {
-      if (!useServerRendering) return;
+      if (!useServerRendering) return
 
-      setIsLoadingPreview(true);
+      console.log(packingSlip)
+
+      setIsLoadingPreview(true)
       try {
-        console.log(customerCode);
+        console.log(customerCode)
         const response = await fetch(
           `http://localhost:5001/pdf/preview-packing-slip?customerCode=${customerCode}`,
           {
@@ -37,29 +39,29 @@ export default function PreviewPanel({
             },
             body: JSON.stringify(packingSlip),
           }
-        );
+        )
 
         if (response.ok) {
-          const html = await response.text();
-          setHtmlPreview(html);
+          const html = await response.text()
+          setHtmlPreview(html)
         } else {
-          console.error("Failed to fetch HTML preview");
+          console.error("Failed to fetch HTML preview")
           // Fallback to client-side rendering
-          setHtmlPreview("");
+          setHtmlPreview("")
         }
       } catch (error) {
-        console.error("Error fetching HTML preview:", error);
+        console.error("Error fetching HTML preview:", error)
         // Fallback to client-side rendering
-        setHtmlPreview("");
+        setHtmlPreview("")
       } finally {
-        setIsLoadingPreview(false);
+        setIsLoadingPreview(false)
       }
-    };
+    }
 
     if (useServerRendering && packingSlip) {
-      fetchHtmlPreview();
+      fetchHtmlPreview()
     }
-  }, [packingSlip, customerCode, useServerRendering]);
+  }, [packingSlip, customerCode, useServerRendering])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -117,15 +119,17 @@ export default function PreviewPanel({
           <h3 className="text-lg font-semibold text-foreground">Preview</h3>
           <div className="flex items-center gap-2">
             <div className="flex items-center">
-              <Badge variant="outline" className="text-xs">50%</Badge>
-              <Badge variant="outline" className="text-xs mx-1">75%</Badge>
-              <Badge variant="default" className="text-xs">100%</Badge>
+              <Badge variant="outline" className="text-xs">
+                50%
+              </Badge>
+              <Badge variant="outline" className="text-xs mx-1">
+                75%
+              </Badge>
+              <Badge variant="default" className="text-xs">
+                100%
+              </Badge>
             </div>
-            <Button
-              onClick={() => window.print()}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={() => window.print()} variant="outline" size="sm">
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>

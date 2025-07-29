@@ -7,6 +7,10 @@ import * as path from 'path';
 import * as os from 'os';
 import { ConcurrencyService } from '../common/services/concurrency.service';
 import { PdfMergerService } from './pdf-merger.service';
+import { CustomerStrategyFactory } from '../customers/strategies/base/customer-strategy.factory';
+import { HHGlobalStrategy } from '../customers/strategies/hh-global/hh-global.strategy';
+import { GeorgiaBaptistStrategy } from '../customers/strategies/georgia-baptist/georgia-baptist.strategy';
+import { InquirEDStrategy } from '../customers/strategies/inquired/inquired.strategy';
 
 interface TemplateConfig {
   templatePath: string;
@@ -52,9 +56,27 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly concurrencyService: ConcurrencyService,
     private readonly pdfMergerService: PdfMergerService,
+    private readonly customerStrategyFactory: CustomerStrategyFactory,
+    private readonly hhGlobalStrategy: HHGlobalStrategy,
+    private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
+    private readonly inquirEDStrategy: InquirEDStrategy,
   ) {}
 
   async onModuleInit() {
+    // Register all available strategies
+    this.customerStrategyFactory.registerStrategy(
+      'HH_GLOBAL',
+      this.hhGlobalStrategy,
+    );
+    this.customerStrategyFactory.registerStrategy(
+      'GEORGIA_BAPTIST',
+      this.georgiaBaptistStrategy,
+    );
+    this.customerStrategyFactory.registerStrategy(
+      'INQUIRED',
+      this.inquirEDStrategy,
+    );
+
     this.setupTemplateConfigs();
     this.registerHandlebarsHelpers();
     await this.precompileTemplates();
@@ -81,7 +103,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   }
 
   private setupTemplateConfigs(): void {
-    const viewsDir = path.join(__dirname, '..', 'views');
+    const viewsDir = path.join(__dirname, '..', '..', 'views');
 
     this.templateConfigs.set('default', {
       templatePath: path.join(viewsDir, 'templates', 'default.hbs'),
@@ -1041,6 +1063,14 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     // Prepare template data
     const templateData = this.prepareTemplateData(data);
 
+    // DEBUG: Log the template data to see what we're passing to the template
+    console.log('[PDF-TEMPLATE-DEBUG] Template data structure:', {
+      hasJobInfo: !!templateData.jobInfo,
+      jobNumber: templateData.jobInfo?.jobNumber,
+      hasShipmentInfo: !!templateData.shipmentInfo,
+      shipmentInfo: templateData.shipmentInfo,
+    });
+
     // Compile template
     const html = template(templateData);
 
@@ -1063,6 +1093,16 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         (sum: number, item: any) => sum + item.quantity,
         0,
       ) || 0;
+
+    // Debug logging for phone number issue
+    if (data.order?.customer?.company?.includes('Detroit')) {
+      console.log('[DEBUG] Detroit customer data:', {
+        name: data.order?.customer?.name,
+        company: data.order?.customer?.company,
+        phone: data.order?.customer?.phone,
+        email: data.order?.customer?.email,
+      });
+    }
 
     const templateData = {
       // Ship to information
@@ -1092,6 +1132,17 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       // Job info
       jobInfo: {
         jobNumber: data.jobNumber || '',
+      },
+
+      // Shipment info (for ERP integration)
+      shipmentInfo: {
+        shipmentId: data.shipmentInfo?.shipmentId || data.shipmentId || '',
+        erpShipmentId:
+          data.shipmentInfo?.erpShipmentId ||
+          data.erpShipmentId ||
+          data.shipmentId ||
+          '',
+        erpSystem: data.shipmentInfo?.erpSystem || data.erpSystem || '',
       },
 
       // Special instructions
@@ -1128,7 +1179,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   private convertKitToPackingSlipData(kit: any): any {
     const deliveryInfo = kit.metadata?.customFields?.deliveryInfo;
-    const shippingMethod = this.calculateShippingMethod(deliveryInfo);
+    const shippingMethod = this.calculateShippingMethod(kit);
 
     return {
       order: {
@@ -1148,6 +1199,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         items: kit.items,
       },
       jobNumber: kit.jobNumber || '',
+      shipmentId: kit.shipmentId || '',
+      erpShipmentId: kit.erpShipmentId || '', // Add ERP shipment ID
       specialInstructions: kit.metadata?.specialInstructions || '',
       generatedDate: new Date().toISOString(),
       // Add order type for InquirED conditional templates
@@ -1160,18 +1213,42 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private calculateShippingMethod(deliveryInfo: any): string {
-    if (!deliveryInfo) {
+  private calculateShippingMethod(kit: any): string {
+    if (!kit?.customerCode) {
       return 'Standard Ground';
     }
 
-    // InquirED shipping logic based on Dock and Paved Path columns
-    if (deliveryInfo.hasDock) {
-      return 'Standard LTL Shipment';
-    } else if (deliveryInfo.hasPavedPath) {
-      return 'LTL Shipment with lift gate & inside delivery';
-    } else {
-      return 'LTL Shipment with white glove service';
+    try {
+      // Get the customer strategy and use its shipping rules
+      const strategy = this.customerStrategyFactory.getStrategy(
+        kit.customerCode,
+      );
+      const shippingRules = strategy.getShippingRules(kit);
+      return shippingRules.method;
+    } catch (error) {
+      this.logger.warn(
+        `Failed to get shipping method from strategy for ${kit.customerCode}:`,
+        error,
+      );
+
+      // Fallback to old logic for backward compatibility
+      const deliveryInfo = kit.metadata?.customFields?.deliveryInfo;
+      if (!deliveryInfo) {
+        return 'Standard Ground';
+      }
+
+      // Old InquirED shipping logic based on Dock and Paved Path columns
+      if (deliveryInfo.hasDock) {
+        return 'Standard LTL Shipment';
+      } else if (deliveryInfo.hasPavedPath) {
+        return 'LTL Shipment with lift gate & inside delivery';
+      } else {
+        return 'LTL Shipment with white glove service';
+      }
     }
+  }
+
+  async createMergedPdfFromDirectory(directoryPath: string): Promise<Buffer> {
+    return await this.pdfMergerService.mergePdfsFromDirectory(directoryPath);
   }
 }

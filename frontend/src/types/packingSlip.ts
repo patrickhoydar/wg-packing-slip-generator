@@ -68,6 +68,12 @@ export interface PackingSlip {
   notes?: string
   deliveryInfo?: DeliveryInfo
   shippingMethod?: string
+  jobInfo?: {
+    jobNumber: string
+  }
+  shipmentInfo?: {
+    shipmentId: string
+  }
   metadata?: {
     kitType?: string
     ref2?: string

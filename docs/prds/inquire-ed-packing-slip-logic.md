@@ -16,7 +16,7 @@ flowchart TD
     n3 --> n4["LTL Shipment with lift gate &amp; inside delivery"]
     n5 --> n6["LTL Shipment with white glove service"]
 ```
-- If the shipment contains < 10 boxes then ship via UPS (This logic is still TB since the size of individual pieces determines how many items can be packed in a box for TE orders)
+- If the shipment contains < 10 boxes then ship via UPS (This logic is still TBD since the size of individual pieces determines how many items can be packed in a box for TE orders)
 - Set the shipment day for 2 days before the Ship Date (ColAD) to ensure shipments don't arrive too early
   - When a shipment doesn't have an Ship Date then assume it should have the same Ship Date as the shipment with the soonesnt Ship Date
 

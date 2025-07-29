@@ -14,7 +14,10 @@
       <div class="job-info">
         <div class="flex items-center justify-between mb-4">
           <div class="text-left">
-            <p class="job-number">Job No: {{jobInfo.jobNumber}}</p>
+            <p class="job-number"><strong>Job No:</strong> {{jobInfo.jobNumber}}</p>
+          </div>
+          <div class="text-right">
+            <p class="shipment-id"><strong>Shipment ID:</strong> {{shipmentInfo.erpShipmentId}}</p>
           </div>
         </div>
       </div>
@@ -34,7 +37,7 @@
             <p>{{shipTo.email}}</p>
             {{/if}}
             {{#if shipTo.phone}}
-            <p>Phone: {{shipTo.phone}}</p>
+            <p>{{shipTo.phone}}</p>
             {{/if}}
           </div>
         </div>
@@ -78,6 +81,7 @@
       </div>
       {{/if}}
 
+      {{log this}}
       <!-- Order Details -->
       <div class="order-details">
         <h3 class="order-details-title">ORDER DETAILS</h3>

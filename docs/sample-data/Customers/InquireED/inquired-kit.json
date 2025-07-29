@@ -1,0 +1,82 @@
+{
+  "id": "INQUIRED-20250724-0000",
+  "customerCode": "INQUIRED",
+  "recipient": {
+    "name": "Marie",
+    "company": "Detroit Public Schools, MI",
+    "email": "",
+    "phone": "(313) 651-5858",
+    "address": {
+      "street": "Vedo Outsourcing",
+      "street2": "2201 Fenkell Ave",
+      "city": "Detroit MI 48238",
+      "state": "",
+      "zipCode": "",
+      "country": "US"
+    }
+  },
+  "items": [
+    {
+      "id": "INQUIRED-20250724-0000-item-000",
+      "sku": "IND-IJ-PM-NATRES-EN-1300",
+      "name": "Natural Resources of the US (English)",
+      "description": "Natural Resources of the US",
+      "quantity": 188,
+      "category": "Printed Materials (EN)",
+      "customProperties": {
+        "gradeLevel": "4",
+        "needsSticker": null,
+        "productCategory": "Printed Materials (EN)",
+        "originalIndex": 0
+      }
+    },
+    {
+      "id": "INQUIRED-20250724-0000-item-001",
+      "sku": "IND-IJ-PM-ECON-EN-1500",
+      "name": "Economic Choices (English)",
+      "description": "Economic Choices",
+      "quantity": 188,
+      "category": "Printed Materials (EN)",
+      "customProperties": {
+        "gradeLevel": "4",
+        "needsSticker": null,
+        "productCategory": "Printed Materials (EN)",
+        "originalIndex": 1
+      }
+    },
+    {
+      "id": "INQUIRED-20250724-0000-item-002",
+      "sku": "IND-IJ-PM-RIGHTS-EN-1900",
+      "name": "Rights and Responsibilities (English)",
+      "description": "Rights and Responsibilities",
+      "quantity": 188,
+      "category": "Printed Materials (EN)",
+      "customProperties": {
+        "gradeLevel": "4",
+        "needsSticker": null,
+        "productCategory": "Printed Materials (EN)",
+        "originalIndex": 2
+      }
+    }
+  ],
+  "metadata": {
+    "originalRowIndex": 0,
+    "orderReference": "Detroit Public Schools, MI",
+    "customFields": {
+      "fileType": "pm",
+      "deliveryInfo": {
+        "hasDock": true,
+        "hasPavedPath": true,
+        "receivingDays": "M-F",
+        "receivingHours": "8:30 - 5",
+        "deliveryNotes": "",
+        "shipDate": "8/7/2025",
+        "appointmentRequired": false
+      },
+      "totalBoxes": 564,
+      "totalTEs": null
+    },
+    "shippingMethod": "GROUND",
+    "specialInstructions": []
+  }
+}

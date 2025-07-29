@@ -6,6 +6,8 @@ import {
   HttpStatus,
   Query,
   Get,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PdfService } from './pdf.service';
@@ -54,6 +56,15 @@ export class PdfController {
     @Res() res: Response,
   ) {
     try {
+      // DEBUG: Log what data we're receiving from the frontend
+      console.log('[PDF-PREVIEW-DEBUG] Received data from frontend:', {
+        hasJobNumber: !!packingSlipData.jobNumber,
+        jobNumber: packingSlipData.jobNumber,
+        hasShipmentInfo: !!packingSlipData.shipmentInfo,
+        shipmentInfo: packingSlipData.shipmentInfo,
+        hasErpShipmentId: !!packingSlipData.erpShipmentId,
+        erpShipmentId: packingSlipData.erpShipmentId,
+      });
       const html = await this.pdfService.generatePackingSlipHtmlPreview(
         packingSlipData,
         customerCode,
@@ -71,6 +82,45 @@ export class PdfController {
       console.error('Error generating HTML preview:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to generate HTML preview',
+        error: error.message,
+      });
+    }
+  }
+
+  @Delete('template-cache/:customerStrategy')
+  async invalidateTemplateCache(
+    @Param('customerStrategy') customerStrategy: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.pdfService.invalidateTemplate(customerStrategy);
+      res.status(HttpStatus.OK).json({
+        message: `Template cache invalidated for strategy: ${customerStrategy}`,
+      });
+    } catch (error) {
+      console.error('Error invalidating template cache:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to invalidate template cache',
+        error: error.message,
+      });
+    }
+  }
+
+  @Delete('template-cache')
+  async invalidateAllTemplateCache(@Res() res: Response) {
+    try {
+      // Get all template strategies and invalidate them
+      const strategies = ['default', 'georgia-baptist', 'INQUIRED'];
+      for (const strategy of strategies) {
+        await this.pdfService.invalidateTemplate(strategy);
+      }
+      res.status(HttpStatus.OK).json({
+        message: 'All template caches invalidated',
+      });
+    } catch (error) {
+      console.error('Error invalidating all template caches:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to invalidate all template caches',
         error: error.message,
       });
     }

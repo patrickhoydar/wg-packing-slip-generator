@@ -21,6 +21,8 @@ export interface ValidationResult {
 export interface CustomerKit {
   id: string;
   customerCode: string;
+  shipmentId?: string;
+  erpShipmentId?: string; // Add ERP shipment ID for existing shipments
   jobNumber?: string;
   recipient: {
     name: string;
@@ -101,7 +103,10 @@ export interface ICustomerStrategy {
 
   parseFile(fileBuffer: Buffer, filename: string): Promise<ParsedCustomerData>;
   validateData(data: ParsedCustomerData): Promise<ValidationResult>;
-  generateKits(data: ParsedCustomerData): Promise<CustomerKit[]>;
+  generateKits(
+    data: ParsedCustomerData,
+    jobNumber?: string,
+  ): Promise<CustomerKit[]>;
   customizeTemplate(kit: CustomerKit): CustomerBranding;
   getShippingRules(kit: CustomerKit): {
     method: string;

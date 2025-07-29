@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id             String   @id @default(uuid())
+  customerCode   String   @unique
+  displayName    String
+  defaultShipVia Int?
+  metadata       Json?
+  jobs           Job[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Job {
+  id               String     @id @default(uuid())
+  jobNumber        String
+  customerId       String
+  customer         Customer   @relation(fields: [customerId], references: [id])
+  uploadedFileName String
+  status           JobStatus
+  totalShipments   Int        @default(0)
+  shipments        Shipment[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([customerId, jobNumber])
+}
+
+model Shipment {
+  id               String         @id @default(uuid())
+  jobId            String
+  job              Job            @relation(fields: [jobId], references: [id])
+  erpShipmentId    String?
+  erpSystem        String?
+  kitData          Json
+  recipientName    String
+  recipientCompany String?
+  shippingAddress  Json
+  status           ShipmentStatus
+  erpResponse      Json?
+  pdfPath          String?
+  items            ShipmentItem[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([erpShipmentId])
+  @@index([jobId, status])
+}
+
+model ShipmentItem {
+  id               String   @id @default(uuid())
+  shipmentId       String
+  shipment         Shipment @relation(fields: [shipmentId], references: [id])
+  sku              String
+  description      String
+  quantity         Int
+  customProperties Json?
+}
+
+enum JobStatus {
+  uploaded
+  processing
+  erp_creating
+  completed
+  failed
+}
+
+enum ShipmentStatus {
+  pending
+  erp_created
+  pdf_generated
+  failed
+}

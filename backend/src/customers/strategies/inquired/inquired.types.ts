@@ -169,6 +169,33 @@ export const DELIVERY_DATE_PATTERNS = [
   /^\d{1,2}\/\d{1,2}\/\d{2}$/, // MM/DD/YY
 ];
 
+// Excel date conversion patterns (e.g., "4-Sep", "12-Dec")
+export const EXCEL_DATE_PATTERN = /^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:\s*(am|pm|AM|PM))?$/i;
+
+// Month name to number mapping for Excel date fixes
+export const MONTH_NAME_TO_NUMBER: Record<string, string> = {
+  'jan': '1',
+  'feb': '2',
+  'mar': '3',
+  'apr': '4',
+  'may': '5',
+  'jun': '6',
+  'jul': '7',
+  'aug': '8',
+  'sep': '9',
+  'oct': '10',
+  'nov': '11',
+  'dec': '12',
+};
+
+// Excel date conversion detection result
+export interface ExcelDateConversionResult {
+  isExcelDate: boolean;
+  originalValue: string;
+  fixedValue?: string;
+  detectedPattern?: string;
+}
+
 export interface InquirEDConfig {
   skuLookupFile: string;
   maxFileSize: number;

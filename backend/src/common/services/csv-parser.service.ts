@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse';
 import { Readable } from 'stream';
+import {
+  EXCEL_DATE_PATTERN,
+  MONTH_NAME_TO_NUMBER,
+  ExcelDateConversionResult,
+} from '../../customers/strategies/inquired/inquired.types';
 
 export interface CsvParseOptions {
   delimiter?: string;
@@ -385,5 +390,92 @@ export class CsvParserService {
     }
 
     return cleanValue;
+  }
+
+  /**
+   * Detect if a value has been converted to Excel date format (e.g., "4-Sep")
+   * @param value - Value to check
+   * @returns Detection result with fix if applicable
+   */
+  detectExcelDateConversion(value: string): ExcelDateConversionResult {
+    if (!value) {
+      return {
+        isExcelDate: false,
+        originalValue: value,
+      };
+    }
+
+    const match = value.match(EXCEL_DATE_PATTERN);
+    if (!match) {
+      return {
+        isExcelDate: false,
+        originalValue: value,
+      };
+    }
+
+    const day = match[1];
+    const monthName = match[2].toLowerCase();
+    const amPm = match[3] || '';
+    
+    const monthNumber = MONTH_NAME_TO_NUMBER[monthName];
+    if (!monthNumber) {
+      return {
+        isExcelDate: false,
+        originalValue: value,
+      };
+    }
+
+    // Fix the value by converting back to time range format
+    let fixedValue = `${day}-${monthNumber}`;
+    if (amPm) {
+      fixedValue += ` ${amPm}`;
+    }
+
+    return {
+      isExcelDate: true,
+      originalValue: value,
+      fixedValue,
+      detectedPattern: `Excel date conversion detected: "${value}" -> "${fixedValue}"`,
+    };
+  }
+
+  /**
+   * Fix Excel date conversions in a string value
+   * @param value - Value to fix
+   * @returns Fixed value or original if no conversion detected
+   */
+  fixExcelDateConversion(value: string): string {
+    const detection = this.detectExcelDateConversion(value);
+    return detection.isExcelDate && detection.fixedValue
+      ? detection.fixedValue
+      : value;
+  }
+
+  /**
+   * Detect and log Excel date conversions in an entire row
+   * @param row - CSV row object
+   * @param columnsToCheck - Array of column names to check
+   * @returns Array of detected conversions
+   */
+  detectExcelDateConversionsInRow(
+    row: Record<string, any>,
+    columnsToCheck: string[],
+  ): ExcelDateConversionResult[] {
+    const conversions: ExcelDateConversionResult[] = [];
+
+    for (const column of columnsToCheck) {
+      if (row[column]) {
+        const value = this.cleanString(row[column]);
+        const detection = this.detectExcelDateConversion(value);
+        if (detection.isExcelDate) {
+          conversions.push({
+            ...detection,
+            detectedPattern: `Column "${column}": ${detection.detectedPattern}`,
+          });
+        }
+      }
+    }
+
+    return conversions;
   }
 }

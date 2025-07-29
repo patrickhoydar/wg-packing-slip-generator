@@ -27,6 +27,16 @@
           <div class="text-left">
             <p class="job-number">Job No: {{jobInfo.jobNumber}}</p>
           </div>
+          {{#if shipmentInfo}}
+          <div class="text-right">
+            {{#if shipmentInfo.erpShipmentId}}
+            <p class="shipment-id">ERP Shipment ID: {{shipmentInfo.erpShipmentId}}</p>
+            {{/if}}
+            {{#if shipmentInfo.shipmentId}}
+            <p class="shipment-id">{{#unless shipmentInfo.erpShipmentId}}Shipment ID: {{/unless}}{{#if shipmentInfo.erpShipmentId}}Internal ID: {{/if}}{{shipmentInfo.shipmentId}}</p>
+            {{/if}}
+          </div>
+          {{/if}}
         </div>
       </div>
       {{/if}}

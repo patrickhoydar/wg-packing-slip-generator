@@ -92,6 +92,11 @@ body {
   color: #374151;
 }
 
+.shipment-id {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
 /* Ship to styles */
 .ship-to {
   margin-bottom: 1rem;

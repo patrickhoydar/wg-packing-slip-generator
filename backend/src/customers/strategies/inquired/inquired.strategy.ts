@@ -7,6 +7,7 @@ import {
   CustomerBranding,
   CustomerKitItem,
 } from '../base/customer-strategy.interface';
+import { CreateJobShipment } from '../../../pace/interfaces/pace.interface';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
 import { InquirEDService } from './inquired.service';
 import {
@@ -68,15 +69,40 @@ export class InquirEDStrategy extends CustomerStrategy {
       );
     }
 
+    // Track Excel date conversions
+    const excelDateConversions: string[] = [];
+
     // Process each row
     const processedData = rawData.map((row, index) => {
       try {
+        // Check for Excel date conversions in this row
+        const conversions = this.csvParser.detectExcelDateConversionsInRow(
+          row,
+          ['Receiving Hours'],
+        );
+
+        if (conversions.length > 0) {
+          conversions.forEach((conversion) => {
+            excelDateConversions.push(
+              `Row ${index + 1}: ${conversion.detectedPattern}`,
+            );
+          });
+        }
+
         return this.processRow(row, fileType, index);
       } catch (error) {
         console.error(`Error processing row ${index + 1}:`, error);
         throw new Error(`Row ${index + 1}: ${error.message}`);
       }
     });
+
+    // Log Excel date conversion warnings
+    if (excelDateConversions.length > 0) {
+      console.warn(
+        `[Excel Date Conversions] Detected and fixed ${excelDateConversions.length} Excel date conversions:`,
+        excelDateConversions,
+      );
+    }
 
     return {
       rawData: processedData,
@@ -88,6 +114,8 @@ export class InquirEDStrategy extends CustomerStrategy {
         fileType,
         encoding: parseResult.metadata.encoding,
         hasBOM: parseResult.metadata.hasBOM,
+        excelDateConversions:
+          excelDateConversions.length > 0 ? excelDateConversions : undefined,
       },
     };
   }
@@ -134,13 +162,32 @@ export class InquirEDStrategy extends CustomerStrategy {
       );
     }
 
+    // Add warning for Excel date conversions
+    if (
+      data.metadata.excelDateConversions &&
+      data.metadata.excelDateConversions.length > 0
+    ) {
+      result.warnings.push(
+        `Detected and fixed ${data.metadata.excelDateConversions.length} Excel date conversions in "Receiving Hours" column. ` +
+          `Values like "4-Sep" have been converted back to "4-9". Please use CSV editors that preserve data formats.`,
+      );
+    }
+
     result.isValid = result.errors.length === 0;
     return result;
   }
 
-  async generateKits(data: ParsedCustomerData): Promise<CustomerKit[]> {
+  async generateKits(
+    data: ParsedCustomerData,
+    jobNumber?: string,
+  ): Promise<CustomerKit[]> {
     const kits: CustomerKit[] = [];
     const timestamp = new Date();
+
+    // Add jobNumber to metadata if provided
+    if (jobNumber) {
+      data.metadata.jobNumber = jobNumber;
+    }
 
     for (let i = 0; i < data.rawData.length; i++) {
       const row = data.rawData[i] as InquirEDProcessedRow;
@@ -151,7 +198,7 @@ export class InquirEDStrategy extends CustomerStrategy {
       }
 
       try {
-        const kit = this.createKitFromRow(row, i, timestamp);
+        const kit = this.createKitFromRow(data, row, i, timestamp);
         kits.push(kit);
       } catch (error) {
         console.error(`Error creating kit for row ${i + 1}:`, error);
@@ -164,6 +211,44 @@ export class InquirEDStrategy extends CustomerStrategy {
       `[EARLIEST-DELIVERY] InquirED: Generated ${kits.length} kits, starting shipDate calculation`,
     );
     this.calculateOrdershipDates(kits);
+
+    // Sort kits by ship date from earliest to latest
+    kits.sort((a, b) => {
+      const shipDateA = a.metadata?.customFields?.deliveryInfo?.shipDate;
+      const shipDateB = b.metadata?.customFields?.deliveryInfo?.shipDate;
+
+      // Handle cases where ship date might be missing
+      if (!shipDateA && !shipDateB) return 0;
+      if (!shipDateA) return 1; // Move items without ship date to end
+      if (!shipDateB) return -1; // Move items without ship date to end
+
+      // Convert ship dates to Date objects for proper comparison
+      const dateA = new Date(shipDateA);
+      const dateB = new Date(shipDateB);
+
+      // Handle invalid dates
+      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    console.log(
+      `[SORTING] InquirED: Sorted ${kits.length} kits by ship date (earliest to latest)`,
+    );
+
+    // Log first few kits for debugging
+    if (kits.length > 0) {
+      console.log(
+        `[SORTING] First kit ship date: ${kits[0].metadata?.customFields?.deliveryInfo?.shipDate}`,
+      );
+      if (kits.length > 1) {
+        console.log(
+          `[SORTING] Last kit ship date: ${kits[kits.length - 1].metadata?.customFields?.deliveryInfo?.shipDate}`,
+        );
+      }
+    }
 
     return kits;
   }
@@ -191,7 +276,25 @@ export class InquirEDStrategy extends CustomerStrategy {
   } {
     const deliveryInfo = kit.metadata.customFields
       .deliveryInfo as InquirEDDeliveryInfo;
+    const totalBoxes = kit.metadata.customFields.totalBoxes;
     const instructions: string[] = [];
+    const email = kit.metadata.customFields.email;
+    const phone = kit.metadata.customFields.phone;
+    // Determine shipping method based on total boxes for PM orders
+    let shippingMethod = 'GROUND';
+    if (totalBoxes && totalBoxes < 10) {
+      shippingMethod = 'UPS Ground';
+      instructions.push('UPS GROUND - Order has less than 10 boxes');
+    } else {
+      // For orders with 10+ boxes, use LTL logic based on Dock and Paved Path
+      if (deliveryInfo.hasDock) {
+        shippingMethod = 'Standard LTL Shipment';
+      } else if (deliveryInfo.hasPavedPath) {
+        shippingMethod = 'LTL Shipment with lift gate & inside delivery';
+      } else {
+        shippingMethod = 'LTL Shipment with white glove service';
+      }
+    }
 
     // Add delivery-specific instructions
     if (deliveryInfo.appointmentRequired) {
@@ -224,7 +327,7 @@ export class InquirEDStrategy extends CustomerStrategy {
     }
 
     return {
-      method: 'GROUND',
+      method: shippingMethod,
       specialHandling:
         deliveryInfo.appointmentRequired || !deliveryInfo.hasDock,
       instructions,
@@ -406,7 +509,20 @@ export class InquirEDStrategy extends CustomerStrategy {
       phone: this.csvParser.cleanString(row['Shipping Contact Phone']),
     };
 
-    const receivingHours = this.csvParser.cleanString(row['Receiving Hours']);
+    // Fix Excel date conversion in receiving hours (e.g., "4-Sep" -> "4-9")
+    const rawReceivingHours = this.csvParser.cleanString(
+      row['Receiving Hours'],
+    );
+    const receivingHours =
+      this.csvParser.fixExcelDateConversion(rawReceivingHours);
+
+    // Log if Excel conversion was detected and fixed
+    if (rawReceivingHours !== receivingHours) {
+      console.log(
+        `[Excel Date Fix] Row ${_index + 1}: Fixed receiving hours from "${rawReceivingHours}" to "${receivingHours}"`,
+      );
+    }
+
     const appointmentRequiredFromCSV =
       this.csvParser.cleanString(row['Appointment Required?']).toLowerCase() ===
       'yes';
@@ -639,11 +755,13 @@ export class InquirEDStrategy extends CustomerStrategy {
   }
 
   private createKitFromRow(
+    data: ParsedCustomerData,
     row: InquirEDProcessedRow,
     index: number,
     timestamp: Date,
   ): CustomerKit {
     const kitId = this.generateKitId(this.customerCode, index, timestamp);
+    const shipmentId = `${data.metadata.jobNumber || 'JOB'}-${String(index + 1).padStart(4, '0')}`;
     const items = this.createKitItems(kitId, row.products);
 
     // Parse delivery address
@@ -651,7 +769,9 @@ export class InquirEDStrategy extends CustomerStrategy {
 
     const kit: CustomerKit = {
       id: kitId,
+      jobNumber: data.metadata.jobNumber,
       customerCode: this.customerCode,
+      shipmentId: shipmentId,
       recipient: {
         name: row.shippingContact.name,
         company: row.schoolDistrict,
@@ -667,13 +787,18 @@ export class InquirEDStrategy extends CustomerStrategy {
           fileType: row.fileType,
           deliveryInfo: row.deliveryInfo,
           totalBoxes: row.totalBoxes,
-          totalTEs: row.totalTEs,
+          totalTEs: row.totalTEs || 0,
         },
-        shippingMethod: 'GROUND',
+        shippingMethod: '',
         specialInstructions: this.buildSpecialInstructions(row),
       },
     };
 
+    const shippingRules = this.getShippingRules(kit);
+
+    kit.metadata.shippingMethod = shippingRules.method;
+
+    console.log(kit);
     return kit;
   }
 
@@ -777,7 +902,7 @@ export class InquirEDStrategy extends CustomerStrategy {
     // Basic address parsing - this could be enhanced with a proper address parser
     const result = {
       street: lines[0] || '',
-      street2: lines.length > 2 ? lines[1] : undefined,
+      street2: lines.length > 2 ? lines[1] : '',
       city: '',
       state: '',
       zipCode: '',
@@ -825,7 +950,7 @@ export class InquirEDStrategy extends CustomerStrategy {
         category: productInfo?.category || 'Educational Materials',
         customProperties: {
           gradeLevel: product.gradeLevel,
-          needsSticker: product.needsSticker,
+          needsSticker: product.needsSticker || false,
           productCategory: productInfo?.category,
           originalIndex: index, // Track original order for sorting
         },
@@ -967,5 +1092,161 @@ export class InquirEDStrategy extends CustomerStrategy {
       );
       return '8/7/2025';
     }
+  }
+
+  /**
+   * Transform InquirED kit data to PACE shipment format
+   */
+  transformKitToPaceShipment(
+    kit: CustomerKit,
+    jobNumber: string,
+  ): CreateJobShipment {
+    const deliveryInfo = kit.metadata.customFields
+      .deliveryInfo as InquirEDDeliveryInfo;
+    const totalBoxes = kit.metadata.customFields.totalBoxes || 1;
+
+    // Parse the address
+    const address = kit.recipient.address;
+    let parsedCity = address.city;
+    let parsedState = address.state;
+    let parsedZip = address.zipCode;
+
+    // Handle combined city/state/zip format like "Detroit MI 48238"
+    if (!parsedState && !parsedZip && parsedCity) {
+      const cityStateZipMatch = parsedCity.match(
+        /^(.+?)\s+([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/,
+      );
+      if (cityStateZipMatch) {
+        parsedCity = cityStateZipMatch[1].trim();
+        parsedState = cityStateZipMatch[2];
+        parsedZip = cityStateZipMatch[3];
+      }
+    }
+
+    // Determine ship via based on shipping rules
+    const shippingRules = this.getShippingRules(kit);
+    let shipVia = 5032; // Default to UPS Ground
+
+    if (shippingRules.method === 'UPS Ground') {
+      shipVia = 1; // UPS Ground
+    }
+    // Could add more mappings here for other shipping methods if needed
+
+    // Calculate total quantity across all items
+    const totalQuantity = kit.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+
+    return {
+      job: jobNumber,
+      shipmentType: 50, // Based on sample data - may need to be configurable
+      shipVia: shipVia,
+      quantity: totalBoxes,
+      contactFirstName: kit.recipient.name.split(' ')[0] || '',
+      contactLastName: kit.recipient.name.split(' ').slice(1).join(' ') || '',
+      email: kit.recipient.email || '',
+      phone: kit.recipient.phone || '',
+      address1: address.street || '',
+      address2: address.street2 || '',
+      zip: parsedZip || '',
+      city: parsedCity || '',
+      country: 1, // US default
+      stateKey: parsedState ? `1:${parsedState.toUpperCase()}` : '1:',
+      dateTime: deliveryInfo.shipDate
+        ? this.convertShipDateToISO(deliveryInfo.shipDate)
+        : new Date().toISOString(),
+      charges: 'Prepaid/Shipper',
+      shipped: false, // Will be set to true when actually shipped
+      carton1Count: 1,
+      count1: 1,
+      carton1Quantity: totalBoxes,
+      u_internalShipNotes: this.buildInternalShipNotes(
+        deliveryInfo,
+        kit,
+      ).substring(0, 255),
+    };
+  }
+
+  /**
+   * Convert MM/DD/YYYY ship date to ISO string
+   */
+  private convertShipDateToISO(shipDate: string): string {
+    try {
+      const date = new Date(shipDate);
+      if (isNaN(date.getTime())) {
+        return new Date().toISOString();
+      }
+      return date.toISOString();
+    } catch (error) {
+      return new Date().toISOString();
+    }
+  }
+
+  /**
+   * Estimate weight based on items and box count
+   * This is a rough estimate - actual weight would come from product data
+   */
+  private estimateWeight(
+    _items: CustomerKitItem[],
+    totalBoxes: number,
+  ): number {
+    // Rough estimate: 1 box = ~10 lbs for educational materials
+    // This should be refined with actual product weight data
+    // Future enhancement: use items data to calculate more accurate weight
+    return totalBoxes * 10;
+  }
+
+  /**
+   * Build internal shipping notes combining delivery info and special instructions
+   */
+  private buildInternalShipNotes(
+    deliveryInfo: InquirEDDeliveryInfo,
+    kit: CustomerKit,
+  ): string {
+    const notes: string[] = [];
+    const email = kit.recipient.email;
+    const phone = kit.recipient.phone;
+
+    if (email) {
+      notes.push(`Email: ${email}\n`);
+    }
+
+    if (phone) {
+      notes.push(`Phone: ${phone}\n`);
+    }
+
+    if (deliveryInfo.deliveryNotes) {
+      notes.push(`Delivery Notes: ${deliveryInfo.deliveryNotes}\n`);
+    }
+
+    // Add delivery-specific notes
+    if (deliveryInfo.receivingHours && deliveryInfo.receivingHours !== 'N/A') {
+      notes.push(`Receiving Hours: ${deliveryInfo.receivingHours}`);
+    }
+
+    if (deliveryInfo.receivingDays) {
+      notes.push(`Receiving Days: ${deliveryInfo.receivingDays}`);
+    }
+
+    if (!deliveryInfo.hasDock && deliveryInfo.hasPavedPath) {
+      notes.push('LTL Shipment with lift gate & inside delivery');
+    }
+
+    if (!deliveryInfo.hasDock && !deliveryInfo.hasPavedPath) {
+      notes.push('LTL Shipment with white glove service');
+    }
+
+    // Add any special instructions from kit metadata
+    if (
+      kit.metadata.specialInstructions &&
+      kit.metadata.specialInstructions.length > 0
+    ) {
+      notes.push(...kit.metadata.specialInstructions);
+    }
+
+    return notes.length > 0
+      ? notes.join('\n')
+      : 'InquirED Educational Materials Shipment';
   }
 }

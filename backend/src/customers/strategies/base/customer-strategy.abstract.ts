@@ -17,7 +17,7 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
     filename: string,
   ): Promise<ParsedCustomerData>;
   abstract validateData(data: ParsedCustomerData): Promise<ValidationResult>;
-  abstract generateKits(data: ParsedCustomerData): Promise<CustomerKit[]>;
+  abstract generateKits(data: ParsedCustomerData, jobNumber?: string): Promise<CustomerKit[]>;
   abstract customizeTemplate(kit: CustomerKit): CustomerBranding;
   abstract getShippingRules(kit: CustomerKit): {
     method: string;
@@ -111,7 +111,8 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
     console.log(
       `[UPLOAD-DEBUG] About to call generateKits() with ${parsedData.rawData.length} rows`,
     );
-    const kits = await this.generateKits(parsedData);
+
+    const kits = await this.generateKits(parsedData, jobNumber);
     console.log(`[UPLOAD-DEBUG] generateKits() returned ${kits.length} kits`);
 
     // Step 4: Add job number to kits if provided

@@ -34,7 +34,11 @@ export default function PackingSlipLayout({
           </div>
         </div>
 
-        <OrderHeader order={packingSlip.order} />
+        <OrderHeader 
+          order={packingSlip.order} 
+          jobInfo={packingSlip.jobInfo}
+          shipmentInfo={packingSlip.shipmentInfo}
+        />
 
         <CustomerInformation customer={packingSlip.order.customer} />
 
@@ -52,7 +56,7 @@ export default function PackingSlipLayout({
           <div className="flex justify-between items-center text-sm text-gray-600">
             <div>
               <p>Generated on: {formatDate(packingSlip.generatedDate)}</p>
-              <p>Job Number: 205544 - HH Global</p>
+              <p>Job Number: {packingSlip.jobInfo?.jobNumber || 'N/A'}</p>
             </div>
             <div className="text-right">
               <p>Please verify all items before shipping</p>

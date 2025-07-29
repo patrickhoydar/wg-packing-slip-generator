@@ -127,7 +127,7 @@ export class GeorgiaBaptistStrategy extends CustomerStrategy {
     return result;
   }
 
-  async generateKits(data: ParsedCustomerData): Promise<CustomerKit[]> {
+  async generateKits(data: ParsedCustomerData, jobNumber?: string): Promise<CustomerKit[]> {
     const kits: CustomerKit[] = [];
     const timestamp = new Date();
 

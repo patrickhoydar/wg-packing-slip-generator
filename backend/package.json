@@ -17,25 +17,38 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@prisma/client": "^6.12.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/handlebars": "^4.0.40",
     "@types/multer": "^2.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "csv-parse": "^6.1.0",
     "csv-parser": "^3.2.0",
     "handlebars": "^4.7.8",
     "jszip": "^3.10.1",
     "multer": "^2.0.1",
+    "nestjs-prisma": "^0.25.0",
+    "prisma": "^6.12.0",
     "puppeteer": "^24.12.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "tailwindcss": "^4.1.11",
     "xlsx": "^0.18.5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
