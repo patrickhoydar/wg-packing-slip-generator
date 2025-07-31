@@ -1005,9 +1005,7 @@ export class InquirEDStrategy extends CustomerStrategy {
       .replace(/\s\(Spanish\)/, '');
 
     if (product.needsSticker !== undefined) {
-      description += product.needsSticker
-        ? ' - Needs Sticker'
-        : ' - No Sticker';
+      description += product.needsSticker ? '' : '';
     }
 
     return description;

@@ -262,14 +262,7 @@ export class CustomersService implements OnModuleInit {
     const strategy = this.strategyFactory.getStrategy(customerCode);
 
     // Debug logging to see what's in the kit
-    console.log('[PREVIEW-DEBUG] Kit data received:', {
-      id: kit.id,
-      jobNumber: kit.jobNumber,
-      shipmentId: kit.shipmentId,
-      erpShipmentId: kit.erpShipmentId,
-      hasMetadata: !!kit.metadata,
-      hasRecipient: !!kit.recipient,
-    });
+    console.log('[PREVIEW-DEBUG] Kit data received');
 
     // For preview purposes, generate fallback values if not present
     const jobNumber = kit.jobNumber || 'PREVIEW-JOB';
@@ -337,19 +330,6 @@ export class CustomersService implements OnModuleInit {
       // CRITICAL: Pass through the entire kit object so template has access to metadata
       metadata: kit.metadata || null,
     };
-
-    // Debug logging to see what we're returning
-    console.log('[PREVIEW-DEBUG] Preview data structure:', {
-      hasJobInfo: !!previewData.jobNumber,
-      shipmentInfo: previewData.shipmentInfo,
-      jobNumber: previewData.jobNumber,
-      hasShipmentInfo: !!previewData.shipmentInfo,
-      shipmentId: previewData.shipmentInfo?.shipmentId,
-      hasShipTo: !!previewData.shipTo,
-      hasItems: !!previewData.items && previewData.items.length > 0,
-      fallbackJobNumber: jobNumber,
-      fallbackShipmentId: shipmentId,
-    });
 
     return previewData;
   }
