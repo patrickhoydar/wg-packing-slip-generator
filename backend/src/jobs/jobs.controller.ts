@@ -27,7 +27,8 @@ export class JobsController {
 
   @Post('create')
   async createJob(
-    @Body() body: {
+    @Body()
+    body: {
       jobNumber: string;
       customerId: string;
       customerCode: string;
@@ -35,7 +36,8 @@ export class JobsController {
       uploadedFileName: string;
     },
   ) {
-    const { jobNumber, customerId, customerCode, kits, uploadedFileName } = body;
+    const { jobNumber, customerId, customerCode, kits, uploadedFileName } =
+      body;
 
     if (!jobNumber) {
       throw new BadRequestException('Job number is required');
@@ -47,14 +49,19 @@ export class JobsController {
       throw new BadRequestException('Customer code is required');
     }
     if (!kits || !Array.isArray(kits) || kits.length === 0) {
-      throw new BadRequestException('Kits array is required and must not be empty');
+      throw new BadRequestException(
+        'Kits array is required and must not be empty',
+      );
     }
     if (!uploadedFileName) {
       throw new BadRequestException('Uploaded file name is required');
     }
 
     // Check if job already exists for this customer
-    const existingJob = await this.jobsService.findByJobNumber(customerId, jobNumber);
+    const existingJob = await this.jobsService.findByJobNumber(
+      customerId,
+      jobNumber,
+    );
     if (existingJob) {
       throw new BadRequestException(
         `Job number ${jobNumber} already exists for this customer`,
@@ -155,7 +162,7 @@ export class JobsController {
     }
 
     // Transform shipments to kits format for PACE creation
-    const kits = job.shipments.map(shipment => ({
+    const kits = job.shipments.map((shipment) => ({
       id: shipment.id,
       ...(shipment.kitData as any),
       items: shipment.items,
@@ -298,9 +305,8 @@ export class JobsController {
     }
 
     // Get shipments ready for PDF generation (with ERP IDs)
-    const shipments = await this.shipmentsService.getShipmentsForPdfGeneration(
-      id,
-    );
+    const shipments =
+      await this.shipmentsService.getShipmentsForPdfGeneration(id);
 
     if (shipments.length === 0) {
       throw new BadRequestException(
@@ -319,7 +325,7 @@ export class JobsController {
 
   private transformShipmentToErpRequest(shipment: any, jobNumber: string): any {
     // Extract kit data
-    const kitData = shipment.kitData as any;
+    const kitData = shipment.kitData;
 
     // Calculate total quantity
     const totalQuantity = shipment.items.reduce(
@@ -336,12 +342,12 @@ export class JobsController {
       contactFirstName: shipment.recipientName.split(' ')[0] || '',
       email: kitData.recipient?.email || '',
       phone: kitData.recipient?.phone || '',
-      address1: (shipment.shippingAddress as any).street || '',
-      address2: (shipment.shippingAddress as any).street2 || '',
-      zip: (shipment.shippingAddress as any).zipCode || '',
-      city: (shipment.shippingAddress as any).city || '',
+      address1: shipment.shippingAddress.street || '',
+      address2: shipment.shippingAddress.street2 || '',
+      zip: shipment.shippingAddress.zipCode || '',
+      city: shipment.shippingAddress.city || '',
       country: 1, // US
-      stateKey: `1:${(shipment.shippingAddress as any).state || ''}`,
+      stateKey: `1:${shipment.shippingAddress.state || ''}`,
       dateTime: new Date().toISOString(),
       charges: 'Prepaid/Shipper',
       shipped: true,

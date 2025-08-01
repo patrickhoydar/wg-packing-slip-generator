@@ -522,7 +522,7 @@ export class CustomersService implements OnModuleInit {
       // Find matching shipment by checking if the kit's shipmentId matches the one stored in shipment's kitData
       const matchingShipment = shipments.find((shipment) => {
         try {
-          const kitData = shipment.kitData as any;
+          const kitData = shipment.kitData;
 
           if (kitData?.shipmentId === kit.shipmentId) {
             return true;

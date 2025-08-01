@@ -416,7 +416,7 @@ export class CsvParserService {
     const day = match[1];
     const monthName = match[2].toLowerCase();
     const amPm = match[3] || '';
-    
+
     const monthNumber = MONTH_NAME_TO_NUMBER[monthName];
     if (!monthNumber) {
       return {

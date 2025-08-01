@@ -17,7 +17,10 @@ export abstract class CustomerStrategy implements ICustomerStrategy {
     filename: string,
   ): Promise<ParsedCustomerData>;
   abstract validateData(data: ParsedCustomerData): Promise<ValidationResult>;
-  abstract generateKits(data: ParsedCustomerData, jobNumber?: string): Promise<CustomerKit[]>;
+  abstract generateKits(
+    data: ParsedCustomerData,
+    jobNumber?: string,
+  ): Promise<CustomerKit[]>;
   abstract customizeTemplate(kit: CustomerKit): CustomerBranding;
   abstract getShippingRules(kit: CustomerKit): {
     method: string;

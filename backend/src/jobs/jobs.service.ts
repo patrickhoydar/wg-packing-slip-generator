@@ -40,10 +40,13 @@ export class JobsService {
     });
 
     // Transform kits into shipment data
-    const shipmentData = data.kits.map(kit => this.transformKitToShipment(kit, job.id));
+    const shipmentData = data.kits.map((kit) =>
+      this.transformKitToShipment(kit, job.id),
+    );
 
     // Create all shipments
-    const shipmentsCreated = await this.shipmentsService.createManyShipments(shipmentData);
+    const shipmentsCreated =
+      await this.shipmentsService.createManyShipments(shipmentData);
 
     // Update job with shipment count
     const updatedJob = await this.updateShipmentCount(job.id);
@@ -56,17 +59,20 @@ export class JobsService {
 
   private transformKitToShipment(kit: any, jobId: string) {
     // Extract recipient information from kit
-    const recipientName = kit.recipient?.name || kit.recipientName || 'Unknown Recipient';
-    const recipientCompany = kit.recipient?.company || kit.recipientCompany || null;
-    
+    const recipientName =
+      kit.recipient?.name || kit.recipientName || 'Unknown Recipient';
+    const recipientCompany =
+      kit.recipient?.company || kit.recipientCompany || null;
+
     // Extract shipping address
-    const shippingAddress = kit.recipient?.address || kit.shippingAddress || {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: 'US',
-    };
+    const shippingAddress = kit.recipient?.address ||
+      kit.shippingAddress || {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'US',
+      };
 
     // Transform kit items to shipment items
     const items = (kit.items || []).map((item: any) => ({

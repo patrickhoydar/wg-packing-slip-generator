@@ -157,9 +157,10 @@ export const GRADE_LEVEL_PATTERN =
   /^(\d+),\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+)$/;
 
 // Sticker requirement pattern for TE products - handles formats like:
-// "26, No Sticker", "26, Needs Sticker: 4", "1, No Sticker", etc.
+// "12, No Sticker", "12, Needs Sticker: 3", etc.
+// First number is quantity, grade level appears after colon only for "Needs Sticker"
 export const STICKER_PATTERN =
-  /^(\d+),\s*(No Sticker|Needs Sticker:\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+))$/;
+  /^(\d+),\s*(No Sticker|Needs Sticker)(?::\s*([KkGg]|\d+|[A-Za-z]+\d*|\d*[A-Za-z]+))?$/;
 
 // Delivery date patterns (flexible to handle various formats)
 export const DELIVERY_DATE_PATTERNS = [
@@ -170,22 +171,23 @@ export const DELIVERY_DATE_PATTERNS = [
 ];
 
 // Excel date conversion patterns (e.g., "4-Sep", "12-Dec")
-export const EXCEL_DATE_PATTERN = /^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:\s*(am|pm|AM|PM))?$/i;
+export const EXCEL_DATE_PATTERN =
+  /^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:\s*(am|pm|AM|PM))?$/i;
 
 // Month name to number mapping for Excel date fixes
 export const MONTH_NAME_TO_NUMBER: Record<string, string> = {
-  'jan': '1',
-  'feb': '2',
-  'mar': '3',
-  'apr': '4',
-  'may': '5',
-  'jun': '6',
-  'jul': '7',
-  'aug': '8',
-  'sep': '9',
-  'oct': '10',
-  'nov': '11',
-  'dec': '12',
+  jan: '1',
+  feb: '2',
+  mar: '3',
+  apr: '4',
+  may: '5',
+  jun: '6',
+  jul: '7',
+  aug: '8',
+  sep: '9',
+  oct: '10',
+  nov: '11',
+  dec: '12',
 };
 
 // Excel date conversion detection result

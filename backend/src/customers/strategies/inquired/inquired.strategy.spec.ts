@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InquirEDStrategy } from './inquired.strategy';
 import { InquirEDService } from './inquired.service';
 import { CsvParserService } from '../../../common/services/csv-parser.service';
+import { InquirEDProcessedRow } from './inquired.types';
 
 describe('InquirEDStrategy', () => {
   let strategy: InquirEDStrategy;
@@ -75,6 +76,31 @@ Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,30,"30, No Sticker","25, Nee
       expect(result.rawData[0].products[2].quantity).toBe(26);
       expect(result.rawData[0].products[2].needsSticker).toBe(true);
       expect(result.rawData[0].products[2].gradeLevel).toBe('4');
+    });
+
+    it('should parse TE Orders with grade levels for "No Sticker" cases', async () => {
+      const mockCsvData = `District or School,Dock?,Paved Path?,Receiving Days,Receiving Hours,Delivery Address,Shipping Contact Name,Shipping Contact Email,Shipping Contact Phone,Total Number of TEs Ordered,IND-IJ-TE-NAVIG-0100,IND-IJ-TE-MYTEAM-0200,Fall 2025 Earliest Delivery Date,Appointment Required?
+"Test School, CO",Yes,Yes,M-F,8-4,"123 Main St
+Denver, CO 80202",Jane Smith,jane@test.edu,555-5678,50,"30, No Sticker: K","20, No Sticker: 2",8/15/2025,No`;
+
+      const buffer = Buffer.from(mockCsvData);
+      const result = await strategy.parseFile(buffer, 'test-te.csv');
+
+      expect(result.rawData).toHaveLength(1);
+      expect(result.metadata.fileType).toBe('te');
+      expect(result.rawData[0].products).toHaveLength(2);
+
+      // First product: No sticker with grade K
+      expect(result.rawData[0].products[0].sku).toBe('IND-IJ-TE-NAVIG-0100');
+      expect(result.rawData[0].products[0].quantity).toBe(30);
+      expect(result.rawData[0].products[0].needsSticker).toBe(false);
+      expect(result.rawData[0].products[0].gradeLevel).toBe('K');
+
+      // Second product: No sticker with grade 2
+      expect(result.rawData[0].products[1].sku).toBe('IND-IJ-TE-MYTEAM-0200');
+      expect(result.rawData[0].products[1].quantity).toBe(20);
+      expect(result.rawData[0].products[1].needsSticker).toBe(false);
+      expect(result.rawData[0].products[1].gradeLevel).toBe('2');
     });
 
     it('should throw error for empty file', async () => {
@@ -511,6 +537,378 @@ Denver, CO 80202",John Doe,john@test.edu,555-1234,Test notes,10,"2, k","3, KG",8
       // Both should normalize to 'K'
       expect(result.rawData[0].products[0].gradeLevel).toBe('K');
       expect(result.rawData[0].products[1].gradeLevel).toBe('K');
+    });
+  });
+
+  describe('TE Packing Logic', () => {
+    it('should pack single SKU with quantity <= 12 into one box', async () => {
+      const mockData = {
+        rawData: [
+          {
+            schoolDistrict: 'Test School 1',
+            deliveryAddress: '123 Main St\nAnytown, NY 12345',
+            shippingContact: {
+              name: 'John Doe',
+              email: 'john@test.com',
+              phone: '123-456-7890',
+            },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-NAVIG-0100',
+                quantity: 10,
+                gradeLevel: 'K',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 10,
+          } as InquirEDProcessedRow,
+        ],
+        metadata: {
+          totalRows: 1,
+          columns: [],
+          customerCode: 'INQUIRED',
+          uploadedAt: new Date(),
+          fileType: 'te',
+          jobNumber: 'TEST123',
+        },
+      };
+
+      const kits = await strategy.generateKits(mockData, 'TEST123');
+
+      expect(kits).toHaveLength(1);
+      expect(kits[0].metadata.customFields.boxNumber).toBe(1);
+      expect(kits[0].metadata.customFields.boxesInShipment).toBe(1);
+      expect(kits[0].items[0].quantity).toBe(10);
+    });
+
+    it('should pack single SKU with quantity > 12 into multiple boxes', async () => {
+      const mockData = {
+        rawData: [
+          {
+            schoolDistrict: 'Test School 2',
+            deliveryAddress: '456 Oak St\nAnytown, NY 12345',
+            shippingContact: {
+              name: 'Jane Doe',
+              email: 'jane@test.com',
+              phone: '123-456-7890',
+            },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-MYTEAM-0200',
+                quantity: 26,
+                gradeLevel: '1',
+                needsSticker: true,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 26,
+          } as InquirEDProcessedRow,
+        ],
+        metadata: {
+          totalRows: 1,
+          columns: [],
+          customerCode: 'INQUIRED',
+          uploadedAt: new Date(),
+          fileType: 'te',
+          jobNumber: 'TEST123',
+        },
+      };
+
+      const kits = await strategy.generateKits(mockData, 'TEST123');
+
+      expect(kits).toHaveLength(3); // 12 + 12 + 2
+      expect(kits[0].metadata.customFields.boxNumber).toBe(1);
+      expect(kits[0].metadata.customFields.boxesInShipment).toBe(3);
+      expect(kits[0].items[0].quantity).toBe(12);
+      expect(kits[1].metadata.customFields.boxNumber).toBe(2);
+      expect(kits[1].items[0].quantity).toBe(12);
+      expect(kits[2].metadata.customFields.boxNumber).toBe(3);
+      expect(kits[2].items[0].quantity).toBe(2);
+    });
+
+    it('should not split different SKUs into the same box', async () => {
+      const mockData = {
+        rawData: [
+          {
+            schoolDistrict: 'Test School 3',
+            deliveryAddress: '789 Pine St\nAnytown, NY 12345',
+            shippingContact: {
+              name: 'Bob Smith',
+              email: 'bob@test.com',
+              phone: '123-456-7890',
+            },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-NAVIG-0100',
+                quantity: 8,
+                gradeLevel: 'K',
+                needsSticker: false,
+              },
+              {
+                sku: 'IND-IJ-TE-MYTEAM-0200',
+                quantity: 6,
+                gradeLevel: '1',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 14,
+          } as InquirEDProcessedRow,
+        ],
+        metadata: {
+          totalRows: 1,
+          columns: [],
+          customerCode: 'INQUIRED',
+          uploadedAt: new Date(),
+          fileType: 'te',
+          jobNumber: 'TEST123',
+        },
+      };
+
+      const kits = await strategy.generateKits(mockData, 'TEST123');
+
+      expect(kits).toHaveLength(2); // One box per SKU
+      expect(kits[0].items[0].sku).toBe('IND-IJ-TE-NAVIG-0100');
+      expect(kits[0].items[0].quantity).toBe(8);
+      expect(kits[1].items[0].sku).toBe('IND-IJ-TE-MYTEAM-0200');
+      expect(kits[1].items[0].quantity).toBe(6);
+      expect(kits[0].metadata.customFields.boxNumber).toBe(1);
+      expect(kits[1].metadata.customFields.boxNumber).toBe(2);
+      expect(kits[0].metadata.customFields.boxesInShipment).toBe(2);
+    });
+
+    it('should skip packing logic for exception rows (rows 2-5)', async () => {
+      const mockData = {
+        rawData: [
+          // Row 0 (CSV row 1 after header) - should apply packing
+          {
+            schoolDistrict: 'Normal School',
+            deliveryAddress: '100 First St\nAnytown, NY 12345',
+            shippingContact: { name: 'User 1', email: '', phone: '' },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-NAVIG-0100',
+                quantity: 20,
+                gradeLevel: 'K',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 20,
+          } as InquirEDProcessedRow,
+          // Row 1 (CSV row 2) - exception row, should not apply packing
+          {
+            schoolDistrict: 'Exception School 1',
+            deliveryAddress: '200 Second St\nAnytown, NY 12345',
+            shippingContact: { name: 'User 2', email: '', phone: '' },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-MYTEAM-0200',
+                quantity: 20,
+                gradeLevel: '1',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 20,
+          } as InquirEDProcessedRow,
+          // Row 2 (CSV row 3) - exception row, should not apply packing
+          {
+            schoolDistrict: 'Exception School 2',
+            deliveryAddress: '300 Third St\nAnytown, NY 12345',
+            shippingContact: { name: 'User 3', email: '', phone: '' },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-PASTF-0300',
+                quantity: 15,
+                gradeLevel: '2',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 15,
+          } as InquirEDProcessedRow,
+          // Row 5 (CSV row 6) - should apply packing again
+          {
+            schoolDistrict: 'Normal School 2',
+            deliveryAddress: '600 Sixth St\nAnytown, NY 12345',
+            shippingContact: { name: 'User 6', email: '', phone: '' },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-TE-PASTF-0300',
+                quantity: 15,
+                gradeLevel: '2',
+                needsSticker: false,
+              },
+            ],
+            fileType: 'te',
+            totalTEs: 15,
+          } as InquirEDProcessedRow,
+        ],
+        metadata: {
+          totalRows: 4,
+          columns: [],
+          customerCode: 'INQUIRED',
+          uploadedAt: new Date(),
+          fileType: 'te',
+          jobNumber: 'TEST123',
+        },
+      };
+
+      const kits = await strategy.generateKits(mockData, 'TEST123');
+
+      // Row 0: 20 items = 2 boxes (12 + 8)
+      // Row 1: Exception row = 1 kit (no packing)
+      // Row 2: Exception row = 1 kit (no packing)
+      // Row 5: 15 items = 2 boxes (12 + 3)
+      expect(kits).toHaveLength(6);
+
+      // Check first school (row 0) - should have packing
+      const row0Kits = kits.filter(
+        (k) => k.recipient.company === 'Normal School',
+      );
+      expect(row0Kits).toHaveLength(2);
+      expect(row0Kits[0].metadata.customFields.boxNumber).toBe(1);
+      expect(row0Kits[0].metadata.customFields.boxesInShipment).toBe(2);
+
+      // Check exception school (row 1) - should not have box numbers
+      const row1Kits = kits.filter(
+        (k) => k.recipient.company === 'Exception School 1',
+      );
+      expect(row1Kits).toHaveLength(1);
+      expect(row1Kits[0].metadata.customFields.boxNumber).toBeUndefined();
+      expect(row1Kits[0].metadata.customFields.boxesInShipment).toBeUndefined();
+      expect(row1Kits[0].items[0].quantity).toBe(20); // All in one kit
+
+      // Check exception school 2 (row 2) - should not have box numbers
+      const row2Kits = kits.filter(
+        (k) => k.recipient.company === 'Exception School 2',
+      );
+      expect(row2Kits).toHaveLength(1);
+      expect(row2Kits[0].metadata.customFields.boxNumber).toBeUndefined();
+      expect(row2Kits[0].metadata.customFields.boxesInShipment).toBeUndefined();
+      expect(row2Kits[0].items[0].quantity).toBe(15); // All in one kit
+
+      // Check last school (row 5) - should have packing
+      const row5Kits = kits.filter(
+        (k) => k.recipient.company === 'Normal School 2',
+      );
+      expect(row5Kits).toHaveLength(2);
+      expect(row5Kits[0].metadata.customFields.boxNumber).toBe(1);
+      expect(row5Kits[0].metadata.customFields.boxesInShipment).toBe(2);
+    });
+
+    it('should not apply packing logic to PM orders', async () => {
+      const mockData = {
+        rawData: [
+          {
+            schoolDistrict: 'PM Test School',
+            deliveryAddress: '999 PM St\nAnytown, NY 12345',
+            shippingContact: {
+              name: 'PM User',
+              email: 'pm@test.com',
+              phone: '123-456-7890',
+            },
+            deliveryInfo: {
+              hasDock: true,
+              hasPavedPath: true,
+              receivingDays: 'M-F',
+              receivingHours: '8-4',
+              deliveryNotes: '',
+              shipDate: '8/7/2025',
+              appointmentRequired: false,
+            },
+            products: [
+              {
+                sku: 'IND-IJ-PM-NAVIG-EN-0100',
+                quantity: 20,
+                gradeLevel: 'K',
+              },
+            ],
+            fileType: 'pm', // PM order, not TE
+            totalBoxes: 2,
+          } as InquirEDProcessedRow,
+        ],
+        metadata: {
+          totalRows: 1,
+          columns: [],
+          customerCode: 'INQUIRED',
+          uploadedAt: new Date(),
+          fileType: 'pm', // PM file type
+          jobNumber: 'TEST123',
+        },
+      };
+
+      const kits = await strategy.generateKits(mockData, 'TEST123');
+
+      expect(kits).toHaveLength(1); // Only one kit, no box packing
+      expect(kits[0].metadata.customFields.boxNumber).toBeUndefined();
+      expect(kits[0].metadata.customFields.boxesInShipment).toBeUndefined();
+      expect(kits[0].items[0].quantity).toBe(20); // All quantity in one kit
     });
   });
 });

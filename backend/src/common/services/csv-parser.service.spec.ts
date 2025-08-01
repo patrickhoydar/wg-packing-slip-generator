@@ -92,7 +92,9 @@ describe('CsvParserService', () => {
       });
 
       it('should preserve non-Excel date values', () => {
-        expect(service.fixExcelDateConversion('8 am - 4 pm')).toBe('8 am - 4 pm');
+        expect(service.fixExcelDateConversion('8 am - 4 pm')).toBe(
+          '8 am - 4 pm',
+        );
         expect(service.fixExcelDateConversion('8-4')).toBe('8-4');
         expect(service.fixExcelDateConversion('M-F')).toBe('M-F');
       });
@@ -100,7 +102,9 @@ describe('CsvParserService', () => {
       it('should handle empty values', () => {
         expect(service.fixExcelDateConversion('')).toBe('');
         expect(service.fixExcelDateConversion(null as any)).toBe(null);
-        expect(service.fixExcelDateConversion(undefined as any)).toBe(undefined);
+        expect(service.fixExcelDateConversion(undefined as any)).toBe(
+          undefined,
+        );
       });
     });
 

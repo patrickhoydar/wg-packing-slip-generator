@@ -20,6 +20,11 @@
             <p class="shipment-id"><strong>Shipment ID:</strong> {{shipmentInfo.erpShipmentId}}</p>
           </div>
         </div>
+        {{#if metadata.customFields.boxNumber}}
+        <div class="text-center">
+          <p class="box-number"><strong>Box {{metadata.customFields.boxNumber}} of {{metadata.customFields.boxesInShipment}}</strong></p>
+        </div>
+        {{/if}}
       </div>
 
       <!-- Ship To Information -->

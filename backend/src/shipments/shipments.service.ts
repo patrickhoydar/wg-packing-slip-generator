@@ -39,9 +39,7 @@ export class ShipmentsService {
     });
   }
 
-  async createManyShipments(
-    shipments: CreateShipmentDto[],
-  ): Promise<number> {
+  async createManyShipments(shipments: CreateShipmentDto[]): Promise<number> {
     let createdCount = 0;
 
     // Use transaction for batch creation
@@ -126,10 +124,7 @@ export class ShipmentsService {
     });
   }
 
-  async updateStatus(
-    id: string,
-    status: ShipmentStatus,
-  ): Promise<Shipment> {
+  async updateStatus(id: string, status: ShipmentStatus): Promise<Shipment> {
     return this.prisma.shipment.update({
       where: { id },
       data: { status },

@@ -189,6 +189,10 @@ export class InquirEDStrategy extends CustomerStrategy {
       data.metadata.jobNumber = jobNumber;
     }
 
+    // Check if this is a TE order (based on file type)
+    // The packing logic applies to all TE (Teacher Edition) orders, not just for a specific customer
+    const isTE = data.metadata.fileType === 'te';
+
     for (let i = 0; i < data.rawData.length; i++) {
       const row = data.rawData[i] as InquirEDProcessedRow;
 
@@ -198,8 +202,21 @@ export class InquirEDStrategy extends CustomerStrategy {
       }
 
       try {
-        const kit = this.createKitFromRow(data, row, i, timestamp);
-        kits.push(kit);
+        if (isTE) {
+          // Apply TE packing logic to all rows
+          console.log(`[TE Packing] Row ${i + 1} (${row.schoolDistrict}): products = ${row.products.length}`);
+          const teKits = this.createTEKitsWithBoxes(
+            data,
+            row,
+            i,
+            timestamp,
+          );
+          kits.push(...teKits);
+        } else {
+          // Regular processing for non-TE orders
+          const kit = this.createKitFromRow(data, row, i, timestamp);
+          kits.push(kit);
+        }
       } catch (error) {
         console.error(`Error creating kit for row ${i + 1}:`, error);
         // Continue processing other rows
@@ -647,19 +664,26 @@ export class InquirEDStrategy extends CustomerStrategy {
         }
       }
     } else if (fileType === 'te') {
-      // Handle TE format: "26, No Sticker", "26, Needs Sticker: 4", etc.
+      // Handle TE format: "12, No Sticker" or "12, Needs Sticker: 3"
+      // First number is quantity, grade level only appears after colon for "Needs Sticker"
       const match = value.match(STICKER_PATTERN);
       if (match) {
         result.quantity = parseInt(match[1], 10) || 0;
-        result.needsSticker = match[2] !== 'No Sticker';
+        result.needsSticker = match[2] === 'Needs Sticker';
+        
+        // For "Needs Sticker", grade level is after the colon
+        // For "No Sticker", there's no grade level (use 'N/A')
         if (result.needsSticker && match[3]) {
           result.gradeLevel = this.normalizeGradeLevel(match[3]);
+        } else {
+          result.gradeLevel = 'N/A';
         }
       } else {
         // Fallback: try to parse just the number if no sticker info
         const numMatch = value.match(/^(\d+)/);
         if (numMatch) {
           result.quantity = parseInt(numMatch[1], 10) || 0;
+          result.gradeLevel = 'N/A';
           // If no sticker info, assume no sticker needed
           result.needsSticker = false;
         }
@@ -760,7 +784,8 @@ export class InquirEDStrategy extends CustomerStrategy {
     index: number,
     timestamp: Date,
   ): CustomerKit {
-    const kitId = this.generateKitId(this.customerCode, index, timestamp);
+    // Use timestamp with milliseconds to ensure uniqueness
+    const kitId = `${this.customerCode}-${timestamp.getTime()}-${String(index).padStart(4, '0')}`;
     const shipmentId = `${data.metadata.jobNumber || 'JOB'}-${String(index + 1).padStart(4, '0')}`;
     const items = this.createKitItems(kitId, row.products);
 
@@ -1246,5 +1271,162 @@ export class InquirEDStrategy extends CustomerStrategy {
     return notes.length > 0
       ? notes.join('\n')
       : 'InquirED Educational Materials Shipment';
+  }
+
+
+  /**
+   * Pack TE products into boxes with max 12 books per box
+   * SKUs cannot be split across boxes - uses sequential packing
+   */
+  private packTEProducts(
+    products: Array<{
+      sku: string;
+      quantity: number;
+      gradeLevel?: string;
+      needsSticker?: boolean;
+    }>,
+  ): Array<{
+    boxNumber: number;
+    totalBoxes: number;
+    items: Array<{
+      sku: string;
+      quantity: number;
+      gradeLevel?: string;
+      needsSticker?: boolean;
+    }>;
+  }> {
+    const boxes: Array<{
+      boxNumber: number;
+      totalBoxes: number;
+      items: Array<{
+        sku: string;
+        quantity: number;
+        gradeLevel?: string;
+        needsSticker?: boolean;
+      }>;
+    }> = [];
+
+    let currentBoxNumber = 1;
+    let currentBox: Array<{
+      sku: string;
+      quantity: number;
+      gradeLevel?: string;
+      needsSticker?: boolean;
+    }> = [];
+    let currentBoxCapacity = 12;
+
+    // Pack products sequentially
+    for (const product of products) {
+      // If this product won't fit in the current box, start a new box
+      if (product.quantity > currentBoxCapacity && currentBox.length > 0) {
+        // Save the current box
+        boxes.push({
+          boxNumber: currentBoxNumber,
+          totalBoxes: 0, // Will be updated later
+          items: currentBox,
+        });
+        
+        // Start a new box
+        currentBoxNumber++;
+        currentBox = [];
+        currentBoxCapacity = 12;
+      }
+
+      // Add the product to the current box
+      currentBox.push({
+        sku: product.sku,
+        quantity: product.quantity,
+        gradeLevel: product.gradeLevel,
+        needsSticker: product.needsSticker,
+      });
+      
+      currentBoxCapacity -= product.quantity;
+    }
+
+    // Add the last box if it has items
+    if (currentBox.length > 0) {
+      boxes.push({
+        boxNumber: currentBoxNumber,
+        totalBoxes: 0,
+        items: currentBox,
+      });
+    }
+
+    // Update total boxes count for all boxes
+    const totalBoxes = boxes.length;
+    boxes.forEach(box => {
+      box.totalBoxes = totalBoxes;
+    });
+
+    return boxes;
+  }
+
+  /**
+   * Create kits from TE products with box packing logic
+   */
+  private createTEKitsWithBoxes(
+    data: ParsedCustomerData,
+    row: InquirEDProcessedRow,
+    rowIndex: number,
+    timestamp: Date,
+  ): CustomerKit[] {
+    const kits: CustomerKit[] = [];
+
+    if (row.products.length === 0) {
+      // No products to pack
+      return kits;
+    }
+
+    // Apply packing logic
+    console.log(`[TE Packing] Applying packing logic for ${row.schoolDistrict} with ${row.products.length} products`);
+    const boxes = this.packTEProducts(row.products);
+    console.log(`[TE Packing] Created ${boxes.length} boxes`);
+    
+    // Create a kit for each box
+    for (const box of boxes) {
+        // Generate truly unique kit ID by incorporating both row index and box number
+        const uniqueIndex = rowIndex * 1000 + box.boxNumber;
+        const kitId = `${this.customerCode}-${timestamp.getTime()}-${String(uniqueIndex).padStart(4, '0')}`;
+        const shipmentId = `${data.metadata.jobNumber || 'JOB'}-${String(rowIndex + 1).padStart(4, '0')}-B${String(box.boxNumber).padStart(2, '0')}`;
+
+        const items = this.createKitItems(kitId, box.items);
+        const addressParts = this.parseDeliveryAddress(row.deliveryAddress);
+
+        const kit: CustomerKit = {
+          id: kitId,
+          jobNumber: data.metadata.jobNumber,
+          customerCode: this.customerCode,
+          shipmentId: shipmentId,
+          recipient: {
+            name: row.shippingContact.name,
+            company: row.schoolDistrict,
+            email: row.shippingContact.email,
+            phone: row.shippingContact.phone,
+            address: addressParts,
+          },
+          items,
+          metadata: {
+            originalRowIndex: rowIndex,
+            orderReference: row.schoolDistrict,
+            customFields: {
+              fileType: row.fileType,
+              deliveryInfo: row.deliveryInfo,
+              totalBoxes: box.totalBoxes,
+              totalTEs: row.totalTEs || 0,
+              boxNumber: box.boxNumber,
+              boxesInShipment: box.totalBoxes,
+            },
+            shippingMethod: '',
+            specialInstructions: this.buildSpecialInstructions(row),
+          },
+        };
+
+        const shippingRules = this.getShippingRules(kit);
+        kit.metadata.shippingMethod = shippingRules.method;
+
+        kits.push(kit);
+      }
+
+    return kits;
   }
 }

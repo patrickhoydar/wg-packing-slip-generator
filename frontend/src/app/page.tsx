@@ -263,7 +263,10 @@ export default function Home() {
                     </SelectTrigger>
                     <SelectContent>
                       {generatedKits.map((kit, index) => (
-                        <SelectItem key={kit.id} value={index.toString()}>
+                        <SelectItem
+                          key={`${kit.id}-${index}`}
+                          value={index.toString()}
+                        >
                           {index + 1}.{" "}
                           {kit.recipient.company || kit.recipient.name}
                         </SelectItem>
