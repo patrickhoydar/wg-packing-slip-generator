@@ -204,13 +204,10 @@ export class InquirEDStrategy extends CustomerStrategy {
       try {
         if (isTE) {
           // Apply TE packing logic to all rows
-          console.log(`[TE Packing] Row ${i + 1} (${row.schoolDistrict}): products = ${row.products.length}`);
-          const teKits = this.createTEKitsWithBoxes(
-            data,
-            row,
-            i,
-            timestamp,
+          console.log(
+            `[TE Packing] Row ${i + 1} (${row.schoolDistrict}): products = ${row.products.length}`,
           );
+          const teKits = this.createTEKitsWithBoxes(data, row, i, timestamp);
           kits.push(...teKits);
         } else {
           // Regular processing for non-TE orders
@@ -670,7 +667,7 @@ export class InquirEDStrategy extends CustomerStrategy {
       if (match) {
         result.quantity = parseInt(match[1], 10) || 0;
         result.needsSticker = match[2] === 'Needs Sticker';
-        
+
         // Both "Needs Sticker" and "No Sticker" can have grade levels after the colon
         if (match[3]) {
           result.gradeLevel = this.normalizeGradeLevel(match[3]);
@@ -1193,7 +1190,7 @@ export class InquirEDStrategy extends CustomerStrategy {
       job: jobNumber,
       shipmentType: 50, // Based on sample data - may need to be configurable
       shipVia: shipVia,
-      quantity: totalBoxes,
+      quantity: totalQuantity, // Total items across all boxes
       contactFirstName: kit.recipient.name.split(' ')[0] || '',
       contactLastName: kit.recipient.name.split(' ').slice(1).join(' ') || '',
       email: kit.recipient.email || '',
@@ -1209,9 +1206,9 @@ export class InquirEDStrategy extends CustomerStrategy {
         : new Date().toISOString(),
       charges: 'Prepaid/Shipper',
       shipped: false, // Will be set to true when actually shipped
-      carton1Count: 1,
+      carton1Count: 1, // Number of boxes/cartons
       count1: 1,
-      carton1Quantity: totalBoxes,
+      carton1Quantity: totalQuantity, // Total items in all cartons
       u_internalShipNotes: this.buildInternalShipNotes(
         deliveryInfo,
         kit,
@@ -1301,7 +1298,6 @@ export class InquirEDStrategy extends CustomerStrategy {
       : 'InquirED Educational Materials Shipment';
   }
 
-
   /**
    * Pack TE products into boxes with max 12 books per box
    * SKUs cannot be split across boxes - uses sequential packing
@@ -1353,7 +1349,7 @@ export class InquirEDStrategy extends CustomerStrategy {
           totalBoxes: 0, // Will be updated later
           items: currentBox,
         });
-        
+
         // Start a new box
         currentBoxNumber++;
         currentBox = [];
@@ -1367,7 +1363,7 @@ export class InquirEDStrategy extends CustomerStrategy {
         gradeLevel: product.gradeLevel,
         needsSticker: product.needsSticker,
       });
-      
+
       currentBoxCapacity -= product.quantity;
     }
 
@@ -1382,7 +1378,7 @@ export class InquirEDStrategy extends CustomerStrategy {
 
     // Update total boxes count for all boxes
     const totalBoxes = boxes.length;
-    boxes.forEach(box => {
+    boxes.forEach((box) => {
       box.totalBoxes = totalBoxes;
     });
 
@@ -1406,54 +1402,61 @@ export class InquirEDStrategy extends CustomerStrategy {
     }
 
     // Apply packing logic
-    console.log(`[TE Packing] Applying packing logic for ${row.schoolDistrict} with ${row.products.length} products`);
+    console.log(
+      `[TE Packing] Applying packing logic for ${row.schoolDistrict} with ${row.products.length} products`,
+    );
     const boxes = this.packTEProducts(row.products);
     console.log(`[TE Packing] Created ${boxes.length} boxes`);
-    
+
+    // Generate a single shipmentId for all boxes going to this location
+    const shipmentId = `${data.metadata.jobNumber || 'JOB'}-${String(rowIndex + 1).padStart(4, '0')}`;
+    console.log(
+      `[TE Packing] Using shipmentId ${shipmentId} for all ${boxes.length} boxes to ${row.schoolDistrict}`,
+    );
+
     // Create a kit for each box
     for (const box of boxes) {
-        // Generate truly unique kit ID by incorporating both row index and box number
-        const uniqueIndex = rowIndex * 1000 + box.boxNumber;
-        const kitId = `${this.customerCode}-${timestamp.getTime()}-${String(uniqueIndex).padStart(4, '0')}`;
-        const shipmentId = `${data.metadata.jobNumber || 'JOB'}-${String(rowIndex + 1).padStart(4, '0')}-B${String(box.boxNumber).padStart(2, '0')}`;
+      // Generate truly unique kit ID by incorporating both row index and box number
+      const uniqueIndex = rowIndex * 1000 + box.boxNumber;
+      const kitId = `${this.customerCode}-${timestamp.getTime()}-${String(uniqueIndex).padStart(4, '0')}`;
 
-        const items = this.createKitItems(kitId, box.items);
-        const addressParts = this.parseDeliveryAddress(row.deliveryAddress);
+      const items = this.createKitItems(kitId, box.items);
+      const addressParts = this.parseDeliveryAddress(row.deliveryAddress);
 
-        const kit: CustomerKit = {
-          id: kitId,
-          jobNumber: data.metadata.jobNumber,
-          customerCode: this.customerCode,
-          shipmentId: shipmentId,
-          recipient: {
-            name: row.shippingContact.name,
-            company: row.schoolDistrict,
-            email: row.shippingContact.email,
-            phone: row.shippingContact.phone,
-            address: addressParts,
+      const kit: CustomerKit = {
+        id: kitId,
+        jobNumber: data.metadata.jobNumber,
+        customerCode: this.customerCode,
+        shipmentId: shipmentId,
+        recipient: {
+          name: row.shippingContact.name,
+          company: row.schoolDistrict,
+          email: row.shippingContact.email,
+          phone: row.shippingContact.phone,
+          address: addressParts,
+        },
+        items,
+        metadata: {
+          originalRowIndex: rowIndex,
+          orderReference: row.schoolDistrict,
+          customFields: {
+            fileType: row.fileType,
+            deliveryInfo: row.deliveryInfo,
+            totalBoxes: box.totalBoxes,
+            totalTEs: row.totalTEs || 0,
+            boxNumber: box.boxNumber,
+            boxesInShipment: box.totalBoxes,
           },
-          items,
-          metadata: {
-            originalRowIndex: rowIndex,
-            orderReference: row.schoolDistrict,
-            customFields: {
-              fileType: row.fileType,
-              deliveryInfo: row.deliveryInfo,
-              totalBoxes: box.totalBoxes,
-              totalTEs: row.totalTEs || 0,
-              boxNumber: box.boxNumber,
-              boxesInShipment: box.totalBoxes,
-            },
-            shippingMethod: '',
-            specialInstructions: this.buildSpecialInstructions(row),
-          },
-        };
+          shippingMethod: '',
+          specialInstructions: this.buildSpecialInstructions(row),
+        },
+      };
 
-        const shippingRules = this.getShippingRules(kit);
-        kit.metadata.shippingMethod = shippingRules.method;
+      const shippingRules = this.getShippingRules(kit);
+      kit.metadata.shippingMethod = shippingRules.method;
 
-        kits.push(kit);
-      }
+      kits.push(kit);
+    }
 
     return kits;
   }

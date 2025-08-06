@@ -539,6 +539,7 @@ export class CustomersService implements OnModuleInit {
 
   /**
    * Create PACE shipments for multiple InquirED kits
+   * Groups kits by shipmentId to create one PACE shipment per location
    */
   async createPaceShipmentsForKits(
     customerCode: string,
@@ -553,40 +554,152 @@ export class CustomersService implements OnModuleInit {
     let successful = 0;
     let failed = 0;
 
-    for (let i = 0; i < kits.length; i++) {
-      const kit = kits[i];
-      const jobNumberId = `${jobNumber}`;
+    // Group kits by shipmentId (all boxes to same location share a shipmentId)
+    const kitsByShipmentId = new Map<string, any[]>();
+    for (const kit of kits) {
+      const shipmentId = kit.shipmentId;
+      if (!kitsByShipmentId.has(shipmentId)) {
+        kitsByShipmentId.set(shipmentId, []);
+      }
+      kitsByShipmentId.get(shipmentId)!.push(kit);
+    }
+
+    console.log(`[PACE] Grouped ${kits.length} kits into ${kitsByShipmentId.size} shipments`);
+
+    // Create one PACE shipment per unique shipmentId
+    for (const [shipmentId, shipmentKits] of kitsByShipmentId) {
+      console.log(`[PACE] Processing shipment ${shipmentId} with ${shipmentKits.length} boxes`);
+      
+      // Use the first kit as the primary kit for shipment details
+      // All kits in this group go to the same location
+      const primaryKit = shipmentKits[0];
+      
+      // Merge quantity information from all kits (boxes) going to this location
+      const totalBoxes = shipmentKits.length;
+      
+      // Aggregate ALL items from ALL boxes going to this location
+      const allItems: any[] = [];
+      const itemQuantityMap = new Map<string, any>();
+      
+      for (const kit of shipmentKits) {
+        for (const item of kit.items) {
+          const itemKey = item.sku;
+          if (itemQuantityMap.has(itemKey)) {
+            // Add to existing item quantity
+            const existingItem = itemQuantityMap.get(itemKey);
+            existingItem.quantity += item.quantity;
+          } else {
+            // Add new item
+            itemQuantityMap.set(itemKey, { ...item });
+          }
+        }
+      }
+      
+      // Convert map back to array
+      for (const item of itemQuantityMap.values()) {
+        allItems.push(item);
+      }
+      
+      console.log(`[PACE] Consolidated ${shipmentKits.length} boxes into 1 shipment with ${allItems.length} unique SKUs and ${allItems.reduce((sum, item) => sum + item.quantity, 0)} total items`);
+      
+      // Create a consolidated kit representation for PACE
+      const consolidatedKit = {
+        ...primaryKit,
+        items: allItems, // Use aggregated items from ALL boxes
+        metadata: {
+          ...primaryKit.metadata,
+          customFields: {
+            ...primaryKit.metadata.customFields,
+            totalBoxes: totalBoxes,
+            // Update total quantities to reflect all boxes
+          }
+        }
+      };
 
       try {
-        const result = await this.createPaceShipmentForKit(
-          customerCode,
-          kit,
-          jobNumberId,
+        // Create the PACE shipment using consolidated data
+        const pacePayload = this.inquirEDStrategy.transformKitToPaceShipment(
+          consolidatedKit,
+          jobNumber,
         );
-        results.push({ kitId: kit.id, result });
+        
+        const paceResult = await this.paceService.createJobShipment(pacePayload);
+        
+        // If successful, update ALL database shipment records for this group
+        if (paceResult.success && paceResult.shipmentId) {
+          console.log(`[PACE] Updating ${shipmentKits.length} database records with ERP ID ${paceResult.shipmentId}`);
+          
+          // Find and update ALL shipment records for kits in this group
+          for (const kit of shipmentKits) {
+            const shipment = await this.prisma.shipment.findFirst({
+              where: {
+                kitData: {
+                  path: ['id'],
+                  equals: kit.id,
+                },
+              },
+            });
+            
+            if (shipment) {
+              await this.shipmentsService.updateErpInfo(
+                shipment.id,
+                paceResult.shipmentId.toString(),
+                'PACE',
+                paceResult.response,
+              );
+              console.log(`[PACE] Updated shipment record ${shipment.id} for kit ${kit.id}`);
+            }
+          }
+          
+          // Update job contact (once per shipment group)
+          await this.paceService.updateJobContact(
+            paceResult.response,
+            consolidatedKit,
+          );
+        }
+        
+        // Create result object
+        const result = {
+          success: paceResult.success,
+          message: paceResult.message,
+          shipmentId: paceResult.shipmentId,
+          errors: paceResult.errors,
+          response: paceResult.response,
+        };
+        
+        // Add result for each kit in this shipment group
+        for (const kit of shipmentKits) {
+          results.push({ kitId: kit.id, result });
+        }
 
         if (result.success) {
           successful++;
+          console.log(`[PACE] ✅ Created shipment ${shipmentId} in PACE (${totalBoxes} boxes)`);
         } else {
           failed++;
+          console.log(`[PACE] ❌ Failed to create shipment ${shipmentId}: ${result.message}`);
         }
       } catch (error: any) {
-        results.push({
-          kitId: kit.id,
-          result: {
-            success: false,
-            message: `Error processing kit: ${error.message}`,
-            errors: [error.message],
-          },
-        });
+        // Add error result for each kit in this shipment group
+        for (const kit of shipmentKits) {
+          results.push({
+            kitId: kit.id,
+            result: {
+              success: false,
+              message: `Error processing shipment ${shipmentId}: ${error.message}`,
+              errors: [error.message],
+            },
+          });
+        }
         failed++;
+        console.log(`[PACE] ❌ Error processing shipment ${shipmentId}:`, error.message);
       }
     }
 
     return {
       results,
       summary: {
-        total: kits.length,
+        total: kitsByShipmentId.size, // Total unique shipments, not kits
         successful,
         failed,
       },
