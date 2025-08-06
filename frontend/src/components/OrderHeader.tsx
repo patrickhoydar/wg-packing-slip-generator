@@ -7,22 +7,27 @@ interface OrderHeaderProps {
   }
   shipmentInfo?: {
     shipmentId: string
+    erpShipmentId?: string
   }
 }
 
-export default function OrderHeader({ order, jobInfo, shipmentInfo }: OrderHeaderProps) {
+export default function OrderHeader({
+  order,
+  jobInfo,
+  shipmentInfo,
+}: OrderHeaderProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="text-left">
           <p className="text-sm text-gray-700">
-            Job No: {jobInfo?.jobNumber || 'N/A'}
+            Job No: {jobInfo?.jobNumber || "N/A"}
           </p>
         </div>
-        {shipmentInfo?.shipmentId && (
+        {(shipmentInfo?.erpShipmentId || shipmentInfo?.shipmentId) && (
           <div className="text-right">
             <p className="text-sm text-gray-700">
-              Shipment ID: {shipmentInfo.shipmentId}
+              Shipment ID: {shipmentInfo.erpShipmentId || shipmentInfo.shipmentId}
             </p>
           </div>
         )}

@@ -147,6 +147,9 @@ export class CustomersService implements OnModuleInit {
       `[BATCH] Starting NEW chunked batch PDF generation for ${kits.length} kits in chunks of ${chunkSize}`,
     );
 
+    // If kits have job numbers, fetch the actual data from the database
+    const updatedKits = await this.fetchKitsFromDatabase(customerCode, kits);
+
     // Create a unique output directory
     const timestamp = new Date()
       .toISOString()
@@ -163,7 +166,7 @@ export class CustomersService implements OnModuleInit {
 
     console.log(`[BATCH] PDFs will be saved to: ${outputDir}`);
     console.log(
-      `[BATCH] Expected output: ~${Math.ceil(kits.length / chunkSize)} chunks with up to ${chunkSize} PDFs each`,
+      `[BATCH] Expected output: ~${Math.ceil(updatedKits.length / chunkSize)} chunks with up to ${chunkSize} PDFs each`,
     );
 
     const startTime = Date.now();
@@ -171,7 +174,7 @@ export class CustomersService implements OnModuleInit {
     // Use the new chunked PDF service method
     const result = await this.pdfService.generateBatchPDFsToDirectory(
       customerCode,
-      kits,
+      updatedKits,
       outputDir,
       chunkSize,
     );
@@ -193,15 +196,84 @@ export class CustomersService implements OnModuleInit {
     return result;
   }
 
+  async generateCSVData(kits: any[]): Promise<string> {
+    // Get all items from the kits and merge into a single array
+    const allItems = kits.flatMap((kit) => {
+      // only include items that have a sticker
+      const company = kit.recipient?.company;
+      return (
+        kit.items
+          .filter((item) => item.customProperties?.needsSticker)
+          // Combine items with the same shipping contact into a single item
+          .reduce((acc, item) => {
+            const existingItem = acc.find(
+              (i) => i.recipient?.company === company,
+            );
+            if (existingItem) {
+              existingItem.quantity += item.quantity;
+            } else {
+              acc.push({
+                ...item,
+                customProperties: {
+                  ...item.customProperties,
+                  company: company,
+                },
+              });
+            }
+            return acc;
+          }, [])
+          .map((item) => ({
+            ...item,
+            kitId: kit.id,
+            company: kit.recipient.company,
+            name: kit.recipient.name,
+            email: kit.recipient.email,
+            phone: kit.recipient.phone,
+            street: kit.recipient.address.street,
+            city: kit.recipient.address.city,
+            state: kit.recipient.address.state,
+            zipCode: kit.recipient.address.zipCode,
+            country: kit.recipient.address.country || 'US',
+            jobNumber: kit.jobNumber,
+            shipmentId: kit.shipmentId,
+          }))
+      );
+    });
+
+    // Spread customProperties into the items and remove original customProperties object
+    // Custom properties are stored in an object with the property name as the key
+    allItems.forEach((item) => {
+      if (item.customProperties) {
+        Object.entries(item.customProperties).forEach(([key, value]) => {
+          item[key] = value;
+        });
+        delete item.customProperties;
+      }
+    });
+
+    // Convert to CSV format
+    const csv = allItems
+      .map(
+        (item) =>
+          `${item.sku},${item.name},${item.description},${item.quantity}`,
+      )
+      .join('\n');
+
+    return csv;
+  }
+
   async generateBatchPDFs(customerCode: string, kits: any[]): Promise<Buffer> {
     console.log(
       `[OLD] Starting OLD batch PDF generation for ${kits.length} kits`,
     );
 
+    // If kits have job numbers, fetch the actual data from the database
+    const updatedKits = await this.fetchKitsFromDatabase(customerCode, kits);
+
     // Use the consolidated PDF service for batch generation
     const mergedPdfBuffer = await this.pdfService.generateBatchPDFs(
       customerCode,
-      kits,
+      updatedKits,
     );
 
     console.log(
@@ -210,59 +282,70 @@ export class CustomersService implements OnModuleInit {
     return mergedPdfBuffer;
   }
 
-  // Legacy method - keep for potential fallback
-  async generateBatchPDFsLegacy(
-    customerCode: string,
-    kits: any[],
-  ): Promise<Buffer> {
-    console.log(`Starting legacy batch PDF generation for ${kits.length} kits`);
-    const strategy = this.strategyFactory.getStrategy(customerCode);
-    const zip = new JSZip();
+  async generatePreviewData(customerCode: string, kit: any) {
+    // If we have a job number, use the shipments from the database instead
+    if (kit.jobNumber) {
+      try {
+        // Find the customer first
+        const customer = await this.prisma.customer.findFirst({
+          where: { customerCode: customerCode.toUpperCase() },
+        });
 
-    for (let i = 0; i < kits.length; i++) {
-      const kit = kits[i];
-      console.log(`Processing kit ${i + 1}/${kits.length}: ${kit.id}`);
+        if (customer) {
+          // Find the job with its shipments
+          const job = await this.prisma.job.findFirst({
+            where: {
+              jobNumber: kit.jobNumber,
+              customerId: customer.id,
+            },
+            include: {
+              shipments: true,
+            },
+          });
 
-      // Apply customer-specific template customization
-      const branding = strategy.customizeTemplate(kit);
-      const shippingRules = strategy.getShippingRules(kit);
+          if (job && job.shipments.length > 0) {
+            // Find the matching shipment by exact shipmentId match
+            const matchingShipment = job.shipments.find((shipment) => {
+              try {
+                const kitData =
+                  typeof shipment.kitData === 'string'
+                    ? JSON.parse(shipment.kitData)
+                    : shipment.kitData;
+                return kitData?.shipmentId === kit.shipmentId;
+              } catch {
+                return false;
+              }
+            });
 
-      // Convert kit to packing slip format
-      const packingSlipData = this.convertKitToPackingSlip(
-        kit,
-        branding,
-        shippingRules,
-      );
+            if (matchingShipment) {
+              // USE THE KIT DATA FROM THE SHIPMENT!
+              const storedKitData =
+                typeof matchingShipment.kitData === 'string'
+                  ? JSON.parse(matchingShipment.kitData)
+                  : matchingShipment.kitData;
 
-      // Generate PDF for this kit
-      const pdfBuffer =
-        await this.pdfService.generatePackingSlipPdf(packingSlipData);
+              // Replace the entire kit with the one from the database
+              kit = {
+                ...storedKitData,
+                erpShipmentId: matchingShipment.erpShipmentId,
+              };
 
-      // Add to zip with descriptive filename
-      const filename = `${kit.id}-${kit.recipient.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      zip.file(filename, pdfBuffer);
-      console.log(`Added PDF to zip: ${filename}`);
+              console.log('[PREVIEW-DEBUG] Found matching shipment:', {
+                shipmentId: kit.shipmentId,
+                erpShipmentId: matchingShipment.erpShipmentId,
+                boxNumber: storedKitData.metadata?.customFields?.boxNumber,
+                boxesInShipment:
+                  storedKitData.metadata?.customFields?.boxesInShipment,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[PREVIEW-DEBUG] Error fetching shipments:', error);
+      }
     }
 
-    // Generate the zip file
-    console.log(
-      `Generating ZIP file with ${Object.keys(zip.files).length} PDFs`,
-    );
-    const zipBuffer = await zip.generateAsync({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 6 },
-    });
-
-    console.log(`Generated ZIP file with size: ${zipBuffer.length} bytes`);
-    return zipBuffer;
-  }
-
-  async generatePreviewData(customerCode: string, kit: any) {
     const strategy = this.strategyFactory.getStrategy(customerCode);
-
-    // Debug logging to see what's in the kit
-    console.log('[PREVIEW-DEBUG] Kit data received');
 
     // For preview purposes, generate fallback values if not present
     const jobNumber = kit.jobNumber || 'PREVIEW-JOB';
@@ -297,7 +380,7 @@ export class CustomersService implements OnModuleInit {
       shipmentInfo: {
         shipmentId: shipmentId,
         erpShipmentId: kit.erpShipmentId || shipmentId, // Use erpShipmentId if available, fallback to shipmentId
-        erpSystem: kit.erpSystem || '',
+        erpSystem: kit.erpSystem || 'PACE',
       },
       shipTo: {
         name: kit.recipient.name,
@@ -330,6 +413,11 @@ export class CustomersService implements OnModuleInit {
       // CRITICAL: Pass through the entire kit object so template has access to metadata
       metadata: kit.metadata || null,
     };
+
+    console.log(
+      '[PREVIEW-DEBUG] Final previewData shipmentInfo:',
+      previewData.shipmentInfo,
+    );
 
     return previewData;
   }
@@ -513,6 +601,75 @@ export class CustomersService implements OnModuleInit {
    * Merge ERP shipment IDs from existing shipments into new kits
    * Matches based on shipmentId from kit and kitData stored in shipment
    */
+  private async fetchKitsFromDatabase(
+    customerCode: string,
+    kits: any[],
+  ): Promise<any[]> {
+    // Get the first kit with a job number to determine which job to fetch
+    const kitWithJob = kits.find((kit) => kit.jobNumber);
+
+    if (!kitWithJob) {
+      console.log('[FETCH-KITS] No kits have job numbers, using original kits');
+      return kits;
+    }
+
+    const jobNumber = kitWithJob.jobNumber;
+
+    // Find the customer
+    const customer = await this.prisma.customer.findFirst({
+      where: { customerCode: customerCode.toUpperCase() },
+    });
+
+    if (!customer) {
+      console.log('[FETCH-KITS] Customer not found, using original kits');
+      return kits;
+    }
+
+    // Fetch the job with its shipments
+    const job = await this.prisma.job.findFirst({
+      where: {
+        jobNumber: jobNumber,
+        customerId: customer.id,
+      },
+      include: {
+        shipments: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+    });
+
+    if (job && job.shipments.length > 0) {
+      // USE ALL SHIPMENTS FROM THE DATABASE - DON'T TRY TO MATCH!
+      const kitsFromDatabase = job.shipments.map((shipment) => {
+        const kitData =
+          typeof shipment.kitData === 'string'
+            ? JSON.parse(shipment.kitData)
+            : shipment.kitData;
+
+        return {
+          ...kitData,
+          erpShipmentId: shipment.erpShipmentId,
+        };
+      });
+
+      console.log(
+        `[FETCH-KITS] Using ${kitsFromDatabase.length} kits from database for job ${jobNumber}`,
+      );
+      console.log(
+        `[FETCH-KITS] All kits have erpShipmentId: ${kitsFromDatabase.every((k) => k.erpShipmentId)}`,
+      );
+
+      return kitsFromDatabase;
+    } else {
+      console.log(
+        `[FETCH-KITS] No job found for ${jobNumber}, using original kits`,
+      );
+      return kits;
+    }
+  }
+
   private mergeErpShipmentIds(kits: any[], shipments: any[]): any[] {
     console.log(
       `[ERP-MERGE] Attempting to merge ${shipments.length} shipments with ${kits.length} kits`,
@@ -522,16 +679,29 @@ export class CustomersService implements OnModuleInit {
       // Find matching shipment by checking if the kit's shipmentId matches the one stored in shipment's kitData
       const matchingShipment = shipments.find((shipment) => {
         try {
-          const kitData = shipment.kitData;
+          // Parse kitData if it's a string (JSON)
+          const kitData =
+            typeof shipment.kitData === 'string'
+              ? JSON.parse(shipment.kitData)
+              : shipment.kitData;
 
+          // Debug log to see what we're comparing
+          if (kit.shipmentId === '207206-0001-B01') {
+            console.log(`[ERP-MERGE] Checking shipment ${shipment.id}:`, {
+              kitDataId: kitData?.id,
+              kitDataShipmentId: kitData?.shipmentId,
+              targetShipmentId: kit.shipmentId,
+            });
+          }
+
+          // Primary match: by shipmentId (which is consistent across uploads)
           if (kitData?.shipmentId === kit.shipmentId) {
+            console.log(
+              `[ERP-MERGE] ✅ Matched by shipmentId: ${kit.shipmentId} -> ERP ID: ${shipment.erpShipmentId}`,
+            );
             return true;
           }
-          // Fallback: match by kit ID
-          if (kitData?.id === kit.id) {
-            console.log(`[ERP-MERGE] ✅ Matched by kit ID: ${kit.id}`);
-            return true;
-          }
+
           return false;
         } catch (error) {
           console.warn(
@@ -544,12 +714,14 @@ export class CustomersService implements OnModuleInit {
 
       if (matchingShipment && matchingShipment.erpShipmentId) {
         console.log(
-          `[ERP-MERGE] Matched kit ${kit.id} with ERP shipment ID: ${matchingShipment.erpShipmentId}`,
+          `[ERP-MERGE] ✅ Merged kit ${kit.shipmentId} with ERP shipment ID: ${matchingShipment.erpShipmentId}`,
         );
         return {
           ...kit,
           erpShipmentId: matchingShipment.erpShipmentId,
         };
+      } else {
+        console.log(`[ERP-MERGE] ❌ No match found for kit ${kit.shipmentId}`);
       }
 
       return kit;
@@ -557,7 +729,7 @@ export class CustomersService implements OnModuleInit {
 
     const mergedCount = updatedKits.filter((kit) => kit.erpShipmentId).length;
     console.log(
-      `[ERP-MERGE] Successfully merged ${mergedCount}/${kits.length} kits with ERP shipment IDs`,
+      `[ERP-MERGE] Successfully merged ${mergedCount} of ${kits.length} kits with ERP shipment IDs`,
     );
 
     return updatedKits;

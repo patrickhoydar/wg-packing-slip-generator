@@ -25,7 +25,7 @@ export class InquirEDService {
     try {
       const lookupFilePath = path.join(
         __dirname,
-        '../../../../docs/sample-data/Customers/InquirED/Packing Slip Look Up Table.csv',
+        '../../../../../../docs/prds/sample-data/Customers/InquirED/Packing Slip Look Up Table.csv',
       );
 
       // Check if file exists

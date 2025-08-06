@@ -149,7 +149,7 @@ export class PaceService implements ErpService {
   }
 
   async updateJobContact(createShipmentResponse: any, kit: any) {
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const jobContact = {
       id: createShipmentResponse.contactNumber,

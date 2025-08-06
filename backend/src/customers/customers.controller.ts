@@ -139,6 +139,8 @@ export class CustomersController {
         });
       }
 
+      const csvData = await this.customersService.generateCSVData(kits);
+
       // Generate individual PDFs to directory
       const result = await this.customersService.generateBatchPDFsToDirectory(
         customerCode,

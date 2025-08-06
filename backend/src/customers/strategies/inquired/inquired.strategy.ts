@@ -664,16 +664,15 @@ export class InquirEDStrategy extends CustomerStrategy {
         }
       }
     } else if (fileType === 'te') {
-      // Handle TE format: "12, No Sticker" or "12, Needs Sticker: 3"
-      // First number is quantity, grade level only appears after colon for "Needs Sticker"
+      // Handle TE format: "12, No Sticker" or "12, Needs Sticker: 3" or "12, No Sticker: K"
+      // First number is quantity, grade level can appear after colon for both sticker types
       const match = value.match(STICKER_PATTERN);
       if (match) {
         result.quantity = parseInt(match[1], 10) || 0;
         result.needsSticker = match[2] === 'Needs Sticker';
         
-        // For "Needs Sticker", grade level is after the colon
-        // For "No Sticker", there's no grade level (use 'N/A')
-        if (result.needsSticker && match[3]) {
+        // Both "Needs Sticker" and "No Sticker" can have grade levels after the colon
+        if (match[3]) {
           result.gradeLevel = this.normalizeGradeLevel(match[3]);
         } else {
           result.gradeLevel = 'N/A';
@@ -704,9 +703,38 @@ export class InquirEDStrategy extends CustomerStrategy {
       return 'K';
     }
 
-    // Handle numeric grades
+    // Handle numeric grades and convert to ordinal format
     if (/^\d+$/.test(normalizedGrade)) {
-      return normalizedGrade;
+      const gradeNum = parseInt(normalizedGrade, 10);
+      switch (gradeNum) {
+        case 1:
+          return '1st';
+        case 2:
+          return '2nd';
+        case 3:
+          return '3rd';
+        case 4:
+          return '4th';
+        case 5:
+          return '5th';
+        case 6:
+          return '6th';
+        case 7:
+          return '7th';
+        case 8:
+          return '8th';
+        case 9:
+          return '9th';
+        case 10:
+          return '10th';
+        case 11:
+          return '11th';
+        case 12:
+          return '12th';
+        default:
+          // For any other number, use the standard 'th' suffix
+          return `${gradeNum}th`;
+      }
     }
 
     // Return as-is for other formats
