@@ -206,4 +206,29 @@ export class JobsService {
 
     return stats;
   }
+
+  async addShipmentsToJob(
+    jobId: string,
+    kits: any[],
+  ): Promise<{
+    shipmentsCreated: number;
+    totalShipments: number;
+  }> {
+    // Transform kits into shipment data
+    const shipmentData = kits.map((kit) =>
+      this.transformKitToShipment(kit, jobId),
+    );
+
+    // Create all shipments
+    const shipmentsCreated =
+      await this.shipmentsService.createManyShipments(shipmentData);
+
+    // Update job with new shipment count
+    const updatedJob = await this.updateShipmentCount(jobId);
+
+    return {
+      shipmentsCreated,
+      totalShipments: updatedJob.totalShipments,
+    };
+  }
 }

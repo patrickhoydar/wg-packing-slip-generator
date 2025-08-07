@@ -62,12 +62,26 @@ export class JobsController {
       customerId,
       jobNumber,
     );
+
     if (existingJob) {
-      throw new BadRequestException(
-        `Job number ${jobNumber} already exists for this customer`,
+      // Add shipments to existing job instead of throwing error
+      const result = await this.jobsService.addShipmentsToJob(
+        existingJob.id,
+        kits,
       );
+
+      return {
+        success: true,
+        message: `Added ${result.shipmentsCreated} shipments to existing job ${jobNumber}`,
+        data: {
+          job: existingJob,
+          shipmentsAdded: result.shipmentsCreated,
+          totalShipments: result.totalShipments,
+        },
+      };
     }
 
+    // Create new job if it doesn't exist
     const result = await this.jobsService.createJobWithShipments({
       jobNumber,
       customerId,

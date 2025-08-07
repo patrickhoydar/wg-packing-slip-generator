@@ -15,59 +15,65 @@ datasource db {
 
 model Customer {
   id             String   @id @default(uuid())
-  customerCode   String   @unique
-  displayName    String
-  defaultShipVia Int?
+  customerCode   String   @unique @map("customer_code")
+  displayName    String   @map("display_name")
+  defaultShipVia Int?     @map("default_ship_via")
   metadata       Json?
   jobs           Job[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("customers")
 }
 
 model Job {
   id               String     @id @default(uuid())
-  jobNumber        String
-  customerId       String
+  jobNumber        String     @map("job_number")
+  customerId       String     @map("customer_id")
   customer         Customer   @relation(fields: [customerId], references: [id])
-  uploadedFileName String
+  uploadedFileName String     @map("uploaded_file_name")
   status           JobStatus
-  totalShipments   Int        @default(0)
+  totalShipments   Int        @default(0) @map("total_shipments")
   shipments        Shipment[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
   @@unique([customerId, jobNumber])
+  @@map("jobs")
 }
 
 model Shipment {
   id               String         @id @default(uuid())
-  jobId            String
+  jobId            String         @map("job_id")
   job              Job            @relation(fields: [jobId], references: [id])
-  erpShipmentId    String?
-  erpSystem        String?
-  kitData          Json
-  recipientName    String
-  recipientCompany String?
-  shippingAddress  Json
+  erpShipmentId    String?        @map("erp_shipment_id")
+  erpSystem        String?        @map("erp_system")
+  kitData          Json           @map("kit_data")
+  recipientName    String         @map("recipient_name")
+  recipientCompany String?        @map("recipient_company")
+  shippingAddress  Json           @map("shipping_address")
   status           ShipmentStatus
-  erpResponse      Json?
-  pdfPath          String?
+  erpResponse      Json?          @map("erp_response")
+  pdfPath          String?        @map("pdf_path")
   items            ShipmentItem[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
   @@index([erpShipmentId])
   @@index([jobId, status])
+  @@map("shipments")
 }
 
 model ShipmentItem {
   id               String   @id @default(uuid())
-  shipmentId       String
+  shipmentId       String   @map("shipment_id")
   shipment         Shipment @relation(fields: [shipmentId], references: [id])
   sku              String
   description      String
   quantity         Int
-  customProperties Json?
+  customProperties Json?    @map("custom_properties")
+
+  @@map("shipment_items")
 }
 
 enum JobStatus {
@@ -76,6 +82,8 @@ enum JobStatus {
   erp_creating
   completed
   failed
+
+  @@map("job_status")
 }
 
 enum ShipmentStatus {
@@ -83,4 +91,6 @@ enum ShipmentStatus {
   erp_created
   pdf_generated
   failed
+
+  @@map("shipment_status")
 }

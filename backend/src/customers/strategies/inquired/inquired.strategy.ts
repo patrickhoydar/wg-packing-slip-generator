@@ -1299,7 +1299,7 @@ export class InquirEDStrategy extends CustomerStrategy {
   }
 
   /**
-   * Pack TE products into boxes with max 12 books per box
+   * Pack TE products into boxes using max qty per box from SKU lookup
    * SKUs cannot be split across boxes - uses sequential packing
    */
   private packTEProducts(
@@ -1331,55 +1331,63 @@ export class InquirEDStrategy extends CustomerStrategy {
     }> = [];
 
     let currentBoxNumber = 1;
-    let currentBox: Array<{
-      sku: string;
-      quantity: number;
-      gradeLevel?: string;
-      needsSticker?: boolean;
-    }> = [];
-    let currentBoxCapacity = 12;
 
-    // Pack products sequentially
+    // Default fallback if SKU doesn't have a specific max
+    const defaultMaxCapacity = 12;
+
+    // Pack products sequentially - each SKU type gets its own box(es)
     for (const product of products) {
-      // If this product won't fit in the current box, start a new box
-      if (product.quantity > currentBoxCapacity && currentBox.length > 0) {
-        // Save the current box
+      // Get the max qty per box for this specific SKU
+      const skuInfo = this.inquirEDService.getSkuInfo(product.sku);
+      const maxQtyForSku = skuInfo?.maxQtyPerBox || defaultMaxCapacity;
+
+      console.log(
+        `[PACKING] SKU: ${product.sku}, Qty: ${product.quantity}, Max per box: ${maxQtyForSku}`,
+      );
+
+      let remainingQuantity = product.quantity;
+
+      // Split this SKU across multiple boxes if needed
+      while (remainingQuantity > 0) {
+        // Calculate how much to put in this box
+        const qtyForThisBox = Math.min(remainingQuantity, maxQtyForSku);
+
+        // Create a new box for this SKU
         boxes.push({
           boxNumber: currentBoxNumber,
           totalBoxes: 0, // Will be updated later
-          items: currentBox,
+          items: [
+            {
+              sku: product.sku,
+              quantity: qtyForThisBox,
+              gradeLevel: product.gradeLevel,
+              needsSticker: product.needsSticker,
+            },
+          ],
         });
 
-        // Start a new box
         currentBoxNumber++;
-        currentBox = [];
-        currentBoxCapacity = 12;
+        remainingQuantity -= qtyForThisBox;
+
+        console.log(
+          `[PACKING]   Box ${currentBoxNumber - 1}: ${product.sku} x ${qtyForThisBox}`,
+        );
       }
-
-      // Add the product to the current box
-      currentBox.push({
-        sku: product.sku,
-        quantity: product.quantity,
-        gradeLevel: product.gradeLevel,
-        needsSticker: product.needsSticker,
-      });
-
-      currentBoxCapacity -= product.quantity;
-    }
-
-    // Add the last box if it has items
-    if (currentBox.length > 0) {
-      boxes.push({
-        boxNumber: currentBoxNumber,
-        totalBoxes: 0,
-        items: currentBox,
-      });
     }
 
     // Update total boxes count for all boxes
     const totalBoxes = boxes.length;
     boxes.forEach((box) => {
       box.totalBoxes = totalBoxes;
+    });
+
+    // Log the packing results
+    console.log(`[PACKING] Created ${totalBoxes} boxes:`);
+    boxes.forEach((box, index) => {
+      const itemSummary = box.items
+        .map((item) => `${item.sku}: ${item.quantity}`)
+        .join(', ');
+      console.log(`[PACKING]   Box ${index + 1}: ${itemSummary}`);
     });
 
     return boxes;

@@ -8,6 +8,7 @@ interface SkuLookupRow {
   'Product Category': string;
   Description: string;
   SKU: string;
+  'Max Qty Per Box'?: string;
 }
 
 @Injectable()
@@ -52,12 +53,20 @@ export class InquirEDService {
         const sku = this.csvParser.cleanString(row.SKU);
         const description = this.csvParser.cleanString(row.Description);
         const category = this.csvParser.cleanString(row['Product Category']);
+        const maxQtyPerBoxStr = this.csvParser.cleanString(
+          row['Max Qty Per Box'] || '',
+        );
+        const maxQtyPerBox = maxQtyPerBoxStr
+          ? parseInt(maxQtyPerBoxStr, 10)
+          : undefined;
 
         if (sku && description && category) {
           this.skuLookupTable.set(sku, {
             sku,
             description,
             category: this.mapCategoryToType(category),
+            maxQtyPerBox:
+              maxQtyPerBox && !isNaN(maxQtyPerBox) ? maxQtyPerBox : undefined,
           });
         }
       }

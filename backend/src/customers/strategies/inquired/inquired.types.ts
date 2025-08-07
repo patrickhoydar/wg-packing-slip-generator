@@ -97,6 +97,7 @@ export interface InquirEDProductInfo {
     | 'Printed Materials (EN)'
     | 'Printed Materials (SP)'
     | 'Teacher Edition';
+  maxQtyPerBox?: number;
 }
 
 export interface InquirEDDeliveryInfo {
