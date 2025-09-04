@@ -9,6 +9,7 @@ import { CustomersModule } from './customers/customers.module';
 import { PaceModule } from './pace/pace.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ShipmentsModule } from './shipments/shipments.module';
+import { TemplatesModule } from './templates/templates.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ShipmentsModule } from './shipments/shipments.module';
     PaceModule,
     JobsModule,
     ShipmentsModule,
+    TemplatesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

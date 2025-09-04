@@ -1,5 +1,7 @@
+"use client";
+
 import { Type, Building, User, Table, BarChart3, Image, PenTool, Minus, LucideIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { DraggableElement } from "./template-editor/DraggableElement";
 
 interface ElementItem {
   id: string;
@@ -23,10 +25,6 @@ const elementItems: ElementItem[] = [
 export default function ElementsPanel() {
   const categories = [...new Set(elementItems.map(item => item.category))];
 
-  const handleDragStart = (e: React.DragEvent, element: ElementItem) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(element));
-  };
-
   return (
     <div>
       <div className="mb-6">
@@ -39,27 +37,12 @@ export default function ElementsPanel() {
           <div key={category}>
             <h3 className="text-sm font-medium text-foreground mb-3">{category}</h3>
             <div className="space-y-2">
-              {elementItems.filter(item => item.category === category).map(element => {
-                const IconComponent = element.icon;
-                return (
-                  <Card
-                    key={element.id}
-                    className="p-3 cursor-move hover:bg-muted/50 hover:border-primary/20 transition-all duration-200"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, element)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-primary/10">
-                        <IconComponent className="w-4 h-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-foreground">{element.name}</div>
-                        <div className="text-xs text-muted-foreground">{element.description}</div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
+              {elementItems.filter(item => item.category === category).map(element => (
+                <DraggableElement
+                  key={element.id}
+                  {...element}
+                />
+              ))}
             </div>
           </div>
         ))}

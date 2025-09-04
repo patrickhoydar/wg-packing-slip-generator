@@ -24,6 +24,8 @@ import {
   CustomerKit,
 } from "../types/customerStrategy"
 
+import Link from "next/link"
+
 export default function Home() {
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerStrategy | null>(null)
@@ -372,7 +374,48 @@ export default function Home() {
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab as "elements" | "customers")}
       >
-        {renderSidebarContent()}
+        <div className="space-y-4">
+          {/* Packing Slip Editor Link */}
+          <Card className="border-green-200 bg-green-50/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-green-800">
+                Quick Packing Slip Editor
+              </CardTitle>
+              <p className="text-sm text-green-700">
+                Create a packing slip with direct editing
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Link href="/packing-slip-editor">
+                <Button className="w-full" variant="default">
+                  Open Packing Slip Editor
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          
+          {/* Template Editor Link */}
+          <Card className="border-blue-200 bg-blue-50/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-blue-800">
+                Advanced Template Editor
+              </CardTitle>
+              <p className="text-sm text-blue-700">
+                Create reusable packing slip templates
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Link href="/template-editor">
+                <Button className="w-full" variant="outline">
+                  Open Template Editor
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          
+          {/* Existing content */}
+          {renderSidebarContent()}
+        </div>
       </Sidebar>
 
       <PreviewPanel

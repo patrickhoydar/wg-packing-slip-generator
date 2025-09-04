@@ -14,14 +14,15 @@ datasource db {
 }
 
 model Customer {
-  id             String   @id @default(uuid())
-  customerCode   String   @unique @map("customer_code")
-  displayName    String   @map("display_name")
-  defaultShipVia Int?     @map("default_ship_via")
+  id             String     @id @default(uuid())
+  customerCode   String     @unique @map("customer_code")
+  displayName    String     @map("display_name")
+  defaultShipVia Int?       @map("default_ship_via")
   metadata       Json?
   jobs           Job[]
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  templates      Template[]
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
 
   @@map("customers")
 }
@@ -93,4 +94,27 @@ enum ShipmentStatus {
   failed
 
   @@map("shipment_status")
+}
+
+model Template {
+  id           String   @id @default(uuid())
+  name         String
+  customerId   String?  @map("customer_id")
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  customerCode String?  @map("customer_code")
+  elements     Json     // Array of template elements with positions
+  pageSettings Json     @map("page_settings") // Page size, margins, etc.
+  styles       Json?    // Global styles for the template
+  isDefault    Boolean  @default(false) @map("is_default")
+  isActive     Boolean  @default(true) @map("is_active")
+  version      Int      @default(1)
+  createdBy    String?  @map("created_by")
+  metadata     Json?    // Additional metadata
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@index([customerCode])
+  @@index([isDefault])
+  @@map("templates")
 }

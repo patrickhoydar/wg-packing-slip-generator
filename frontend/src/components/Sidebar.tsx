@@ -1,18 +1,34 @@
-import { Package, Users, Settings } from "lucide-react"
+import { Package, Users, Settings, Grid, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+interface TabConfig {
+  id: string;
+  label: string;
+  icon: string;
+}
 
 interface SidebarProps {
   children: React.ReactNode;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  tabs?: TabConfig[];
 }
 
-export default function Sidebar({ children, activeTab = 'elements', onTabChange }: SidebarProps) {
-  const tabs = [
-    { id: 'elements', label: 'Elements', icon: Package },
-    { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings }
-  ];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  grid: Grid,
+  users: Users,
+  settings: Settings,
+  file: FileText,
+  package: Package,
+};
+
+const defaultTabs: TabConfig[] = [
+  { id: 'elements', label: 'Elements', icon: 'package' },
+  { id: 'customers', label: 'Customers', icon: 'users' },
+  { id: 'settings', label: 'Settings', icon: 'settings' }
+];
+
+export default function Sidebar({ children, activeTab = 'elements', onTabChange, tabs = defaultTabs }: SidebarProps) {
 
   return (
     <div className="w-80 bg-background border-r border-border flex flex-col h-full">
@@ -24,7 +40,7 @@ export default function Sidebar({ children, activeTab = 'elements', onTabChange 
       {/* Tab Navigation */}
       <div className="flex border-b border-border">
         {tabs.map((tab) => {
-          const IconComponent = tab.icon;
+          const IconComponent = iconMap[tab.icon] || Package;
           const isActive = activeTab === tab.id;
           return (
             <Button
