@@ -3,6 +3,7 @@ import { CustomerStrategyFactory } from './strategies/base/customer-strategy.fac
 import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquirEDStrategy } from './strategies/inquired/inquired.strategy';
+import { ScholasticStrategy } from './strategies/scholastic/scholastic.strategy';
 import { PdfService } from '../pdf/pdf.service';
 import { PaceService } from '../pace/pace.service';
 import { CreateJobShipmentResponse } from '../pace/interfaces/pace.interface';
@@ -21,6 +22,7 @@ export class CustomersService implements OnModuleInit {
     private readonly hhGlobalStrategy: HHGlobalStrategy,
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
     private readonly inquirEDStrategy: InquirEDStrategy,
+    private readonly scholasticStrategy: ScholasticStrategy,
     private readonly pdfService: PdfService,
     private readonly paceService: PaceService,
     private readonly prisma: PrismaService,
@@ -37,6 +39,7 @@ export class CustomersService implements OnModuleInit {
       this.georgiaBaptistStrategy,
     );
     this.strategyFactory.registerStrategy('INQUIRED', this.inquirEDStrategy);
+    this.strategyFactory.registerStrategy('SCHOLASTIC', this.scholasticStrategy);
   }
 
   async getAvailableStrategies() {

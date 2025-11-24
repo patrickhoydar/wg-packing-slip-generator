@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   DndContext, 
   DragEndEvent, 
   DragOverlay, 
-  DragStartEvent, 
+  DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
-  DragMoveEvent
+  closestCenter,
+  Modifier
 } from "@dnd-kit/core";
+import { createSnapModifier } from "@dnd-kit/modifiers";
 import { useTemplateStore } from "@/store/templateStore";
 import { TemplateCanvas } from "@/components/template-editor/TemplateCanvas";
 import ElementsPanel from "@/components/ElementsPanel";
@@ -22,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { templatesApi } from "@/lib/api/templates";
 import { 
   Save, Download, Upload, Undo, Redo, 
-  FileText, Settings, Eye, Loader2
+  FileText, Loader2
 } from "lucide-react";
 
 export default function TemplateEditor() {
@@ -32,6 +34,7 @@ export default function TemplateEditor() {
   const [isLoading, setIsLoading] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [showLoadModal, setShowLoadModal] = useState(false);
+  const [gridSize] = useState(20); // 20px grid
   
   const { 
     template, 
@@ -164,97 +167,205 @@ export default function TemplateEditor() {
   
   const sensors = useSensors(mouseSensor, touchSensor);
   
-  // Helper function to calculate canvas position
-  const getCanvasPosition = useCallback((clientX: number, clientY: number) => {
-    const canvasContainer = document.querySelector('[data-canvas-container="true"]') as HTMLElement;
-    const canvasElement = document.querySelector('[data-canvas="true"]') as HTMLElement;
-    
-    if (!canvasContainer || !canvasElement) {
-      return { x: 0, y: 0 };
-    }
-    
-    const containerRect = canvasContainer.getBoundingClientRect();
-    const zoom = parseInt(canvasContainer.getAttribute('data-zoom') || '100') / 100;
-    
-    // Calculate position relative to the canvas container, accounting for zoom
-    const x = (clientX - containerRect.left) / zoom;
-    const y = (clientY - containerRect.top) / zoom;
-    
-    return { x: Math.max(0, x), y: Math.max(0, y) };
-  }, []);
+  // Create snap-to-grid modifier
+  const snapToGridModifier = useMemo(
+    () => createSnapModifier(gridSize),
+    [gridSize]
+  );
   
-  // Snap to grid helper
-  const snapToGrid = useCallback((position: { x: number; y: number }, gridSize = 20) => {
-    return {
-      x: Math.round(position.x / gridSize) * gridSize,
-      y: Math.round(position.y / gridSize) * gridSize,
-    };
-  }, []);
+  // Helper function to calculate canvas position (temporarily unused)
+  // const getCanvasPosition = useCallback((clientX: number, clientY: number) => {
+  //   const canvasContainer = document.querySelector('[data-canvas-container="true"]') as HTMLElement;
+  //   const canvasElement = document.querySelector('[data-canvas="true"]') as HTMLElement;
+  //   
+  //   if (!canvasContainer || !canvasElement) {
+  //     return { x: 0, y: 0 };
+  //   }
+  //   
+  //   const containerRect = canvasContainer.getBoundingClientRect();
+  //   const zoom = parseInt(canvasContainer.getAttribute('data-zoom') || '100') / 100;
+  //   
+  //   // Calculate position relative to the canvas container, accounting for zoom
+  //   const x = (clientX - containerRect.left) / zoom;
+  //   const y = (clientY - containerRect.top) / zoom;
+  //   
+  //   return { x: Math.max(0, x), y: Math.max(0, y) };
+  // }, []);
+  
+  // Snap to grid helper (temporarily unused)
+  // const snapToGrid = useCallback((position: { x: number; y: number }, gridSize = 20) => {
+  //   return {
+  //     x: Math.round(position.x / gridSize) * gridSize,
+  //     y: Math.round(position.y / gridSize) * gridSize,
+  //   };
+  // }, []);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
   }, []);
 
+  // Helper function to check if two rectangles overlap
+  const checkCollision = (rect1: { x: number; y: number; width: number; height: number },
+                         rect2: { x: number; y: number; width: number; height: number }) => {
+    return !(
+      rect1.x + rect1.width <= rect2.x ||
+      rect2.x + rect2.width <= rect1.x ||
+      rect1.y + rect1.height <= rect2.y ||
+      rect2.y + rect2.height <= rect1.y
+    );
+  };
+
+  // Helper function to check if position is valid (no overlaps)
+  const isValidPosition = (id: string | null, position: { x: number; y: number }, size: { width: number; height: number }) => {
+    const newRect = { x: position.x, y: position.y, ...size };
+    
+    // Check collision with all other elements
+    for (const element of template.elements) {
+      if (element.id === id) continue; // Skip self
+      
+      const elementRect = {
+        x: element.position.x,
+        y: element.position.y,
+        width: element.size.width,
+        height: element.size.height
+      };
+      
+      if (checkCollision(newRect, elementRect)) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over, delta } = event;
     
     if (!over || over.id !== "template-canvas") {
       setActiveDragId(null);
       return;
     }
 
-    // Get the canvas container for position calculations
-    const canvasContainer = document.querySelector('[data-canvas-container="true"]') as HTMLElement;
-    const canvasElement = document.querySelector('[data-canvas="true"]') as HTMLElement;
-    
-    if (!canvasContainer || !canvasElement) {
-      setActiveDragId(null);
-      return;
-    }
-
-    const containerRect = canvasContainer.getBoundingClientRect();
-    const zoom = parseInt(canvasContainer.getAttribute('data-zoom') || '100') / 100;
-
     // Check if this is a new element being added
     if (active.data.current?.isNew) {
-      // Use the current mouse position from the drag event
-      const mouseX = (event.activatorEvent as MouseEvent).clientX;
-      const mouseY = (event.activatorEvent as MouseEvent).clientY;
-      
-      // Calculate position relative to canvas, accounting for zoom
-      const x = (mouseX - containerRect.left) / zoom;
-      const y = (mouseY - containerRect.top) / zoom;
-      
-      // Snap to grid and add element
-      const snappedPosition = snapToGrid({
-        x: Math.max(0, x - 50), // Offset to center element on cursor
-        y: Math.max(0, y - 25)
-      });
-      
-      addElement(active.data.current.type, snappedPosition);
+      // Get canvas element to calculate relative position
+      const canvasElement = document.querySelector('[data-droppable-canvas="true"]');
+      if (canvasElement) {
+        const rect = canvasElement.getBoundingClientRect();
+        // Get the zoom scale if any
+        const zoomScale = parseFloat(canvasElement.style.transform?.match(/scale\(([^)]+)\)/)?.[1] || '1');
+        
+        // Get the pointer position from the event
+        const pointer = (event as any).activatorEvent;
+        if (pointer && pointer.clientX && pointer.clientY) {
+          // Add delta to get final position
+          const finalX = pointer.clientX + delta.x;
+          const finalY = pointer.clientY + delta.y;
+          
+          // Calculate position relative to canvas, accounting for zoom
+          const x = (finalX - rect.left) / zoomScale;
+          const y = (finalY - rect.top) / zoomScale;
+          
+          // Get the default size for this element type
+          const elementType = active.data.current.type;
+          const defaultSize = { width: 200, height: 100 }; // Default fallback
+          
+          // Calculate the position where element should be placed (cursor minus half size)
+          const rawPositionX = x - defaultSize.width / 2;
+          const rawPositionY = y - defaultSize.height / 2;
+          
+          // Snap the TOP-LEFT corner of the element to the grid (not the center)
+          const snappedX = Math.round(rawPositionX / gridSize) * gridSize;
+          const snappedY = Math.round(rawPositionY / gridSize) * gridSize;
+          
+          // Final position with grid alignment
+          const position = {
+            x: Math.max(40, snappedX), // Start at margin (40px = 2 grid units)
+            y: Math.max(40, snappedY)  // Start at margin
+          };
+          
+          // Check if position is valid (no overlaps)
+          if (isValidPosition(null, position, defaultSize)) {
+            console.log('Drop with snap:', { raw: {x, y}, snapped: {x: snappedX, y: snappedY}, final: position });
+            addElement(elementType, position);
+          } else {
+            // Try to find a nearby valid position
+            let found = false;
+            const offsets = [
+              { x: 0, y: gridSize },    // Below
+              { x: gridSize, y: 0 },    // Right
+              { x: 0, y: -gridSize },   // Above
+              { x: -gridSize, y: 0 },   // Left
+              { x: gridSize, y: gridSize },     // Diagonal
+              { x: -gridSize, y: gridSize },
+              { x: gridSize, y: -gridSize },
+              { x: -gridSize, y: -gridSize },
+            ];
+            
+            for (const offset of offsets) {
+              const altPosition = {
+                x: Math.max(0, position.x + offset.x),
+                y: Math.max(0, position.y + offset.y)
+              };
+              
+              if (isValidPosition(null, altPosition, defaultSize)) {
+                addElement(elementType, altPosition);
+                found = true;
+                break;
+              }
+            }
+            
+            if (!found) {
+              // Place at first available position from top-left
+              for (let y = 40; y < template.pageSettings.height - defaultSize.height; y += gridSize) {
+                for (let x = 40; x < template.pageSettings.width - defaultSize.width; x += gridSize) {
+                  const testPos = { x, y };
+                  if (isValidPosition(null, testPos, defaultSize)) {
+                    addElement(elementType, testPos);
+                    found = true;
+                    break;
+                  }
+                }
+                if (found) break;
+              }
+            }
+          }
+        } else {
+          // Fallback
+          addElement(active.data.current.type, { x: 100, y: 100 });
+        }
+      } else {
+        // Fallback if canvas not found
+        addElement(active.data.current.type, { x: 100, y: 100 });
+      }
     } 
     // Check if this is an existing element being moved
     else {
       const element = template.elements.find(el => el.id === active.id);
-      if (element && event.delta) {
-        // Simple calculation - use the delta directly with zoom compensation
-        const deltaX = event.delta.x / zoom;
-        const deltaY = event.delta.y / zoom;
-        
-        const newPosition = {
-          x: Math.max(0, element.position.x + deltaX),
-          y: Math.max(0, element.position.y + deltaY),
-        };
+      if (element && delta) {
+        // Apply the drag delta to move the element with grid snapping
+        const rawX = element.position.x + delta.x;
+        const rawY = element.position.y + delta.y;
         
         // Snap to grid
-        const snappedPosition = snapToGrid(newPosition);
-        moveElement(element.id, snappedPosition);
-        saveToHistory();
+        const newPosition = {
+          x: Math.max(0, Math.round(rawX / gridSize) * gridSize),
+          y: Math.max(0, Math.round(rawY / gridSize) * gridSize)
+        };
+        
+        // Check if new position is valid (no overlaps)
+        if (isValidPosition(element.id, newPosition, element.size)) {
+          moveElement(element.id, newPosition);
+          saveToHistory();
+        } else {
+          // Revert to original position if collision detected
+          console.log('Collision detected, keeping original position');
+        }
       }
     }
     
     setActiveDragId(null);
-  }, [snapToGrid, addElement, template.elements, moveElement, saveToHistory]);
+  }, [addElement, template.elements, moveElement, saveToHistory, gridSize, isValidPosition]);
 
   const selectedElementData = template.elements.find(el => el.id === selectedElement);
 
@@ -391,8 +502,10 @@ export default function TemplateEditor() {
   return (
     <DndContext 
       sensors={sensors}
-      onDragStart={handleDragStart} 
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
+      modifiers={[snapToGridModifier]}
     >
       <div className="h-screen flex flex-col bg-muted/30">
         {/* Header Toolbar */}

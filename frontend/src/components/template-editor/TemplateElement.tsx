@@ -63,10 +63,11 @@ export function TemplateElement({ element, isSelected, zoom }: TemplateElementPr
     top: element.position.y,
     width: element.size.width,
     height: element.size.height,
-    // Apply transform normally - dnd-kit handles the drag transform properly
+    // Apply transform for dragging
     transform: CSS.Translate.toString(transform),
     zIndex: isDragging ? 1000 : isSelected ? 100 : 1,
-    opacity: isDragging ? 0.8 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    transition: isDragging ? 'none' : 'box-shadow 0.2s ease, border-color 0.2s ease',
     ...element.styles,
   };
 
@@ -226,9 +227,9 @@ export function TemplateElement({ element, isSelected, zoom }: TemplateElementPr
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group cursor-move bg-white border transition-all",
-        isSelected ? "border-primary shadow-md" : "border-gray-200 hover:border-gray-400",
-        isDragging && "opacity-50"
+        "group bg-white border rounded-sm",
+        isSelected ? "border-primary shadow-lg ring-2 ring-primary/20" : "border-gray-200 hover:border-gray-400 hover:shadow-md",
+        isDragging && "opacity-50 shadow-2xl"
       )}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}

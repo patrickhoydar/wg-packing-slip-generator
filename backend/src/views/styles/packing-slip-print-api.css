@@ -1,0 +1,43 @@
+/* Styles for print */
+@media print {
+  #print-preview-btn {
+    display: none;
+  }
+
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+
+  p {
+    font-size: 16px;
+  }
+
+  /* Specific styling for address line */
+  p.left.bottom {
+    font-size: 12px !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Match PDF service margins */
+  @page {
+    margin: 0.5cm;
+    size: letter;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    margin: 0;
+    padding: 0.5cm;
+    width: auto;
+    height: auto;
+  }
+}

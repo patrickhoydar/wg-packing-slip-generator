@@ -42,10 +42,10 @@ const defaultTemplate: Template = {
     width: 816, // 8.5 inches at 96 DPI
     height: 1056, // 11 inches at 96 DPI  
     margins: {
-      top: 48,
-      right: 48,
-      bottom: 48,
-      left: 48,
+      top: 40,    // 2 grid units (20px * 2)
+      right: 40,   // 2 grid units
+      bottom: 40,  // 2 grid units  
+      left: 40,    // 2 grid units
     },
   },
 };

@@ -7,6 +7,7 @@ import { HHGlobalStrategy } from './strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from './strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquirEDStrategy } from './strategies/inquired/inquired.strategy';
 import { InquirEDService } from './strategies/inquired/inquired.service';
+import { ScholasticStrategy } from './strategies/scholastic/scholastic.strategy';
 import { CsvParserService } from '../common/services/csv-parser.service';
 import { PdfModule } from '../pdf/pdf.module';
 import { PaceModule } from '../pace/pace.module';
@@ -53,6 +54,7 @@ import { JobsModule } from '../jobs/jobs.module';
     GeorgiaBaptistStrategy,
     InquirEDStrategy,
     InquirEDService,
+    ScholasticStrategy,
     CsvParserService,
   ],
   exports: [CustomersService, CustomerStrategyFactory],

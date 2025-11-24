@@ -1,47 +1,36 @@
-"use client";
+"use client"
 
-import { useRef, useState, useCallback } from "react";
-import { useDroppable, useDndContext } from "@dnd-kit/core";
-import { useTemplateStore } from "@/store/templateStore";
-import { TemplateElement } from "./TemplateElement";
-import { cn } from "@/lib/utils";
-import { Position } from "@/types/template";
+import { useRef, useState, useCallback } from "react"
+import { useDroppable } from "@dnd-kit/core"
+import { useTemplateStore } from "@/store/templateStore"
+import { TemplateElement } from "./TemplateElement"
+import { cn } from "@/lib/utils"
 
 interface TemplateCanvasProps {
-  className?: string;
+  className?: string
 }
 
 export function TemplateCanvas({ className }: TemplateCanvasProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [showGrid, setShowGrid] = useState(true);
-  const [zoom, setZoom] = useState(100);
-  const [dragPreview, setDragPreview] = useState<Position | null>(null);
-  
-  const { template, selectedElement, selectElement } = useTemplateStore();
-  const { active } = useDndContext();
-  
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const [showGrid, setShowGrid] = useState(true)
+  const [zoom, setZoom] = useState(100)
+  const gridSize = 20 // Grid size in pixels
+
+  const { template, selectedElement, selectElement } = useTemplateStore()
+
   const { setNodeRef, isOver } = useDroppable({
     id: "template-canvas",
-  });
+    data: {
+      accepts: ['element', 'new-element'],
+    }
+  })
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     // Only deselect if clicking directly on canvas
     if (e.target === e.currentTarget) {
-      selectElement(null);
+      selectElement(null)
     }
-  };
-
-  const getCanvasPosition = (clientX: number, clientY: number) => {
-    if (!canvasRef.current) return { x: 0, y: 0 };
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    const scale = zoom / 100;
-    
-    return {
-      x: (clientX - rect.left) / scale,
-      y: (clientY - rect.top) / scale,
-    };
-  };
+  }
 
   return (
     <div className={cn("flex-1 bg-muted/30 overflow-auto p-8", className)}>
@@ -58,7 +47,7 @@ export function TemplateCanvas({ className }: TemplateCanvasProps) {
             Grid
           </button>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => setZoom(Math.max(25, zoom - 25))}
@@ -74,7 +63,7 @@ export function TemplateCanvas({ className }: TemplateCanvasProps) {
             +
           </button>
         </div>
-        
+
         <div className="ml-auto text-sm text-muted-foreground">
           {template.elements.length} elements
         </div>
@@ -84,12 +73,11 @@ export function TemplateCanvas({ className }: TemplateCanvasProps) {
       <div className="flex justify-center">
         <div
           ref={setNodeRef}
+          data-droppable-canvas="true"
           className={cn(
             "relative bg-white shadow-xl transition-all",
             isOver && "ring-2 ring-primary ring-offset-2"
           )}
-          data-canvas-container="true"
-          data-zoom={zoom}
           style={{
             width: template.pageSettings.width,
             height: template.pageSettings.height,
@@ -97,30 +85,35 @@ export function TemplateCanvas({ className }: TemplateCanvasProps) {
             transformOrigin: "top left",
           }}
         >
-          {/* Grid Overlay */}
+          {/* Grid Overlay - aligned with margins */}
           {showGrid && (
             <div
-              className="absolute inset-0 pointer-events-none"
+              className="absolute pointer-events-none"
               style={{
+                top: template.pageSettings.margins.top,
+                left: template.pageSettings.margins.left,
+                right: template.pageSettings.margins.right,
+                bottom: template.pageSettings.margins.bottom,
                 backgroundImage: `
-                  linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-                  linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+                  linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+                  linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px)
                 `,
                 backgroundSize: "20px 20px",
+                backgroundPosition: "0 0",
               }}
             />
           )}
 
           {/* Page Margins Guide */}
           <div
-            className="absolute border border-dashed border-gray-300 pointer-events-none"
+            className="absolute border-2 border-dashed border-blue-300 pointer-events-none"
             style={{
-              top: template.pageSettings.margins.top,
-              left: template.pageSettings.margins.left,
-              right: template.pageSettings.margins.right,
-              bottom: template.pageSettings.margins.bottom,
-              width: `calc(100% - ${template.pageSettings.margins.left + template.pageSettings.margins.right}px)`,
-              height: `calc(100% - ${template.pageSettings.margins.top + template.pageSettings.margins.bottom}px)`,
+              top: template.pageSettings.margins.top - 1,
+              left: template.pageSettings.margins.left - 1,
+              right: template.pageSettings.margins.right - 1,
+              bottom: template.pageSettings.margins.bottom - 1,
+              width: `calc(100% - ${template.pageSettings.margins.left + template.pageSettings.margins.right - 2}px)`,
+              height: `calc(100% - ${template.pageSettings.margins.top + template.pageSettings.margins.bottom - 2}px)`,
             }}
           />
 
@@ -142,43 +135,12 @@ export function TemplateCanvas({ className }: TemplateCanvasProps) {
             ))}
           </div>
 
-          {/* Enhanced Drop Indicator */}
+          {/* Simple Drop Indicator */}
           {isOver && (
-            <>
-              {/* Drop zone highlight */}
-              <div className="absolute inset-0 bg-primary/5 pointer-events-none border-2 border-primary border-dashed animate-pulse" />
-              
-              {/* Drop guidance */}
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-                  <div className="w-3 h-3 bg-primary-foreground rounded-full animate-bounce" />
-                  <span className="text-sm font-medium">
-                    {active?.data.current?.isNew 
-                      ? `Drop to add ${active.data.current.type.replace('-', ' ')}`
-                      : 'Drop to place element'}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Grid snap indicators - show snap points when dragging */}
-              {showGrid && active && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `
-                        radial-gradient(circle at center, #3b82f6 2px, transparent 2px)
-                      `,
-                      backgroundSize: "20px 20px",
-                      opacity: 0.3,
-                    }}
-                  />
-                </div>
-              )}
-            </>
+            <div className="absolute inset-0 bg-primary/10 pointer-events-none border-2 border-primary border-dashed" />
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }

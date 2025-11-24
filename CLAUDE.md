@@ -338,3 +338,4 @@ npm run build          # Build both apps
 npm run build:backend  # Backend only
 npm run build:frontend # Frontend only
 ```
+- No need to run the dev server as I'm already consistently running it with F5 and my Vscode Launch.json file

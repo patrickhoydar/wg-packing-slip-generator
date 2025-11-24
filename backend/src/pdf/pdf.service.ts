@@ -11,6 +11,7 @@ import { CustomerStrategyFactory } from '../customers/strategies/base/customer-s
 import { HHGlobalStrategy } from '../customers/strategies/hh-global/hh-global.strategy';
 import { GeorgiaBaptistStrategy } from '../customers/strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquirEDStrategy } from '../customers/strategies/inquired/inquired.strategy';
+import { ScholasticStrategy } from '../customers/strategies/scholastic/scholastic.strategy';
 
 interface TemplateConfig {
   templatePath: string;
@@ -60,6 +61,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     private readonly hhGlobalStrategy: HHGlobalStrategy,
     private readonly georgiaBaptistStrategy: GeorgiaBaptistStrategy,
     private readonly inquirEDStrategy: InquirEDStrategy,
+    private readonly scholasticStrategy: ScholasticStrategy,
   ) {}
 
   async onModuleInit() {
@@ -75,6 +77,13 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     this.customerStrategyFactory.registerStrategy(
       'INQUIRED',
       this.inquirEDStrategy,
+    );
+    this.customerStrategyFactory.registerStrategy(
+      'SCHOLASTIC',
+      this.scholasticStrategy,
+    );    this.customerStrategyFactory.registerStrategy(
+      'scholastic',
+      this.scholasticStrategy,
     );
 
     this.setupTemplateConfigs();
@@ -118,6 +127,16 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     this.templateConfigs.set('INQUIRED', {
       templatePath: path.join(viewsDir, 'templates', 'inquired.hbs'),
       stylesPath: path.join(viewsDir, 'styles', 'base.css'),
+    });
+
+    this.templateConfigs.set('scholastic', {
+      templatePath: path.join(viewsDir, 'templates', 'scholastic.hbs'),
+      stylesPath: path.join(viewsDir, 'styles', 'scholastic.css'),
+    });
+    
+    this.templateConfigs.set('SCHOLASTIC', {
+      templatePath: path.join(viewsDir, 'templates', 'scholastic.hbs'),
+      stylesPath: path.join(viewsDir, 'styles', 'scholastic.css'),
     });
   }
 
@@ -595,10 +614,32 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async getPage(): Promise<puppeteer.Page> {
+    // Try to get page from pool first
     if (this.pagePool.length > 0) {
-      return this.pagePool.pop()!;
+      const page = this.pagePool.pop()!;
+      
+      // Verify the page is still valid
+      try {
+        if (page.isClosed()) {
+          // Page was closed, create a new one
+          return this.createNewPage();
+        }
+        
+        // Test if page is still responsive
+        await page.evaluate(() => true);
+        return page;
+      } catch (error) {
+        // Page is not responsive, create a new one
+        this.logger.warn('Pooled page is not responsive, creating new page');
+        await this.safeClosePage(page);
+        return this.createNewPage();
+      }
     }
 
+    return this.createNewPage();
+  }
+
+  private async createNewPage(): Promise<puppeteer.Page> {
     if (!this.browser) {
       throw new Error('Browser not initialized');
     }
@@ -633,24 +674,42 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async returnPage(page: puppeteer.Page): Promise<void> {
-    if (this.pagePool.length < this.maxPoolSize && !page.isClosed()) {
-      try {
-        await page.goto('about:blank');
-        this.pagePool.push(page);
-      } catch (error) {
-        this.logger.warn('Error returning page to pool:', error);
+    try {
+      // Check if page is closed before attempting any operations
+      if (page.isClosed()) {
+        return;
+      }
+
+      // If pool is not full, reset and return page to pool
+      if (this.pagePool.length < this.maxPoolSize) {
         try {
-          await page.close();
-        } catch (closeError) {
-          this.logger.warn('Error closing page:', closeError);
+          // Navigate to blank page to clear any state
+          await page.goto('about:blank', {
+            waitUntil: 'domcontentloaded',
+            timeout: 5000,
+          });
+          this.pagePool.push(page);
+        } catch (error) {
+          // If navigation fails, close the page
+          this.logger.warn('Error resetting page for pool, will close it:', error);
+          await this.safeClosePage(page);
         }
+      } else {
+        // Pool is full, close the page
+        await this.safeClosePage(page);
       }
-    } else {
-      try {
+    } catch (error) {
+      this.logger.error('Error in returnPage:', error);
+    }
+  }
+
+  private async safeClosePage(page: puppeteer.Page): Promise<void> {
+    try {
+      if (!page.isClosed()) {
         await page.close();
-      } catch (error) {
-        this.logger.warn('Error closing page:', error);
       }
+    } catch (error) {
+      this.logger.warn('Error closing page:', error);
     }
   }
 
@@ -936,7 +995,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     packingSlipData: any,
     customerStrategy: string,
   ): Promise<Buffer> {
-    let page: puppeteer.Page;
+    let page: puppeteer.Page | null = null;
+    let shouldClosePage = false;
 
     try {
       page = await this.getPage();
@@ -975,23 +1035,22 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         footerTemplate: '<div></div>', // Empty footer to just create space
       });
 
+      // Successfully generated PDF, return page to pool
+      await this.returnPage(page);
       return Buffer.from(pdf);
     } catch (error) {
       this.logger.error('Error generating PDF:', error);
-      // Close the page instead of returning it to pool if there was an error
-      try {
-        await page.close();
-      } catch (closeError) {
-        this.logger.warn(
-          'Error closing page after PDF generation error:',
-          closeError,
-        );
+      shouldClosePage = true;
+      
+      // Try to close the page if there was an error
+      if (page && !page.isClosed()) {
+        try {
+          await page.close();
+        } catch (closeError) {
+          this.logger.warn('Error closing page after PDF generation error:', closeError);
+        }
       }
       throw error;
-    } finally {
-      if (page && !page.isClosed()) {
-        await this.returnPage(page);
-      }
     }
   }
 
@@ -1086,6 +1145,14 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       });
     };
 
+    // For Scholastic templates with frontend data structure
+    if (data.shipTo && data.orderDetails) {
+      return {
+        ...data,
+        generatedDate: formatDate(data.generatedDate || new Date().toISOString()),
+      };
+    }
+
     // Calculate summary data
     const totalItems = data.order?.items?.length || 0;
     const totalQuantity =
@@ -1160,6 +1227,13 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
       // CRITICAL: Pass through the entire kit object for customer-specific templates
       metadata: data.metadata || null,
+
+      // Pass through Scholastic-specific fields if present
+      boxTitle: data.boxTitle,
+      boxNumber: data.boxNumber,
+      totalBoxes: data.totalBoxes,
+      orderDetails: data.orderDetails,
+      studentDetails: data.studentDetails,
     };
 
     return templateData;

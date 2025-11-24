@@ -1,3 +1,5 @@
+"use client"
+
 import { Package, Users, Settings, Grid, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 

@@ -1,0 +1,220 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Packing Slip
+    </title>
+    <link rel="stylesheet" href="/packing-slip-base-api.css" />
+    {{! <link rel='stylesheet' href='/packing-slip-screen-api.css' media='screen' /> }}
+    <link rel="stylesheet" href="/packing-slip-print-api.css" media="print" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="inner">
+        <header>
+          <h1 class="title">
+            TAKE-EVERYWHERE PACKS
+          </h1>
+          <div class="logo-barcode-container">
+            <div class="logo-container">
+              <img class="logo" src="{{logoImage}}" alt="jrr logo" />
+            </div>
+            {{#if showBarcode}}
+              <div class="barcode-container">
+                <img class="barcode" src="{{barcodeImage}}" alt="Shipment Barcode" />
+              </div>
+            {{/if}}
+          </div>
+          <div class="grid">
+            <p class="left bottom">
+              2450 Meadowbrook Pkwy Duluth, GA 30096, Phone: 877-415-7323
+            </p>
+            <h2 class="right bottom packing-list">
+              PACKING LIST
+            </h2>
+          </div>
+          <hr />
+        </header>
+        <div class="shipment-info mb-25">
+          <div class="grid-row two-col">
+            {{! COL 1 }}
+            <div class="col">
+              {{#if showJobInfo}}
+                <strong>
+                  <span>
+                    Job No:
+                  </span>
+                  {{jobNumber}}
+                </strong>
+              {{/if}}
+              {{#if showShipToDetails}}
+                <div class="ship-to-details">
+                  <h3 class="ship-to-header">
+                    Ship To:
+                  </h3>
+                  <div class="ship-to-address">
+                    <div>
+                      {{shipTo.school}}
+                    </div>
+                    <div>
+                      {{shipTo.name}}
+                    </div>
+                    <div>
+                      {{shipTo.address1}}
+                    </div>
+                    <div>
+                      {{shipTo.address2}}
+                    </div>
+                    <div>
+                      {{shipTo.cityStateZip}}
+                    </div>
+                    <div>
+                      {{shipTo.email}}
+                    </div>
+                  </div>
+                </div>
+              {{/if}}
+            </div>
+            {{! COL 2 }}
+            <div class="col">
+              {{#if showJobInfo}}
+                <strong>
+                  <span>
+                    JRR No:
+                  </span>
+                  {{jrrNo}}
+                </strong>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        {{#if showShippingDetails}}
+          <div class="shipping-details mb-25">
+            <div class="shipping-details-header mb-5">
+              <strong>
+                {{#if showAttention}}
+                  {{#if attentionTeacher}}
+                    {{attentionTeacher}}
+                  {{/if}}
+                {{/if}}
+              </strong>
+            </div>
+          </div>
+        {{/if}}
+        {{#if showOrderDetails}}
+          <div class="order-totals mb-25 mt-25">
+            <div class="details-header mb-5">
+              <strong>
+                Order Details
+              </strong>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    SKU
+                  </th>
+                  <th class="text-left">
+                    Description
+                  </th>
+                  <th class="text-center">
+                    Qty Ordered
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each orderDetails}}
+                  <tr>
+                    <td>
+                      {{this.sku}}
+                    </td>
+                    <td>
+                      {{this.description}}
+                    </td>
+                    <td class="text-center">
+                      {{this.quantity}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        {{/if}}
+        {{#if backpacksOnly}}
+          <div class="bacpack-details">
+            <h2>
+              BACKPACKS ONLY
+            </h2>
+          </div>
+        {{else if showStudentDetails}}
+          <div class="student-details">
+            <div class="details-header mb-5">
+              <strong>
+                Details
+              </strong>
+            </div>
+            <table id="order-details-table">
+              <thead>
+                <tr>
+                  <th class="text-left gutter-col">
+                    Description
+                  </th>
+                  <th class="text-left sku-col">
+                    Code
+                  </th>
+                  <th class="text-left gutter-col">
+                    Student Name
+                  </th>
+                  <th class="text-left gutter-col">
+                    Description
+                  </th>
+                  <th class="text-left sku-col">
+                    Code
+                  </th>
+                  <th class="text-left gutter-col">
+                    Student Name
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each studentDetails}}
+                  <tr>
+                    <td class="text-left gutter-col">
+                      {{this.description1}}
+                    </td>
+                    <td class="text-left gutter-col">
+                      {{this.code1}}
+                    </td>
+                    <td class="text-left gutter-col">
+                      {{this.studentName1}}
+                    </td>
+                    <td class="text-left gutter-col">
+                      {{this.description2}}
+                    </td>
+                    <td class="text-left gutter-col">
+                      {{this.code2}}
+                    </td>
+                    <td class="text-left gutter-col">
+                      {{this.studentName2}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+    <footer>
+      <p class="support-text">
+        Questions or concerns about your order? We're here to help!
+        <br />
+        Reach us on chat: justrightreader.com, email: support@justrightreader.com, or phone: 1-877-415-READ
+      </p>
+      <p class="box-size">
+        {{boxSize}}
+      </p>
+    </footer>
+  </body>
+</html>

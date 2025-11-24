@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholastic Packing Slip</title>
+</head>
+<body>
+  <div class="scholastic-packing-slip">
+    <!-- Ship To Section -->
+    <div class="ship-to-section">
+      <h2 class="ship-to-header">Ship to Address:</h2>
+      <div class="ship-to-content">
+        {{#if shipTo}}
+          {{#if shipTo.company}}
+          <div class="company-name">{{shipTo.company}}</div>
+          {{/if}}
+          {{#if shipTo.name}}
+          <div class="address-line">{{shipTo.name}}</div>
+          {{/if}}
+          
+          {{!-- Check if address is nested object or flat structure --}}
+          {{#if shipTo.address}}
+            {{#if shipTo.address.line1}}
+              {{!-- Nested object structure --}}
+              <div class="address-line">{{shipTo.address.line1}}</div>
+              {{#if shipTo.address.line2}}
+              <div class="address-line">{{shipTo.address.line2}}</div>
+              {{/if}}
+              <div class="city-state-zip">
+                {{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zip}}{{shipTo.address.zipCode}}
+              </div>
+            {{else if shipTo.address.street}}
+              {{!-- Alternative nested structure --}}
+              <div class="address-line">{{shipTo.address.street}}</div>
+              <div class="city-state-zip">
+                {{shipTo.address.city}}, {{shipTo.address.state}} {{shipTo.address.zipCode}}
+              </div>
+            {{else}}
+              {{!-- Flat structure where address is a street string --}}
+              <div class="address-line">{{shipTo.address}}</div>
+              {{#if shipTo.city}}
+              <div class="city-state-zip">{{shipTo.city}}, {{shipTo.state}} {{shipTo.zipCode}}</div>
+              {{/if}}
+            {{/if}}
+          {{else}}
+            {{!-- No address property, check for direct city/state/zip --}}
+            {{#if shipTo.city}}
+            <div class="city-state-zip">{{shipTo.city}}, {{shipTo.state}} {{shipTo.zipCode}}</div>
+            {{/if}}
+          {{/if}}
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Box Information -->
+    <div class="box-info-section">
+      {{#if boxTitle}}
+      <h2 class="box-info-header">{{boxTitle}} - Box {{boxNumber}} of {{totalBoxes}}</h2>
+      {{else if jobInfo.jobNumber}}
+      <h2 class="box-info-header">Order {{jobInfo.jobNumber}} - Box 1 of 1</h2>
+      {{else}}
+      <h2 class="box-info-header">Samples - Box 1 of 1</h2>
+      {{/if}}
+    </div>
+
+    <!-- Order Details Section -->
+    <div class="order-details-section">
+      <h3 class="section-header">Order Details</h3>
+      <table class="order-details-table">
+        <thead>
+          <tr>
+            <th class="sku-header">SKU</th>
+            <th class="description-header">Description</th>
+            <th class="qty-header">Qty Ordered</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if orderDetails}}
+            {{#each orderDetails}}
+            <tr>
+              <td class="sku-cell">{{this.sku}}</td>
+              <td class="description-cell">{{this.description}}</td>
+              <td class="qty-cell">{{this.quantity}}</td>
+            </tr>
+            {{/each}}
+          {{else}}
+            {{#each items}}
+            <tr>
+              <td class="sku-cell">{{this.sku}}</td>
+              <td class="description-cell">{{this.description}}</td>
+              <td class="qty-cell">{{this.quantity}}</td>
+            </tr>
+            {{/each}}
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Student Details Section -->
+    <div class="student-details-section">
+      <h3 class="section-header">Details</h3>
+      <table class="student-details-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Code</th>
+            <th>Student Name</th>
+            <th>Description</th>
+            <th>Code</th>
+            <th>Student Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if studentDetails}}
+            {{#each studentDetails}}
+            <tr>
+              <td>{{this.description1}}</td>
+              <td>{{this.code1}}</td>
+              <td>{{this.studentName1}}</td>
+              <td>{{this.description2}}</td>
+              <td>{{this.code2}}</td>
+              <td>{{this.studentName2}}</td>
+            </tr>
+            {{/each}}
+          {{else}}
+            {{#each items}}
+            <tr>
+              <td>{{this.description}}</td>
+              <td>{{this.sku}}</td>
+              <td>{{this.studentName}}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            {{/each}}
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer Information -->
+    {{#if specialInstructions}}
+    <div class="special-instructions">
+      <p>Special Instructions: {{specialInstructions}}</p>
+    </div>
+    {{/if}}
+
+    {{#if notes}}
+    <div class="special-instructions">
+      <p>Notes: {{notes}}</p>
+    </div>
+    {{/if}}
+  </div>
+</body>
+</html>

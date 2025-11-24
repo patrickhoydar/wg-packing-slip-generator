@@ -8,6 +8,7 @@ import { HHGlobalStrategy } from '../customers/strategies/hh-global/hh-global.st
 import { GeorgiaBaptistStrategy } from '../customers/strategies/georgia-baptist/georgia-baptist.strategy';
 import { InquirEDStrategy } from '../customers/strategies/inquired/inquired.strategy';
 import { InquirEDService } from '../customers/strategies/inquired/inquired.service';
+import { ScholasticStrategy } from '../customers/strategies/scholastic/scholastic.strategy';
 import { CsvParserService } from '../common/services/csv-parser.service';
 
 @Module({
@@ -21,6 +22,7 @@ import { CsvParserService } from '../common/services/csv-parser.service';
     GeorgiaBaptistStrategy,
     InquirEDStrategy,
     InquirEDService,
+    ScholasticStrategy,
     CsvParserService,
   ],
   exports: [PdfService, PdfMergerService],
